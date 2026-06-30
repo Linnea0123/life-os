@@ -7,7 +7,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="QuantLife">
 <meta name="theme-color" content="#2f7cf6">
-
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
 <title>Life OS</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -17,6 +19,152 @@
   box-sizing: border-box;
 }
 
+/* Gist 同步按钮优化 - 调小尺寸 */
+#gistConfigStatus {
+  margin-top: 10px !important;
+  color: var(--text-secondary) !important;
+  font-size: 0.85rem !important;
+}
+#settingsSection .form-actions .gist-btn {
+  padding: 6px 14px !important;
+  font-size: 0.78rem !important;
+  border-radius: 8px !important;
+  min-height: 32px !important;
+  font-weight: 600 !important;
+}
+#settingsSection .form-actions .gist-btn.btn-primary {
+  background: #2f7cf6 !important;
+  color: #fff !important;
+  border: none !important;
+}
+#settingsSection .form-actions .gist-btn.btn-primary:hover {
+  background: #1a5fc7 !important;
+}
+#settingsSection .form-actions .gist-btn.btn-secondary {
+  background: #f0f2f5 !important;
+  color: #4a5568 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+#settingsSection .form-actions .gist-btn.btn-secondary:hover {
+  background: #e5e8ee !important;
+}
+
+
+/* 八维显示与排序 - 按钮优化 */
+#dimensionManager .dm-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 10px 14px !important;
+  border: 1px solid #e8ecf4 !important;
+  border-radius: 12px !important;
+  background: #fafcff !important;
+  margin-bottom: 8px !important;
+  transition: all 0.2s ease !important;
+}
+#dimensionManager .dm-item:hover {
+  background: #f5f8ff !important;
+  border-color: #d0d9ed !important;
+}
+#dimensionManager .dm-item .dm-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  font-weight: 600 !important;
+  color: #1f2435 !important;
+  font-size: 0.95rem !important;
+}
+#dimensionManager .dm-item .dm-label input[type="checkbox"] {
+  width: 18px !important;
+  height: 18px !important;
+  accent-color: #2f7cf6 !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+}
+#dimensionManager .dm-item .dm-actions {
+  display: flex !important;
+  gap: 6px !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+}
+#dimensionManager .dm-item .dm-btn {
+  border: none !important;
+  background: transparent !important;
+  color: #6e7486 !important;
+  padding: 5px 12px !important;
+  border-radius: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+  font-family: inherit !important;
+  letter-spacing: 0.3px !important;
+}
+#dimensionManager .dm-item .dm-btn:hover {
+  background: #eef3fc !important;
+  color: #2f7cf6 !important;
+}
+#dimensionManager .dm-item .dm-btn:active {
+  transform: scale(0.95) !important;
+}
+#dimensionManager .dm-item .dm-btn.dm-btn-edit {
+  color: #2f7cf6 !important;
+}
+#dimensionManager .dm-item .dm-btn.dm-btn-edit:hover {
+  background: #e8f0ff !important;
+}
+#dimensionManager .dm-item .dm-btn.dm-btn-move {
+  color: #8e95a8 !important;
+}
+#dimensionManager .dm-item .dm-btn.dm-btn-move:hover {
+  background: #eef1f6 !important;
+  color: #4a5568 !important;
+}
+#dimensionManager .dm-item .dm-btn:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+  background: transparent !important;
+}
+#dimensionManager .dm-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 12px !important;
+}
+#dimensionManager .dm-header .dm-count {
+  color: #6e7486 !important;
+  font-size: 0.85rem !important;
+}
+#dimensionManager .dm-header .dm-count strong {
+  color: #1f2435 !important;
+}
+#dimensionManager .dm-header .dm-add-btn {
+  border: none !important;
+  background: #2f7cf6 !important;
+  color: #fff !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  font-family: inherit !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+#dimensionManager .dm-header .dm-add-btn:hover {
+  background: #1a5fc7 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(47, 124, 246, 0.3) !important;
+}
+#dimensionManager .dm-header .dm-add-btn:active {
+  transform: scale(0.96) !important;
+}
 
 :root {
   --bg: #f5f7fa;
@@ -978,10 +1126,98 @@ body {
   color: var(--text-secondary);
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 500px) {
+  /* top-row 改成上下排列 */
   .top-row {
-    grid-template-columns: 1fr;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
+    width: 100% !important;
   }
+  
+  /* 经验值卡片 - 第一行（在上面） */
+  .top-row .overview-card {
+    order: 0 !important;
+    width: 100% !important;
+    padding: 10px 12px !important;
+  }
+  
+  /* 经验值卡片内部：经验值 + 四个统计 一行显示 */
+  .top-row .overview-card .level-box {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    margin-bottom: 6px !important;
+  }
+  .top-row .overview-card .level-badge {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 10px !important;
+    min-width: 32px !important;
+    border-radius: 8px !important;
+  }
+  .top-row .overview-card .level-info .exp-total {
+    font-size: 0.8rem !important;
+  }
+  .top-row .overview-card .level-info .exp-next {
+    font-size: 0.6rem !important;
+  }
+  .top-row .overview-card .progress-bar {
+    display: none !important;
+  }
+  
+  /* 四个统计 一行显示 */
+  .top-row .overview-card .stats-box {
+    padding: 4px 6px !important;
+    border-radius: 6px !important;
+  }
+  .top-row .overview-card .stats-box .stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr 1fr !important;
+    gap: 2px !important;
+    margin: 0 !important;
+  }
+  .top-row .overview-card .stats-box .stat-item {
+    padding: 2px 2px !important;
+    min-height: 20px !important;
+    background: transparent !important;
+    border: none !important;
+  }
+  .top-row .overview-card .stats-box .stat-value {
+    font-size: 13px !important;
+    line-height: 1.2 !important;
+  }
+  .top-row .overview-card .stats-box .stat-label {
+    font-size: 7px !important;
+    line-height: 1.2 !important;
+  }
+  
+  /* 雷达图 - 第二行（在下面） */
+  .top-row .radar-card {
+    order: 1 !important;
+    width: 100% !important;
+    padding: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .polygon-container {
+    height: 160px !important;
+    width: 100% !important;
+    padding: 0 !important;
+  }
+}
+
+  .today-section {
+    order: 3 !important;
+    width: 100% !important;
+  }
+  .dimensions-table-section {
+    order: 4 !important;
+    width: 100% !important;
+  }
+  
   .dimensions-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -3117,55 +3353,80 @@ body.focus-home-mode #mobileFocusHome {
     flex-direction: column;
   }
 
-  .main-content > .page-header {
-    order: 1;
+  .main-content > .page-header { order: 1; }
+  .main-content > #mobileFocusHome { order: 2; }
+  .main-content > .top-row { order: 3; }
+  .main-content > .today-section { order: 4; }      /* ✅ Today's Check-in */
+  .main-content > .dimensions-table-section { order: 5; }  /* 📈 Growth Progress */
+  .main-content > .records-row { order: 6; }
+  .main-content > .bottom-row { order: 7; }
   }
 
-  .main-content > #mobileFocusHome {
-    order: 2;
-  }
 
-  .main-content > .top-row {
-    order: 3;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+@media (max-width: 500px) {
+  /* Today's Check-in 和 Growth Progress 里面的卡片一行2张 */
+  .today-section .dimensions-grid,
+  .dimensions-table-section .dimensions-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
   }
-
-  .main-content > .top-row .radar-card {
-    order: 1;
+  
+  /* 卡片内部文字调小，适应小屏幕 */
+  .today-section .dimension-card,
+  .dimensions-table-section .dimension-card {
+    padding: 6px 8px !important;
   }
-
-  .main-content > .top-row .overview-card {
-    order: 2;
+  .today-section .dimension-card .dimension-name,
+  .dimensions-table-section .dimension-card .dimension-name {
+    font-size: 0.75rem !important;
   }
-
-  .main-content > .dimensions-table-section {
-    order: 4;
+  .today-section .dimension-card .dimension-level,
+  .dimensions-table-section .dimension-card .dimension-level {
+    font-size: 0.6rem !important;
   }
-
-  .main-content > .today-section {
-    order: 5;
+  .today-section .dimension-card .dimension-exp,
+  .dimensions-table-section .dimension-card .dimension-exp {
+    font-size: 0.6rem !important;
   }
-
-  .main-content > .records-row {
-    order: 6;
+  .today-section .dimension-card .dimension-icon,
+  .dimensions-table-section .dimension-card .dimension-icon {
+    font-size: 0.75rem !important;
   }
-
-  .main-content > .bottom-row {
-    order: 7;
-  }
-
-  .main-content > #todayStatsSection,
-  .main-content > #taskCampSection,
-  .main-content > #wealthSection,
-  .main-content > #settingsSection,
-  .main-content > #achievementSection,
-  .main-content > #supportSection,
-  .main-content > #quickCheckinSection {
-    order: 10;
+  .today-section .dimension-card .dimension-progress,
+  .dimensions-table-section .dimension-card .dimension-progress {
+    height: 4px !important;
+    margin-top: 4px !important;
   }
 }
+
+@media (max-width: 500px) {
+  /* 🕒 Today's Stats 里面的卡片一行2张 */
+  #todayStatsSection .dimensions-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+  #todayStatsSection .dimension-card {
+    padding: 6px 8px !important;
+  }
+  #todayStatsSection .dimension-card .dimension-name {
+    font-size: 0.7rem !important;
+  }
+  #todayStatsSection .dimension-card .dimension-level,
+  #todayStatsSection .dimension-card .dimension-status,
+  #todayStatsSection .dimension-card .dimension-exp {
+    font-size: 0.6rem !important;
+  }
+  #todayStatsSection .dimension-card .dimension-icon {
+    font-size: 0.7rem !important;
+  }
+  #todayStatsSection .dimension-card .dimension-progress {
+    height: 4px !important;
+    margin-top: 4px !important;
+  }
+}
+
 
 /* 战绩：周历条（周一～周日，含选中周） */
 .battle-week-strip {
@@ -3685,24 +3946,22 @@ body.focus-home-mode #mobileFocusHome {
     <div class="form-group">
       <label for="gistToken">GitHub Personal Access Token</label>
       <input type="password" id="gistToken" placeholder="ghp_xxxxxxxxxxxx">
-      <div class="help-text">需要 <code>gist</code> 权限。可在 GitHub Settings → Developer settings → Personal access tokens 生成。</div>
     </div>
     <div class="form-group">
       <label for="gistId">Gist ID</label>
       <input type="text" id="gistId" placeholder="例如：abc123def456...">
-      <div class="help-text">Gist 网址末尾的 ID，例如 <code>https://gist.github.com/用户名/abc123def456</code> 中的 <code>abc123def456</code></div>
+
     </div>
-    <div class="form-group">
-      <label for="gistFilename">文件名（可选）</label>
-      <input type="text" id="gistFilename" placeholder="默认：lifeos_progress.json">
-    </div>
+    
   </div>
   <div class="form-actions" style="margin-top: 14px;">
-    <button type="button" class="btn-primary" onclick="saveGistConfig()">💾 保存 Gist 设置</button>
-    <button type="button" class="btn-secondary" onclick="syncToGist()">📤 上传到 Gist</button>
-    <button type="button" class="btn-secondary" onclick="syncFromGist()">📥 从 Gist 拉取</button>
-    <button type="button" class="btn-secondary" onclick="loadGistConfigUI()">🔄 刷新状态</button>
-  </div>
+  <button type="button" class="btn-primary gist-btn" onclick="saveGistConfig()">💾 保存 Gist 设置</button>
+  <button type="button" class="btn-secondary gist-btn" onclick="syncToGist()">📤 上传到 Gist</button>
+  <button type="button" class="btn-secondary gist-btn" onclick="syncFromGist()">📥 从 Gist 拉取</button>
+
+</div>
+
+
   <p id="gistConfigStatus" style="margin-top: 10px; color: var(--text-secondary); font-size: 0.85rem;">尚未配置 Gist 同步。</p>
 </div>
       
@@ -4201,16 +4460,15 @@ function renderDimensionManager() {
       const upDisabled = idx === 0 ? 'disabled' : '';
       const downDisabled = idx === arr.length - 1 ? 'disabled' : '';
       return `
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid #e6ebf3;border-radius:12px;background:#fbfcff;margin-bottom:8px;">
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;">
+        <div class="dm-item">
+          <label class="dm-label">
             <input type="checkbox" data-dm-toggle="${d.key}" ${enabled ? 'checked' : ''}>
-            <span style="font-weight:900;color:#1f2435;">${d.emoji} ${d.name}</span>
-            <span style="font-size:12px;color:#7b8397;">(${d.key})</span>
+            <span>${d.emoji} ${d.name}</span>
           </label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-            <button class="btn-secondary" type="button" data-dm-edit="${d.key}">编辑</button>
-            <button class="btn-secondary" type="button" data-dm-move="${d.key}|up" ${upDisabled}>上移</button>
-            <button class="btn-secondary" type="button" data-dm-move="${d.key}|down" ${downDisabled}>下移</button>
+          <div class="dm-actions">
+            <button class="dm-btn dm-btn-edit" type="button" data-dm-edit="${d.key}">✎</button>
+            <button class="dm-btn dm-btn-move" type="button" data-dm-move="${d.key}|up" ${upDisabled}>↑</button>
+            <button class="dm-btn dm-btn-move" type="button" data-dm-move="${d.key}|down" ${downDisabled}>↓</button>
           </div>
         </div>
       `;
@@ -4218,13 +4476,9 @@ function renderDimensionManager() {
     .join('');
 
   root.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;">
-      <div style="color:var(--text-secondary);font-size:0.9rem;">
-        当前已选：<strong style="color:#1f2435;">${enabledCount}</strong> / ${ACTIVE_DIMENSION_COUNT_REQUIRED}（最多8个）
-      </div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
-        <button class="btn-primary" type="button" id="dmAddBtn">+ 新增维度</button>
-      </div>
+    <div class="dm-header">
+      <div class="dm-count">当前已选：<strong>${enabledCount}</strong> / ${ACTIVE_DIMENSION_COUNT_REQUIRED}（最多8个）</div>
+      <button class="dm-add-btn" type="button" id="dmAddBtn">+ 新增维度</button>
     </div>
     ${rows || `<div style="color:var(--text-secondary);">暂无维度配置。</div>`}
   `;
@@ -4252,7 +4506,6 @@ function renderDimensionManager() {
     });
   });
 }
-
 function toggleDimensionEnabled(key) {
   if (!key) return;
   const cfg = getDimensionConfig(progressData);
@@ -5971,9 +6224,10 @@ function bindMobileTabbar() {
   const tabs = Array.from(bar.querySelectorAll('[data-tab]'));
   const menuOverview = document.getElementById('menuOverview');
   const menuToday = document.getElementById('menuToday');
-  
   const menuTaskCamp = document.getElementById('menuTaskCamp');
   const menuSettings = document.getElementById('menuSettings');
+  // ⭐ 新增：获取打卡按钮对应的菜单或直接打开弹窗
+  const menuQuickCheckin = document.getElementById('menuQuickCheckin');
 
   const setActive = (tab) => {
     tabs.forEach(btn => btn.classList.toggle('active', btn.getAttribute('data-tab') === tab));
@@ -5994,7 +6248,8 @@ function bindMobileTabbar() {
       return;
     }
     if (tab === 'quick') {
-      menuQuickCheckin?.click();
+      // ⭐ 直接打开打卡弹窗，而不是点击不存在的菜单
+      openQuickPopup(getActiveDimensions(progressData)[0]?.key || '');
       setActive(tab);
       return;
     }
@@ -6009,7 +6264,6 @@ function bindMobileTabbar() {
     }
   });
 }
-
 function renderCalendar(data) {
   const headerEl = document.getElementById('calendarHeader');
   const gridEl = document.getElementById('calendarGrid');
@@ -6077,14 +6331,21 @@ function bindSidebarMenus() {
     if (todayStatsSection) todayStatsSection.style.display = 'none';
   }
   function showDashboard() {
-    document.body.classList.remove('focus-home-mode');
-    setUiMode('normal');
-    if (pageHeader) pageHeader.style.display = '';
-    mainSections.forEach(el => { el.style.display = ''; });
-    hideExtraSections();
-    setMobileTabActive('overview');
+  document.body.classList.remove('focus-home-mode');
+  setUiMode('normal');
+  if (pageHeader) pageHeader.style.display = '';
+  mainSections.forEach(el => { el.style.display = ''; });
+  
+  // ⭐ 恢复显示 top-row
+  const topRow = document.querySelector('.top-row');
+  if (topRow) {
+    topRow.style.removeProperty('display');
   }
-  function showFocusHome() {
+  
+  hideExtraSections();
+  setMobileTabActive('overview');
+}
+function showFocusHome() {
     document.body.classList.add('focus-home-mode');
     setUiMode('focus');
     if (pageHeader) pageHeader.style.display = 'none';
@@ -6095,14 +6356,36 @@ function bindSidebarMenus() {
     clearMobileTabActive();
   }
   function showOnly(section) {
-    document.body.classList.remove('focus-home-mode');
-    setUiMode('normal');
-    if (pageHeader) pageHeader.style.display = 'none';
-    mainSections.forEach(el => { el.style.display = 'none'; });
-    hideExtraSections();
-    if (section) section.style.display = 'block';
-    mapSectionToMobileTab(section || null);
+  document.body.classList.remove('focus-home-mode');
+  setUiMode('normal');
+  if (pageHeader) pageHeader.style.display = 'none';
+  
+  // 隐藏所有主模块
+  mainSections.forEach(el => { el.style.display = 'none'; });
+  
+  // ⭐ 强制隐藏 top-row（加 !important 级别）
+  const topRow = document.querySelector('.top-row');
+  if (topRow) {
+    topRow.style.setProperty('display', 'none', 'important');
   }
+  
+  // 其他隐藏...
+  const todaySection = document.querySelector('.today-section');
+  if (todaySection) todaySection.style.display = 'none';
+  
+  const dimTable = document.querySelector('.dimensions-table-section');
+  if (dimTable) dimTable.style.display = 'none';
+  
+  const recordsRow = document.querySelector('.records-row');
+  if (recordsRow) recordsRow.style.display = 'none';
+  
+  const bottomRow = document.querySelector('.bottom-row');
+  if (bottomRow) bottomRow.style.display = 'none';
+  
+  hideExtraSections();
+  if (section) section.style.display = 'block';
+  mapSectionToMobileTab(section || null);
+}
   if (menuOverview) menuOverview.addEventListener('click', () => { setActive(menuOverview); showDashboard(); window.scrollTo({ top: 0, behavior: 'smooth' }); });
   if (menuToday) menuToday.addEventListener('click', () => {
     selectedBattleDate = today;
@@ -7053,37 +7336,31 @@ function loadGistConfigUI() {
   const cfg = getGistConfig();
   const tokenEl = document.getElementById('gistToken');
   const idEl = document.getElementById('gistId');
-  const filenameEl = document.getElementById('gistFilename');
   const statusEl = document.getElementById('gistConfigStatus');
 
   if (cfg) {
     if (tokenEl) tokenEl.value = cfg.token || '';
     if (idEl) idEl.value = cfg.gist_id || '';
-    if (filenameEl) filenameEl.value = cfg.filename || 'lifeos_progress.json';
-    if (statusEl) statusEl.textContent = `已配置 Gist ID: ${cfg.gist_id || '未设置'}，文件: ${cfg.filename || 'lifeos_progress.json'}`;
+    if (statusEl) statusEl.textContent = `已配置 Gist ID: ${cfg.gist_id || '未设置'}`;
   } else {
     if (tokenEl) tokenEl.value = '';
     if (idEl) idEl.value = '';
-    if (filenameEl) filenameEl.value = 'lifeos_progress.json';
     if (statusEl) statusEl.textContent = '尚未配置 Gist 同步。';
   }
 }
-
 function saveGistConfig() {
   const token = String(document.getElementById('gistToken')?.value || '').trim();
   const gistId = String(document.getElementById('gistId')?.value || '').trim();
-  const filename = String(document.getElementById('gistFilename')?.value || '').trim() || 'lifeos_progress.json';
 
   if (!token || !gistId) {
     alert('请填写 GitHub Token 和 Gist ID');
     return;
   }
 
-  saveGistConfigToStorage({ token, gist_id: gistId, filename });
+  saveGistConfigToStorage({ token, gist_id: gistId, filename: 'lifeos_progress.json' });
   loadGistConfigUI();
   alert('Gist 配置已保存 ✅');
 }
-
 async function syncToGist() {
   const cfg = getGistConfig();
   if (!cfg || !cfg.token || !cfg.gist_id) {
