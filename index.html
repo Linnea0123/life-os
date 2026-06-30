@@ -19,6 +19,21 @@
   box-sizing: border-box;
 }
 
+/* 网页版也使用 flex 布局控制顺序 */
+.main-content {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.main-content > .page-header { order: 1; }
+.main-content > #mobileFocusHome { order: 2; }
+.main-content > .top-row { order: 3; }
+.main-content > .today-section { order: 4; }
+.main-content > .dimensions-table-section { order: 5; }
+.main-content > .records-row { order: 6; }
+.main-content > .bottom-row { order: 7; }
+
+
 /* Gist 同步按钮优化 - 调小尺寸 */
 #gistConfigStatus {
   margin-top: 10px !important;
