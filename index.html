@@ -7,9 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="QuantLife">
 <meta name="theme-color" content="#2f7cf6">
-<link rel="apple-touch-icon" href="./icons/icon-192.png">
-<link rel="icon" type="image/png" sizes="32x32" href="./icons/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="./icons/favicon-16.png">
+
 <title>Life OS</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
@@ -18,6 +16,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 
 :root {
   --bg: #f5f7fa;
@@ -497,6 +496,7 @@ body {
 .quick-popup-card .form-group textarea {
   width: 100%;
   padding: 10px 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;  /* ⭐ 加这一行 */
   border: 1px solid #d1d5db;
   border-radius: 12px;
   font-size: 1rem;
@@ -3481,25 +3481,16 @@ body.focus-home-mode #mobileFocusHome {
 </div>
 
 <div class="today-section">
-  <div class="today-title">Today's Check-in</div>
+  <div class="today-title">✅ Today's Check-in</div>
   <div class="dimensions-grid" id="dimensionsGrid">
   </div>
 </div>
 
 <div class="dimensions-table-section progress-table-card">
-  <div class="dimensions-table-title">Growth Progress</div>
-  <table class="dimensions-table">
-    <thead>
-  <tr>
-    <th style="width:22%;">Dimension</th>
-    <th style="width:12%;">Level</th>
-    <th style="width:28%;">EXP Progress</th>
-    <th style="width:38%;">Ultimate Goal</th>
-  </tr>
-</thead>
-    <tbody id="dimensionsBody">
-    </tbody>
-  </table>
+  <div class="dimensions-table-title">📈 Growth Progress</div>
+  <div class="dimensions-grid" id="dimensionsProgressGrid">
+    <!-- 由 JavaScript 渲染 -->
+  </div>
 </div>
 
 <div class="records-row">
@@ -3627,6 +3618,9 @@ body.focus-home-mode #mobileFocusHome {
   </div>
 </div>
 
+
+
+
 <!-- 设置中心模块 -->
 <div id="settingsSection" style="display: none;">
   <div class="card">
@@ -3635,38 +3629,21 @@ body.focus-home-mode #mobileFocusHome {
       <div style="margin-bottom: 18px;">
         <h4 style="margin-bottom: 12px; font-size: 1rem;">👤 个人信息与打卡参数</h4>
         <div class="checkin-form">
-          <div class="form-group">
-            <label for="profileNickname">昵称</label>
-            <input type="text" id="profileNickname" placeholder="例如：Alex">
-          </div>
-          <div class="form-group">
-            <label for="profileAppTitle">应用名称</label>
-            <input type="text" id="profileAppTitle" placeholder="例如：My QuantLife">
-          </div>
+          
           <div class="form-group" style="grid-column: 1 / -1;">
             <label for="profileTagline">主页标语</label>
             <input type="text" id="profileTagline" placeholder="例如：把生活变成一场持续升级的游戏。">
           </div>
-          <div class="form-group">
-            <label for="profileAvatarText">头像文字</label>
-            <input type="text" id="profileAvatarText" maxlength="2" placeholder="例如：A">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="profileAvatarUrl">头像图片 URL（可选）</label>
-            <input type="text" id="profileAvatarUrl" placeholder="例如：https://example.com/me.png">
-          </div>
-          <div class="form-group" style="grid-column: 1 / -1;">
-            <label for="profileAvatarFile">本地头像图片（可选）</label>
-            <input type="file" id="profileAvatarFile" accept="image/*">
-            <div class="help-text">选择本地图片后会自动压缩并保存到你的本地进度数据中。</div>
-          </div>
+         
+       
+          
         </div>
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);">
-          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">🧠 八维难度系数（维度系数）</h4>
+          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">难度系数</h4>
           <div id="dimensionCoeffEditor" class="checkin-form"></div>
         </div>
         <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);">
-          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">✨ 快速打卡质量系数</h4>
+          <h4 style="margin-bottom: 10px; font-size: 0.95rem;">质量系数</h4>
           <div class="checkin-form">
             <div class="form-group">
               <label for="qualityLow">轻松档</label>
@@ -3683,40 +3660,11 @@ body.focus-home-mode #mobileFocusHome {
           </div>
         </div>
         <div class="form-actions" style="margin-top: 14px;">
-          <button type="button" class="btn-primary" onclick="saveProfileSettings()">💾 保存个人设置</button>
+          <button type="button" class="btn-primary" onclick="saveProfileSettings()">保存个人设置</button>
         </div>
       </div>
 
-      <h4 style="margin-bottom: 14px; font-size: 1rem;">🔌 AI 连接设置</h4>
-      <div class="checkin-form">
-        <div class="form-group">
-          <label for="llmProvider">Provider</label>
-          <select id="llmProvider">
-            <option value="openai">OpenAI-compatible</option>
-            <option value="anthropic">Anthropic-compatible</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="llmBaseUrl">Base URL</label>
-          <input type="text" id="llmBaseUrl" placeholder="例如：https://ark.cn-beijing.volces.com/api">
-        </div>
-        <div class="form-group">
-          <label for="llmModel">Model / Endpoint</label>
-          <input type="text" id="llmModel" placeholder="例如：ep-xxxxxxxx">
-        </div>
-        <div class="form-group">
-          <label for="llmSecret">API Key / Token</label>
-          <input type="password" id="llmSecret" placeholder="输入后保存（不会完整回显）">
-        </div>
-      </div>
-      <div class="form-actions" style="margin-top: 14px;">
-        <button type="button" class="btn-primary" onclick="saveLlmConfig()">💾 保存AI配置</button>
-        <button type="button" class="btn-secondary" onclick="testLlmConfig()">🧪 测试连接</button>
-        <button type="button" class="btn-secondary" onclick="loadLlmConfigUI()">🔄 刷新状态</button>
-        <button type="button" class="btn-secondary" onclick="syncCloudNow(true)">☁️ 立即同步云端</button>
-      </div>
-      <p id="llmConfigStatus" style="margin-top: 10px; color: var(--text-secondary); font-size: 0.85rem;">尚未加载 AI 配置状态。</p>
-      <p style="margin-top: 8px; color: var(--text-secondary); font-size: 0.85rem;">跨设备使用请通过 <code>http://服务器地址:3030</code> 打开页面，不要直接用 file://。</p>
+  
 
       <div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border);">
         <h4 style="margin-bottom: 12px; font-size: 1rem;">🧩 八维显示与排序</h4>
@@ -3726,6 +3674,37 @@ body.focus-home-mode #mobileFocusHome {
         <div id="dimensionManager"></div>
       </div>
 
+      
+<!-- 🔁 Git Gist 同步设置 -->
+<div style="margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--border);">
+  <h4 style="margin-bottom: 12px; font-size: 1rem;">🔁 Git Gist 同步</h4>
+  <p style="margin: 0 0 10px 0; color: var(--text-secondary); font-size: 0.85rem;">
+    使用 GitHub Gist 跨设备同步进度数据。需要先创建 Gist（公开/私密均可）。
+  </p>
+  <div class="checkin-form">
+    <div class="form-group">
+      <label for="gistToken">GitHub Personal Access Token</label>
+      <input type="password" id="gistToken" placeholder="ghp_xxxxxxxxxxxx">
+      <div class="help-text">需要 <code>gist</code> 权限。可在 GitHub Settings → Developer settings → Personal access tokens 生成。</div>
+    </div>
+    <div class="form-group">
+      <label for="gistId">Gist ID</label>
+      <input type="text" id="gistId" placeholder="例如：abc123def456...">
+      <div class="help-text">Gist 网址末尾的 ID，例如 <code>https://gist.github.com/用户名/abc123def456</code> 中的 <code>abc123def456</code></div>
+    </div>
+    <div class="form-group">
+      <label for="gistFilename">文件名（可选）</label>
+      <input type="text" id="gistFilename" placeholder="默认：lifeos_progress.json">
+    </div>
+  </div>
+  <div class="form-actions" style="margin-top: 14px;">
+    <button type="button" class="btn-primary" onclick="saveGistConfig()">💾 保存 Gist 设置</button>
+    <button type="button" class="btn-secondary" onclick="syncToGist()">📤 上传到 Gist</button>
+    <button type="button" class="btn-secondary" onclick="syncFromGist()">📥 从 Gist 拉取</button>
+    <button type="button" class="btn-secondary" onclick="loadGistConfigUI()">🔄 刷新状态</button>
+  </div>
+  <p id="gistConfigStatus" style="margin-top: 10px; color: var(--text-secondary); font-size: 0.85rem;">尚未配置 Gist 同步。</p>
+</div>
       
     </div>
   </div>
@@ -3768,10 +3747,10 @@ body.focus-home-mode #mobileFocusHome {
     </div>
 
     <div class="achievement-grid">
-      <div class="achievement-panel">
-        <div class="achievement-panel-title">全局成长徽章</div>
-        <div class="achievement-list" id="achGlobalBadges"></div>
-      </div>
+      <div class="achievement-panel" style="grid-column: 1 / -1; width: 100%;">
+  <div class="achievement-panel-title">全局成长徽章</div>
+  <div class="achievement-list" id="achGlobalBadges" style="display: block; width: 100%;"></div>
+</div>
     </div>
 
     <div class="achievement-panel" style="margin-top: 12px;">
@@ -3800,7 +3779,7 @@ body.focus-home-mode #mobileFocusHome {
   <div class="quick-popup-card">
     <button class="close-btn" id="popupCloseBtn">✕</button>
     <h2>⚡ 快捷打卡</h2>
-    <div class="sub" id="popupDimLabel">为「学习成长」添加记录</div>
+    
 
     <div class="form-group">
       <label for="popupDate">日期</label>
@@ -3814,9 +3793,9 @@ body.focus-home-mode #mobileFocusHome {
 
     <div class="form-row">
       <div class="form-group">
-        <label for="popupMinutes">时长（分钟）</label>
-        <input type="number" id="popupMinutes" min="1" max="720" value="30" step="5">
-      </div>
+  <label for="popupMinutes">量化投入</label>
+  <input type="text" id="popupMinutes" placeholder="">
+</div>
       <div class="form-group">
         <label for="popupQuality">质量系数</label>
         <select id="popupQuality">
@@ -3829,13 +3808,24 @@ body.focus-home-mode #mobileFocusHome {
 
     <div class="form-group">
       <label for="popupDescription">任务描述</label>
-      <input type="text" id="popupDescription" placeholder="例如：阅读论文2小时">
+      <input type="text" id="popupDescription" placeholder="">
     </div>
 
 <div class="form-group">
   <label for="popupInsight">感悟</label>
-  <textarea id="popupInsight" rows="2" placeholder="记录今天的感悟或收获..."></textarea>
+  <input type="text" id="popupInsight" placeholder="">
 </div>
+
+ <!-- ⭐ 新增：今日打卡记录 -->
+  <div style="margin-top: 16px; border-top: 1px solid #e5e7eb; padding-top: 14px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+      <span style="font-weight: 600; font-size: 0.9rem; color: #1d1d1f;">今日打卡</span>
+      <span style="font-size: 0.8rem; color: #8e8e93;" id="popupTodayCount">0 条</span>
+    </div>
+    <div id="popupTodayRecords" style="max-height: 160px; overflow-y: auto; border-radius: 8px; background: #f7f8fa; padding: 4px 0;">
+      <div style="padding: 14px; text-align: center; color: #8e8e93; font-size: 0.85rem;">暂无记录</div>
+    </div>
+  </div>
 
 
     <div class="actions">
@@ -5485,7 +5475,44 @@ function renderAchievements(data) {
     }).join('');
   };
 
-  renderList('achGlobalBadges', globalBadges, (it) => level >= it.at);
+
+
+  
+  // 全局成长徽章 - 两列独立布局
+const badgeContainer = document.getElementById('achGlobalBadges');
+if (badgeContainer) {
+  const mid = Math.ceil(globalBadges.length / 2);
+  const leftBadges = globalBadges.slice(0, mid);
+  const rightBadges = globalBadges.slice(mid);
+  
+  const renderBadgeItem = (item) => {
+    const ok = level >= item.at;
+    const icon = item?.key ? `<div class="achievement-icon">${iconSvg(item.key)}</div>` : '';
+    return `
+      <div class="achievement-item ${ok ? '' : 'locked'}">
+        <div class="achievement-item-main">
+          ${icon}
+          <div class="achievement-text">
+            <div class="achievement-item-name">${item.name}</div>
+            <div class="achievement-item-desc">${item.desc}</div>
+          </div>
+        </div>
+        <div class="achievement-item-badge">${ok ? '已解锁' : '未解锁'}</div>
+      </div>
+    `;
+  };
+  
+  badgeContainer.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;">
+      <div style="display:grid;gap:8px;">
+        ${leftBadges.map(item => renderBadgeItem(item)).join('')}
+      </div>
+      <div style="display:grid;gap:8px;">
+        ${rightBadges.map(item => renderBadgeItem(item)).join('')}
+      </div>
+    </div>
+  `;
+}
   renderList('achStreakBadges', streakBadges, (it) => it.ok());
   renderList('achMilestones', milestones, (it) => it.ok());
 
@@ -5659,21 +5686,28 @@ function renderTodayBoard(data, boardDate) {
     });
   });
 }
+
+
 function renderDimensionsTable(dimensionsData) {
-  const tbody = document.getElementById('dimensionsBody');
-  if (!tbody) return;
-  tbody.innerHTML = '';
+  const container = document.getElementById('dimensionsProgressGrid');
+  if (!container) return;
+  container.innerHTML = '';
+
   const activeDims = getActiveDimensions();
   activeDims.forEach(d => {
     const stats = calculateLevel(dimensionsData?.[d.key]?.total_exp || 0);
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><strong>${d.emoji} ${d.name}</strong></td>
-      <td><span class="level-badge-small">LV.${stats.level}</span></td>
-      <td><div style="display:flex;align-items:center;gap:8px;"><div class="progress-small"><div class="progress-small-fill" style="width:${stats.percent}%"></div></div><span style="font-size:0.85rem;white-space:nowrap;">${stats.currentExp}/200</span></div></td>
-      <td>${d.goal}</td>
+    const div = document.createElement('div');
+    div.className = 'dimension-card';
+    div.innerHTML = `
+      <div class="dimension-name-row">
+        <span class="dimension-icon" aria-hidden="true">${d.emoji}</span>
+        <span class="dimension-name">${d.name}</span>
+      </div>
+      <div class="dimension-level">LV.${stats.level}</div>
+      <div class="dimension-exp">${stats.currentExp} / 200 EXP</div>
+      <div class="dimension-progress"><div class="dimension-progress-fill" style="width:${stats.percent}%"></div></div>
     `;
-    tbody.appendChild(tr);
+    container.appendChild(div);
   });
 }
 
@@ -5682,7 +5716,7 @@ function renderHistory(history) {
   if (!tbody) return;
   tbody.innerHTML = '';
   const sorted = [...history].reverse().slice(0, 30);
-  sorted.forEach(item => {
+  sorted.forEach((item, index) => {
     const dim = dimensionsConfig.find(d => d.key === item.dimension_key);
     const dimName = dim ? dim.name : (item.task_type || '—');
     const statusClass = item.completed ? 'done' : 'undone';
@@ -5691,6 +5725,8 @@ function renderHistory(history) {
     const expClass = exp <= 10 ? 'exp-tag-10' : exp <= 50 ? 'exp-tag-30' : 'exp-tag-50';
     const tr = document.createElement('tr');
     const safeDescription = normalizeDisplayText(item.description, '（备注内容编码异常）');
+    // 用原始索引找到在 history 中的位置
+    const originalIndex = history.indexOf(item);
     tr.innerHTML = `
       <td><span class="status-dot ${statusClass}"></span>${statusText}</td>
       <td>${item.date || '—'}</td>
@@ -5698,11 +5734,21 @@ function renderHistory(history) {
       <td>${normalizeDifficultyText(item.difficulty)}</td>
       <td>${safeDescription}</td>
       <td>${exp > 0 ? `<span class="exp-tag ${expClass}">+${Math.round(exp)}</span>` : '0'}</td>
+      <td><button class="delete-btn" data-index="${originalIndex}" style="background:#ff3b30;color:#fff;border:none;border-radius:6px;padding:4px 8px;cursor:pointer;font-size:12px;">✕</button></td>
     `;
     tbody.appendChild(tr);
   });
-}
 
+  // 绑定删除事件
+  tbody.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const index = parseInt(this.dataset.index);
+      if (confirm('确定要删除这条打卡记录吗？')) {
+        deleteHistoryItem(index);
+      }
+    });
+  });
+}
 function renderInsights(insights) {
   const container = document.getElementById('insightsList');
   if (!container) return;
@@ -5814,7 +5860,8 @@ function handleFocusQuickSubmit() {
     date: today,
     dimension_key: dimension,
     task_type: taskType,
-    difficulty: `${(minutes / 60).toFixed(minutes % 60 === 0 ? 0 : 2)}小时`,
+    minutes: minutes,
+    difficulty: '1.0',  // ⭐ 改成固定显示 1.0
     description: String(descInput?.value || '').trim() || '快捷打卡',
     exp_gained: exp,
     completed: true
@@ -5837,7 +5884,6 @@ function handleFocusQuickSubmit() {
   if (minutesInput) minutesInput.value = '';
   if (descInput) descInput.value = '';
 }
-
 async function handleFocusAiSubmit() {
   const src = document.getElementById('focusAiText');
   const sink = document.getElementById('focusAiResult');
@@ -6081,7 +6127,7 @@ function bindSidebarMenus() {
   if (menuSettings) menuSettings.addEventListener('click', () => {
     setActive(menuSettings);
     showOnly(settingsSection);
-    loadLlmConfigUI();
+
     renderDimensionManager();
     renderProfileSettings();
   });
@@ -6122,7 +6168,7 @@ function renderWealth() {
   if (editWealthCurrent) editWealthCurrent.value = String(current || '');
   if (editWealthTarget) editWealthTarget.value = String(target || '');
   if (editWealthYear) editWealthYear.value = String(year || '');
-  loadLlmConfigUI();
+  
 }
 
 function saveWealthEdit() {
@@ -6134,289 +6180,6 @@ function saveWealthEdit() {
   saveProgress(false);
   alert('财富目标已更新，并已自动保存到本地 JSON。');
 }
-
-function getLlmConfigPayloadFromUI() {
-  const provider = String(document.getElementById('llmProvider')?.value || 'openai');
-  const baseUrl = String(document.getElementById('llmBaseUrl')?.value || '').trim();
-  const model = String(document.getElementById('llmModel')?.value || '').trim();
-  const secret = String(document.getElementById('llmSecret')?.value || '').trim();
-  return {
-    provider,
-    openai: {
-      base_url: provider === 'openai' ? baseUrl : '',
-      model: provider === 'openai' ? model : '',
-      api_key: provider === 'openai' ? secret : ''
-    },
-    anthropic: {
-      base_url: provider === 'anthropic' ? baseUrl : '',
-      model: provider === 'anthropic' ? model : '',
-      auth_token: provider === 'anthropic' ? secret : ''
-    }
-  };
-}
-
-function buildDefaultLlmConfig() {
-  return {
-    provider: 'openai',
-    openai: { base_url: '', api_key: '', model: '' },
-    anthropic: { base_url: '', auth_token: '', model: '' }
-  };
-}
-
-function normalizeLlmConfig(raw) {
-  const base = buildDefaultLlmConfig();
-  const src = raw && typeof raw === 'object' ? raw : {};
-  const provider = String(src.provider || base.provider).trim().toLowerCase();
-  return {
-    provider: provider === 'anthropic' ? 'anthropic' : 'openai',
-    openai: {
-      base_url: String(src?.openai?.base_url || '').trim().replace(/\/+$/, ''),
-      api_key: String(src?.openai?.api_key || '').trim(),
-      model: String(src?.openai?.model || '').trim()
-    },
-    anthropic: {
-      base_url: String(src?.anthropic?.base_url || '').trim().replace(/\/+$/, ''),
-      auth_token: String(src?.anthropic?.auth_token || '').trim(),
-      model: String(src?.anthropic?.model || '').trim()
-    }
-  };
-}
-
-function maskSecret(secret) {
-  const s = String(secret || '');
-  if (!s) return '';
-  if (s.length <= 8) return '****';
-  return `${s.slice(0, 4)}****${s.slice(-4)}`;
-}
-
-function getRuntimeLlmConfig() {
-  if (runtimeLlmConfig) return runtimeLlmConfig;
-  const cfg = readLocalJson(LOCAL_LLM_CONFIG_KEY);
-  runtimeLlmConfig = normalizeLlmConfig(cfg || buildDefaultLlmConfig());
-  return runtimeLlmConfig;
-}
-
-function saveRuntimeLlmConfig(cfg) {
-  runtimeLlmConfig = normalizeLlmConfig(cfg);
-  writeLocalJson(LOCAL_LLM_CONFIG_KEY, runtimeLlmConfig);
-}
-
-function setLlmStatus(text, isError = false) {
-  const el = document.getElementById('llmConfigStatus');
-  if (!el) return;
-  el.textContent = text;
-  el.style.color = isError ? '#b42318' : 'var(--text-secondary)';
-}
-
-async function loadLlmConfigUI() {
-  const providerEl = document.getElementById('llmProvider');
-  const baseUrlEl = document.getElementById('llmBaseUrl');
-  const modelEl = document.getElementById('llmModel');
-  const secretEl = document.getElementById('llmSecret');
-  if (!providerEl || !baseUrlEl || !modelEl || !secretEl) return;
-  try {
-    const cfg = getRuntimeLlmConfig();
-    const provider = cfg.provider || 'openai';
-    providerEl.value = provider;
-    if (provider === 'anthropic') {
-      baseUrlEl.value = cfg?.anthropic?.base_url || '';
-      modelEl.value = cfg?.anthropic?.model || '';
-      secretEl.value = '';
-      setLlmStatus(`当前 provider=anthropic，token=${maskSecret(cfg?.anthropic?.auth_token) || '未配置'}`);
-    } else {
-      baseUrlEl.value = cfg?.openai?.base_url || '';
-      modelEl.value = cfg?.openai?.model || '';
-      secretEl.value = '';
-      setLlmStatus(`当前 provider=openai，key=${maskSecret(cfg?.openai?.api_key) || '未配置'}`);
-    }
-  } catch (err) {
-    setLlmStatus(`读取 AI 配置失败：${String(err.message || err)}`, true);
-  }
-}
-
-async function saveLlmConfig() {
-  const payload = getLlmConfigPayloadFromUI();
-  try {
-    const current = getRuntimeLlmConfig();
-    const next = normalizeLlmConfig({
-      provider: payload.provider,
-      openai: {
-        base_url: payload?.openai?.base_url || current.openai.base_url,
-        model: payload?.openai?.model || current.openai.model,
-        api_key: payload?.openai?.api_key || current.openai.api_key
-      },
-      anthropic: {
-        base_url: payload?.anthropic?.base_url || current.anthropic.base_url,
-        model: payload?.anthropic?.model || current.anthropic.model,
-        auth_token: payload?.anthropic?.auth_token || current.anthropic.auth_token
-      }
-    });
-    saveRuntimeLlmConfig(next);
-    setLlmStatus(`AI 配置已保存（provider=${next.provider}）`);
-    const secretEl = document.getElementById('llmSecret');
-    if (secretEl) secretEl.value = '';
-    await loadLlmConfigUI();
-  } catch (err) {
-    setLlmStatus(`保存 AI 配置失败：${String(err.message || err)}`, true);
-  }
-}
-
-function resolveOpenAiCompatibleChatCompletionsUrl(baseUrl) {
-  const b = String(baseUrl || '').replace(/\/+$/, '');
-  if (!b) return '';
-  if (/\/chat\/completions\/?$/i.test(b) || /\/v1\/chat\/completions\/?$/i.test(b)) return b;
-  if (/\/api\/v3$/i.test(b) || /\/api\/v3\//i.test(b)) return `${b.replace(/\/+$/, '')}/chat/completions`;
-  return `${b}/v1/chat/completions`;
-}
-
-function safeJsonParse(text) {
-  const s = String(text || '').trim();
-  try {
-    return JSON.parse(s);
-  } catch {
-    const i = s.indexOf('{');
-    const j = s.lastIndexOf('}');
-    if (i >= 0 && j > i) return JSON.parse(s.slice(i, j + 1));
-    throw new Error('LLM 输出不是合法 JSON');
-  }
-}
-
-function getBaseRateByDim(progress) {
-  const defs = getDimensionDefs(progress);
-  const map = {};
-  Object.keys(defs).forEach(k => {
-    const cfg = defs[k]?.exp_config || {};
-    if (cfg.mode === 'base_rate' && Number.isFinite(Number(cfg.base_rate_per_hour))) map[k] = Number(cfg.base_rate_per_hour);
-    else if (cfg.mode === 'coeff' && Number.isFinite(Number(cfg.coeff))) map[k] = Math.max(1, Math.round(50 * Number(cfg.coeff)));
-    else map[k] = 50;
-  });
-  return map;
-}
-
-function calcExpByActivity(activity, baseRateByDim) {
-  const mins = Math.max(0, Math.min(360, Math.round(Number(activity.minutes) || 0)));
-  const base = Number(baseRateByDim?.[activity.dimension_key] || 50);
-  const multMap = { easy: 0.8, normal: 1.0, hard: 1.25 };
-  const mult = Number(multMap[activity.difficulty] || 1.0);
-  const eff = activity.effective ? 1 : 0;
-  return Math.max(0, Math.round((mins / 60) * base * mult * eff));
-}
-
-function validateAndNormalizeParsed(parsed, validKeys) {
-  if (!parsed || typeof parsed !== 'object') throw new Error('LLM 输出格式错误：不是对象');
-  const activities = Array.isArray(parsed.activities) ? parsed.activities : null;
-  if (!activities) throw new Error('LLM 输出格式错误：缺少 activities 数组');
-  return activities
-    .filter(a => a && typeof a === 'object')
-    .map(a => {
-      const dimension_key = String(a.dimension_key || '').trim();
-      const minutes = Math.max(0, Math.min(360, Math.round(Number(a.minutes) || 0)));
-      const difficulty = String(a.difficulty || 'normal').trim();
-      const summary = String(a.summary || '').trim();
-      const effective = Boolean(a.effective);
-      if (!validKeys.has(dimension_key)) return null;
-      if (!['easy', 'normal', 'hard'].includes(difficulty)) return null;
-      if (!summary) return null;
-      return { dimension_key, minutes, difficulty, summary, effective };
-    })
-    .filter(Boolean);
-}
-
-async function callOpenAiCompatibleLLM(payload, cfg) {
-  if (!cfg?.base_url || !cfg?.api_key || !cfg?.model) {
-    throw new Error('OpenAI 配置不完整：请填写 base_url / api_key / model');
-  }
-  const url = resolveOpenAiCompatibleChatCompletionsUrl(cfg.base_url);
-  const allowed = Array.isArray(payload.allowed_dimension_keys) ? payload.allowed_dimension_keys : [];
-  const hint = String(payload.hint_dimension_key || '').trim();
-  const system = [
-    '你是“人生努力可视化系统”的行为解析器。',
-    '你必须只输出严格的 JSON（不要 Markdown，不要解释）。',
-    'activities 为数组；dimension_key 只能取允许列表中的值；minutes 为 0~360 整数；difficulty 只能是 easy/normal/hard；effective 为 true/false；summary 为简短中文。'
-  ].join('\n');
-  const user = `日期：${payload.dateStr}\n用户输入：${payload.text}\n允许维度：${allowed.join(', ')}\n${hint ? `强制维度：${hint}\n` : ''}请输出 JSON。`;
-  const body = {
-    model: cfg.model,
-    temperature: 0.2,
-    messages: [{ role: 'system', content: system }, { role: 'user', content: user }],
-    response_format: { type: 'json_object' }
-  };
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', authorization: `Bearer ${cfg.api_key}` },
-    body: JSON.stringify(body)
-  });
-  const raw = await resp.text();
-  if (!resp.ok) throw new Error(`LLM HTTP ${resp.status}: ${raw.slice(0, 200)}`);
-  const json = safeJsonParse(raw);
-  const content = json?.choices?.[0]?.message?.content;
-  if (!content) throw new Error('LLM 返回缺少 message.content');
-  return safeJsonParse(content);
-}
-
-async function callAnthropicCompatibleLLM(payload, cfg) {
-  if (!cfg?.base_url || !cfg?.auth_token || !cfg?.model) {
-    throw new Error('Anthropic 配置不完整：请填写 base_url / auth_token / model');
-  }
-  const allowed = Array.isArray(payload.allowed_dimension_keys) ? payload.allowed_dimension_keys : [];
-  const hint = String(payload.hint_dimension_key || '').trim();
-  const url = `${cfg.base_url.replace(/\/+$/, '')}/v1/messages`;
-  const system = [
-    '你是“人生努力可视化系统”的行为解析器。',
-    '你必须只输出严格的 JSON（不要 Markdown，不要解释）。',
-    'activities 为数组；dimension_key 只能取允许列表中的值；minutes 为 0~360 整数；difficulty 只能是 easy/normal/hard；effective 为 true/false；summary 为简短中文。'
-  ].join('\n');
-  const user = `日期：${payload.dateStr}\n用户输入：${payload.text}\n允许维度：${allowed.join(', ')}\n${hint ? `强制维度：${hint}\n` : ''}请输出 JSON。`;
-  const body = { model: cfg.model, max_tokens: 1200, temperature: 0.2, system, messages: [{ role: 'user', content: user }] };
-  const resp = await fetch(url, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', 'x-api-key': cfg.auth_token, 'anthropic-version': '2023-06-01' },
-    body: JSON.stringify(body)
-  });
-  const raw = await resp.text();
-  if (!resp.ok) throw new Error(`LLM HTTP ${resp.status}: ${raw.slice(0, 200)}`);
-  const json = safeJsonParse(raw);
-  const textBlock = Array.isArray(json?.content) ? json.content.find(b => b?.type === 'text' && typeof b?.text === 'string') : null;
-  if (!textBlock?.text) throw new Error('LLM 返回缺少 content.text');
-  return safeJsonParse(textBlock.text);
-}
-
-async function parseWithLLM(payload) {
-  const cfg = getRuntimeLlmConfig();
-  if (cfg.provider === 'anthropic') return callAnthropicCompatibleLLM(payload, cfg.anthropic);
-  return callOpenAiCompatibleLLM(payload, cfg.openai);
-}
-
-async function testLlmConfig() {
-  const payload = getLlmConfigPayloadFromUI();
-  setLlmStatus('正在测试连接...');
-  try {
-    const current = getRuntimeLlmConfig();
-    const cfg = normalizeLlmConfig({
-      provider: payload.provider,
-      openai: {
-        base_url: payload?.openai?.base_url || current.openai.base_url,
-        model: payload?.openai?.model || current.openai.model,
-        api_key: payload?.openai?.api_key || current.openai.api_key
-      },
-      anthropic: {
-        base_url: payload?.anthropic?.base_url || current.anthropic.base_url,
-        model: payload?.anthropic?.model || current.anthropic.model,
-        auth_token: payload?.anthropic?.auth_token || current.anthropic.auth_token
-      }
-    });
-    if (cfg.provider === 'anthropic') {
-      await callAnthropicCompatibleLLM({ dateStr: today, text: '今天看文献1小时', allowed_dimension_keys: getActiveDimensionKeys(progressData) }, cfg.anthropic);
-    } else {
-      await callOpenAiCompatibleLLM({ dateStr: today, text: '今天看文献1小时', allowed_dimension_keys: getActiveDimensionKeys(progressData) }, cfg.openai);
-    }
-    saveRuntimeLlmConfig(cfg);
-    setLlmStatus(`连接测试成功（provider=${cfg.provider}）`);
-  } catch (err) {
-    setLlmStatus(`连接测试失败：${String(err.message || err)}`, true);
-  }
-}
-
 
 
 
@@ -7221,6 +6984,243 @@ function exportFullJson() {
   URL.revokeObjectURL(url);
 }
 
+// ============================================================
+// ⭐ 删除打卡记录函数（放在这里）
+// ============================================================
+function deleteHistoryItem(index) {
+  if (index < 0 || index >= progressData.history.length) return;
+  
+  const entry = progressData.history[index];
+  if (!entry) return;
+  
+  // 减去经验值
+  const exp = Number(entry.exp_gained) || 0;
+  const dimKey = entry.dimension_key;
+  
+  // 从维度中减去经验
+  if (progressData.dimensions[dimKey]) {
+    progressData.dimensions[dimKey].total_exp = Math.max(0, progressData.dimensions[dimKey].total_exp - exp);
+  }
+  
+  // 从总经验中减去
+  progressData.total_exp = Math.max(0, (Number(progressData.total_exp) || 0) - exp);
+  
+  // 重新计算等级
+  progressData.level = Math.floor(progressData.total_exp / 200) + 1;
+  progressData.current_level_exp = progressData.total_exp % 200;
+  progressData.exp_to_next = 200 - progressData.current_level_exp;
+  
+  // 从 daily_log 中删除
+  const date = entry.date;
+  if (progressData.daily_log && progressData.daily_log[date]) {
+    const log = progressData.daily_log[date];
+    log.entries = log.entries.filter(e => e !== entry);
+    log.day_total_exp = Math.max(0, log.day_total_exp - exp);
+    if (log.entries.length === 0) {
+      delete progressData.daily_log[date];
+    }
+  }
+  
+  // 从 history 中删除
+  progressData.history.splice(index, 1);
+  
+  // 刷新界面
+  renderAll(progressData);
+  saveProgress(false);
+  
+  alert('已删除该打卡记录');
+}
+
+// ============================================================
+// 🔁 Git Gist 同步
+// ============================================================
+
+const GIST_CONFIG_KEY = 'fd_gist_config_v1';
+
+function getGistConfig() {
+  try {
+    const raw = localStorage.getItem(GIST_CONFIG_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch { return null; }
+}
+
+function saveGistConfigToStorage(config) {
+  localStorage.setItem(GIST_CONFIG_KEY, JSON.stringify(config));
+}
+
+function loadGistConfigUI() {
+  const cfg = getGistConfig();
+  const tokenEl = document.getElementById('gistToken');
+  const idEl = document.getElementById('gistId');
+  const filenameEl = document.getElementById('gistFilename');
+  const statusEl = document.getElementById('gistConfigStatus');
+
+  if (cfg) {
+    if (tokenEl) tokenEl.value = cfg.token || '';
+    if (idEl) idEl.value = cfg.gist_id || '';
+    if (filenameEl) filenameEl.value = cfg.filename || 'lifeos_progress.json';
+    if (statusEl) statusEl.textContent = `已配置 Gist ID: ${cfg.gist_id || '未设置'}，文件: ${cfg.filename || 'lifeos_progress.json'}`;
+  } else {
+    if (tokenEl) tokenEl.value = '';
+    if (idEl) idEl.value = '';
+    if (filenameEl) filenameEl.value = 'lifeos_progress.json';
+    if (statusEl) statusEl.textContent = '尚未配置 Gist 同步。';
+  }
+}
+
+function saveGistConfig() {
+  const token = String(document.getElementById('gistToken')?.value || '').trim();
+  const gistId = String(document.getElementById('gistId')?.value || '').trim();
+  const filename = String(document.getElementById('gistFilename')?.value || '').trim() || 'lifeos_progress.json';
+
+  if (!token || !gistId) {
+    alert('请填写 GitHub Token 和 Gist ID');
+    return;
+  }
+
+  saveGistConfigToStorage({ token, gist_id: gistId, filename });
+  loadGistConfigUI();
+  alert('Gist 配置已保存 ✅');
+}
+
+async function syncToGist() {
+  const cfg = getGistConfig();
+  if (!cfg || !cfg.token || !cfg.gist_id) {
+    alert('请先配置 Gist（Token + Gist ID）');
+    return;
+  }
+
+  const statusEl = document.getElementById('gistConfigStatus');
+  if (statusEl) statusEl.textContent = '⏳ 正在上传到 Gist...';
+
+  try {
+    const snapshot = deepClone(progressData);
+    const content = JSON.stringify(snapshot, null, 2);
+
+    // 先获取当前 Gist 文件列表，保留其他文件
+    const getResp = await fetch(`https://api.github.com/gists/${cfg.gist_id}`, {
+      headers: {
+        'Authorization': `Bearer ${cfg.token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+
+    if (!getResp.ok) {
+      throw new Error(`获取 Gist 失败: ${getResp.status}`);
+    }
+
+    const gistData = await getResp.json();
+    const files = gistData.files || {};
+
+    // 更新目标文件，保留其他文件
+    const updatedFiles = { ...files };
+    updatedFiles[cfg.filename] = {
+      content: content
+    };
+
+    // 更新 Gist
+    const patchResp = await fetch(`https://api.github.com/gists/${cfg.gist_id}`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${cfg.token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: updatedFiles,
+        description: `Life OS 进度数据 (${new Date().toLocaleString()})`
+      })
+    });
+
+    if (!patchResp.ok) {
+      const errText = await patchResp.text();
+      throw new Error(`更新 Gist 失败 (${patchResp.status}): ${errText}`);
+    }
+
+    // 更新本地同步时间
+    progressData.meta.last_synced_at = new Date().toISOString();
+    writeLocalJson(LOCAL_PROGRESS_KEY, deepClone(progressData));
+
+    if (statusEl) statusEl.textContent = `✅ 已上传到 Gist (${new Date().toLocaleTimeString()})`;
+    setAutosaveStatus('已上传到 Gist', 'saved');
+    alert('✅ 已成功上传到 GitHub Gist！');
+  } catch (err) {
+    console.error('Gist 上传失败:', err);
+    if (statusEl) statusEl.textContent = `❌ 上传失败: ${err.message}`;
+    alert(`上传失败: ${err.message}`);
+  }
+}
+
+
+async function syncFromGist() {
+  const cfg = getGistConfig();
+  if (!cfg || !cfg.token || !cfg.gist_id) {
+    alert('请先配置 Gist（Token + Gist ID）');
+    return;
+  }
+
+  const statusEl = document.getElementById('gistConfigStatus');
+  if (statusEl) statusEl.textContent = '⏳ 正在从 Gist 拉取...';
+
+  try {
+    const resp = await fetch(`https://api.github.com/gists/${cfg.gist_id}`, {
+      headers: {
+        'Authorization': `Bearer ${cfg.token}`,
+        'Accept': 'application/vnd.github+json',
+        'X-GitHub-Api-Version': '2022-11-28'
+      }
+    });
+
+    if (!resp.ok) {
+      throw new Error(`拉取 Gist 失败: ${resp.status}`);
+    }
+
+    const gistData = await resp.json();
+    const files = gistData.files || {};
+    const targetFile = files[cfg.filename];
+
+    if (!targetFile || !targetFile.content) {
+      throw new Error(`Gist 中找不到文件: ${cfg.filename}`);
+    }
+
+    const remoteData = JSON.parse(targetFile.content);
+
+    // 保留本地的重要数据
+    const localPlan = progressData.ai_plan_direction;
+    const localTaskCamp = progressData.task_camp;
+    const localWealth = progressData.wealth;
+
+    // 用远程数据覆盖大部分
+    progressData = normalizeLoadedProgress(remoteData, progressData);
+
+    // 恢复本地的重要数据
+    if (localPlan && typeof localPlan === 'object') {
+      progressData.ai_plan_direction = localPlan;
+    }
+    if (localTaskCamp && typeof localTaskCamp === 'object') {
+      progressData.task_camp = localTaskCamp;
+    }
+    if (localWealth && typeof localWealth === 'object') {
+      progressData.wealth = localWealth;
+    }
+
+    progressData.meta.last_synced_at = new Date().toISOString();
+    writeLocalJson(LOCAL_PROGRESS_KEY, deepClone(progressData));
+
+    renderAll(progressData);
+    if (statusEl) statusEl.textContent = `✅ 已从 Gist 拉取 (${new Date().toLocaleTimeString()})`;
+    setAutosaveStatus('已从 Gist 拉取', 'saved');
+    alert('✅ 已成功从 GitHub Gist 拉取数据！');
+  } catch (err) {
+    console.error('Gist 拉取失败:', err);
+    if (statusEl) statusEl.textContent = `❌ 拉取失败: ${err.message}`;
+    alert(`拉取失败: ${err.message}`);
+  }
+}  // 👈 这个闭合括号之前缺失了
+
 document.addEventListener('DOMContentLoaded', () => {
   ensureMobilePwaRuntime();
   setupPwaInstallGuide();
@@ -7235,6 +7235,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindMobileTabbar();
   bindBattleWeekStrip();
   clearPreview();
+   loadGistConfigUI(); 
 });
 
 // ===== 快捷打卡弹窗控制 =====
@@ -7247,28 +7248,31 @@ function openQuickPopup(dimKey) {
   const dimSelect = document.getElementById('popupDimension');
   const dateInput = document.getElementById('popupDate');
 
-  // 设置日期默认今天
   dateInput.value = today;
 
-  // 更新维度下拉列表
   const activeDims = getActiveDimensions(progressData);
-  const currentValue = dimSelect.value;
   dimSelect.innerHTML = activeDims.map(d =>
     `<option value="${d.key}" ${d.key === dimKey ? 'selected' : ''}>${d.emoji} ${d.name}</option>`
   ).join('');
-  // 如果传入的 dimKey 不在列表中，回退到第一个
   if (!activeDims.some(d => d.key === dimKey)) {
     dimSelect.value = activeDims[0]?.key || '';
   }
 
-  // 更新弹窗标题
-  const targetDim = activeDims.find(d => d.key === dimKey);
-  label.textContent = targetDim ? `为「${targetDim.emoji} ${targetDim.name}」添加记录` : '快捷打卡';
+ 
 
-  // 显示弹窗
+  // ⭐ 绑定 change 事件：切换维度时刷新记录列表
+  dimSelect.onchange = function() {
+    renderPopupTodayRecords();
+    // 更新标题
+    const selectedDim = activeDims.find(d => d.key === this.value);
+    if (selectedDim) {
+      label.textContent = `为「${selectedDim.emoji} ${selectedDim.name}」添加记录`;
+    }
+  };
+
   overlay.classList.add('active');
+  renderPopupTodayRecords();
 }
-
 function closeQuickPopup() {
   document.getElementById('quickPopup').classList.remove('active');
 }
@@ -7276,43 +7280,41 @@ function closeQuickPopup() {
 function submitQuickPopup() {
   const dimKey = document.getElementById('popupDimension').value;
   const date = document.getElementById('popupDate').value || today;
-  const minutes = parseInt(document.getElementById('popupMinutes').value) || 30;
   const quality = parseFloat(document.getElementById('popupQuality').value) || 1;
   const description = document.getElementById('popupDescription').value.trim() || '快捷打卡';
+  const insight = document.getElementById('popupInsight').value.trim();
+  const minutes = document.getElementById('popupMinutes').value.trim() || '';
 
   if (!dimKey) {
     alert('请选择能力维度');
     return;
   }
-  if (minutes < 1) {
-    alert('时长至少为1分钟');
-    return;
-  }
 
-  // 检查维度是否启用
   const activeKeys = new Set(getActiveDimensionKeys(progressData));
   if (!activeKeys.has(dimKey)) {
     alert('该维度已被禁用，请在「设置中心」启用后再记录。');
     return;
   }
 
-  // 计算经验
+  const BASE_EXP = 10;
   const coeff = dimensionCoeff[dimKey] || 1;
-  const exp = Math.round((minutes / 60) * 50 * coeff * quality);
+  const exp = Math.round(BASE_EXP * coeff * quality);
+
   const defs = getDimensionDefs(progressData);
   const taskType = defs[dimKey]?.name || dimKey;
 
   const entry = {
+    _uid: 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
     date: date,
     dimension_key: dimKey,
     task_type: taskType,
-    difficulty: `${(minutes / 60).toFixed(1)}小时 · 质量×${quality}`,
+    difficulty: String(quality),
     description: description,
+    minutes: minutes,
     exp_gained: exp,
     completed: true
   };
 
-  // 写入数据
   if (!Array.isArray(progressData.history)) progressData.history = [];
   progressData.history.push(entry);
 
@@ -7335,24 +7337,21 @@ function submitQuickPopup() {
     progressData.daily_log[date].dimensions_touched.push(dimKey);
   }
 
-   // ⭐ 如果有感悟，保存到 insights
   if (insight) {
     if (!Array.isArray(progressData.insights)) progressData.insights = [];
     progressData.insights.push({ date, text: insight });
   }
 
-  // 刷新界面
   renderAll(progressData);
   saveProgress(false);
+  renderPopupTodayRecords();
   closeQuickPopup();
 
-  // 重置表单（保留日期）
-  document.getElementById('popupMinutes').value = '30';
   document.getElementById('popupQuality').value = '1';
   document.getElementById('popupDescription').value = '';
-   document.getElementById('popupInsight').value = ''; // ⭐ 新增
+  document.getElementById('popupInsight').value = '';
+  document.getElementById('popupMinutes').value = '';
 }
-
 // 绑定弹窗事件
 document.addEventListener('DOMContentLoaded', function() {
   // 关闭按钮
@@ -7369,6 +7368,177 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Escape') closeQuickPopup();
   });
 });
+// ===== 弹窗内今日打卡记录渲染 =====
+function renderPopupTodayRecords() {
+  const container = document.getElementById('popupTodayRecords');
+  const countEl = document.getElementById('popupTodayCount');
+  if (!container) return;
+
+  const dimSelect = document.getElementById('popupDimension');
+  const currentDimKey = dimSelect ? dimSelect.value : '';
+  
+  if (!currentDimKey) {
+    container.innerHTML = `<div style="padding: 14px; text-align: center; color: #8e8e93; font-size: 0.85rem;">请先选择维度</div>`;
+    if (countEl) countEl.textContent = '0 条';
+    return;
+  }
+
+  const todayStr = today;
+  const defs = getDimensionDefs(progressData);
+
+  let entries = [];
+  if (progressData.daily_log && progressData.daily_log[todayStr]) {
+    entries = progressData.daily_log[todayStr].entries || [];
+  }
+  if (entries.length === 0 && Array.isArray(progressData.history)) {
+    entries = progressData.history.filter(h => h?.date === todayStr);
+  }
+
+  entries = entries.filter(e => e.dimension_key === currentDimKey);
+
+ 
+
+  entries = entries.slice().reverse();
+
+  countEl.textContent = `${entries.length} 条`;
+
+  if (entries.length === 0) {
+    const dimName = defs[currentDimKey]?.name || currentDimKey;
+    container.innerHTML = `<div style="padding: 14px; text-align: center; color: #8e8e93; font-size: 0.85rem;">今天还没有「${dimName}」的打卡 ✨</div>`;
+    return;
+  }
+
+  let html = '';
+  entries.forEach((entry) => {
+    if (!entry._uid) {
+      entry._uid = 'rec_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    }
+    const uid = entry._uid;
+    
+    const exp = Math.round(Number(entry.exp_gained) || 0);
+    const desc = (entry.description || '').slice(0, 18) + ((entry.description || '').length > 18 ? '...' : '');
+    const icon = entry.completed ? '✅' : '⏳';
+    // ⭐ 获取量化投入（分钟数）
+    const minutes = entry.minutes || entry.quantify || '';
+    const quantifyDisplay = minutes ? `${minutes}` : '';
+    
+    html += `
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; border-bottom: 1px solid #eef2f6; font-size: 0.82rem; gap: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1;">
+          <span>${icon}</span>
+          <span style="font-weight: 500; color: #1d1d1f; white-space: nowrap;">${desc || '无备注'}${quantifyDisplay ? ` (${quantifyDisplay})` : ''}</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 4px; flex-shrink: 0;">
+          <span style="font-weight: 600; color: #2f7cf6; font-size: 0.8rem; margin-right: 4px;">+${exp}</span>
+          <button onclick="editPopupRecord('${uid}')" style="background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+            </svg>
+          </button>
+          <button onclick="deletePopupRecord('${uid}')" style="background: none; border: none; cursor: pointer; padding: 2px 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 6h18"/>
+              <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6"/>
+              <path d="M14 11v6"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+// ===== 弹窗内删除打卡记录（通过 _uid） =====
+function deletePopupRecord(uid) {
+  if (!uid) return;
+  
+  const index = progressData.history.findIndex(e => e._uid === uid);
+  if (index < 0) {
+    alert('找不到这条记录，请刷新重试');
+    return;
+  }
+  
+  const entry = progressData.history[index];
+  if (!entry) return;
+  
+  if (!confirm(`确定要删除这条记录吗？\n维度：${entry.dimension_key}\n经验：+${entry.exp_gained}`)) return;
+  
+  const exp = Number(entry.exp_gained) || 0;
+  const dimKey = entry.dimension_key;
+  const date = entry.date;
+  
+  if (progressData.dimensions[dimKey]) {
+    progressData.dimensions[dimKey].total_exp = Math.max(0, progressData.dimensions[dimKey].total_exp - exp);
+  }
+  
+  progressData.total_exp = Math.max(0, (Number(progressData.total_exp) || 0) - exp);
+  progressData.level = Math.floor(progressData.total_exp / 200) + 1;
+  progressData.current_level_exp = progressData.total_exp % 200;
+  progressData.exp_to_next = 200 - progressData.current_level_exp;
+  
+  if (progressData.daily_log) {
+    Object.keys(progressData.daily_log).forEach(logDate => {
+      const log = progressData.daily_log[logDate];
+      if (log && Array.isArray(log.entries)) {
+        log.entries = log.entries.filter(e => e._uid !== uid);
+        log.day_total_exp = log.entries.reduce((sum, e) => sum + (Number(e.exp_gained) || 0), 0);
+        if (log.entries.length === 0 && logDate === date) {
+          log.day_total_exp = 0;
+          log.dimensions_touched = [];
+        }
+      }
+    });
+  }
+  
+  progressData.history = progressData.history.filter(e => e._uid !== uid);
+  
+  renderAll(progressData);
+  saveProgress(false);
+  
+  setTimeout(() => {
+    renderPopupTodayRecords();
+  }, 50);
+  
+  // ⭐ 删掉了 alert('已删除该打卡记录');
+}// ===== 弹窗内编辑打卡记录（通过 _uid） =====
+function editPopupRecord(uid) {
+  if (!uid) return;
+  
+  const entry = progressData.history.find(e => e._uid === uid);
+  if (!entry) {
+    alert('找不到这条记录，请刷新重试');
+    return;
+  }
+  
+  const newDesc = prompt('编辑备注内容：', entry.description || '');
+  if (newDesc === null) return;
+  
+  const trimmed = newDesc.trim();
+  if (trimmed === '') {
+    alert('备注不能为空');
+    return;
+  }
+  
+  entry.description = trimmed;
+  
+  // 同步更新 daily_log
+  if (entry.date && progressData.daily_log && progressData.daily_log[entry.date]) {
+    const log = progressData.daily_log[entry.date];
+    const logEntry = log.entries.find(e => e._uid === uid);
+    if (logEntry) {
+      logEntry.description = trimmed;
+    }
+  }
+  
+  renderAll(progressData);
+  saveProgress(false);
+  renderPopupTodayRecords();
+  
+  alert('备注已更新 ✅');
+}
 
 </script>
 </body>
