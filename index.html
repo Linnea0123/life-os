@@ -3598,6 +3598,7 @@ body.focus-home-mode #mobileFocusHome {
     <div class="menu-panel">
   <div class="menu-btn active" id="menuOverview"><span class="menu-icon">🏠</span>Dashboard</div>
   <div class="menu-btn" id="menuToday"><span class="menu-icon">🕒</span>Today's Stats</div>
+  <div class="menu-btn" id="menuTodo"><span class="menu-icon">✅</span>Todo List</div>
   <div class="menu-btn" id="menuWealth"><span class="menu-icon">💰</span>Wealth</div>
   <div class="menu-btn" id="menuTaskCamp"><span class="menu-icon">👜</span>Task Camp</div>
   <div class="menu-btn" id="menuAchievement"><span class="menu-icon">🏆</span>Achievements</div>
@@ -3840,6 +3841,21 @@ body.focus-home-mode #mobileFocusHome {
     <div id="taskCampContainer"></div>
   </div>
 </div>
+
+
+<!-- Todo List 模块 -->
+<div id="todoSection" style="display: none;">
+  <div class="card">
+    <div class="card-title">✅ Todo List</div>
+    <div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+      <input type="text" id="todoNewInput" placeholder="添加新任务..." style="flex:1;min-width:150px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;">
+      <select id="todoNewDim" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;"></select>
+      <button class="btn-primary" onclick="addTodoTask()" style="padding:8px 16px;border-radius:8px;">➕ 添加</button>
+    </div>
+    <div class="dimensions-grid" id="todoGrid" style="grid-template-columns: repeat(6, 1fr);"></div>
+  </div>
+</div>
+
 
 
 
@@ -4849,11 +4865,12 @@ let progressData = {
     stages: [],
     updated_at: null
   },
-  task_camp: {
+   task_camp: {
     daily: { title: '每日任务', reward_exp: 120, tasks: [] },
     monthly: { title: '月度任务', tasks: [] },
     yearly: { title: '年度任务', tasks: [] }
-  }
+  },
+  todos: []  // 👈 加在这里
 };
 
 const LOCAL_PROGRESS_KEY = 'fd_progress_v3';
@@ -5286,6 +5303,7 @@ function renderAll(data) {
   renderFocusHome(data);
  
   renderProfileToUi(data);
+  renderTodoList();
 }
 
 function renderProfileToUi(data) {
@@ -6239,6 +6257,7 @@ function bindMobileTabbar() {
   const tabs = Array.from(bar.querySelectorAll('[data-tab]'));
   const menuOverview = document.getElementById('menuOverview');
   const menuToday = document.getElementById('menuToday');
+  const menuTodo = document.getElementById('menuTodo');
   const menuTaskCamp = document.getElementById('menuTaskCamp');
   const menuSettings = document.getElementById('menuSettings');
   // ⭐ 新增：获取打卡按钮对应的菜单或直接打开弹窗
@@ -6337,6 +6356,7 @@ function bindSidebarMenus() {
   const mainSections = Array.from(document.querySelectorAll('.top-row, .today-section, .dimensions-table-section, .records-row, .bottom-row'));
   function setActive(btn) { menuButtons.forEach(b => b.classList.remove('active')); if (btn) btn.classList.add('active'); }
   function hideExtraSections() {
+    
     if (focusHomeSection) focusHomeSection.style.display = 'none';
     if (taskCampSection) taskCampSection.style.display = 'none';
     if (wealthSection) wealthSection.style.display = 'none';
@@ -6344,6 +6364,8 @@ function bindSidebarMenus() {
     if (supportSection) supportSection.style.display = 'none';
     if (achievementSection) achievementSection.style.display = 'none';
     if (todayStatsSection) todayStatsSection.style.display = 'none';
+     const todoSection = document.getElementById('todoSection');
+  if (todoSection) todoSection.style.display = 'none';
   }
   function showDashboard() {
   document.body.classList.remove('focus-home-mode');
@@ -6409,6 +6431,14 @@ function showFocusHome() {
     renderTodayStats(progressData);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+ if (menuTodo) {
+  menuTodo.addEventListener('click', () => {
+    setActive(menuTodo);
+    showOnly(todoSection);
+    renderTodoList();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+}
   if (menuWealth) menuWealth.addEventListener('click', () => { setActive(menuWealth); showOnly(wealthSection); renderWealth(); });
   if (menuTaskCamp) menuTaskCamp.addEventListener('click', () => { setActive(menuTaskCamp); showOnly(taskCampSection); renderTaskCamp(); });
   if (menuAchievement) menuAchievement.addEventListener('click', () => {
@@ -7512,6 +7542,198 @@ async function syncFromGist() {
     alert(`拉取失败: ${err.message}`);
   }
 }  // 👈 这个闭合括号之前缺失了
+
+
+// ============================================================
+// ✅ Todo List 功能
+// ============================================================
+
+function renderTodoList() {
+  const container = document.getElementById('todoGrid');
+  if (!container) return;
+  
+  const todos = progressData.todos || [];
+  const activeDims = getActiveDimensions(progressData);
+  const defs = getDimensionDefs(progressData);
+  
+  let html = '';
+  
+  activeDims.forEach(d => {
+    const tasks = todos.filter(t => t.dimension_key === d.key && !t.done);
+    html += `
+      <div class="dimension-card" style="padding:10px;">
+        <div class="dimension-name-row">
+          <span class="dimension-icon">${d.emoji}</span>
+          <span class="dimension-name" style="font-size:0.85rem;">${d.name}</span>
+          <span style="font-size:0.7rem;color:var(--text-secondary);margin-left:auto;">${tasks.length}</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;min-height:60px;">
+          ${tasks.length === 0 ? '<div style="font-size:0.7rem;color:var(--text-secondary);">无待办</div>' : ''}
+          ${tasks.map(t => `
+            <div style="display:flex;align-items:center;gap:6px;font-size:0.75rem;padding:4px 6px;background:#f7f9ff;border-radius:6px;">
+              <input type="checkbox" onchange="toggleTodo('${t.id}')" style="accent-color:#2f7cf6;width:14px;height:14px;flex-shrink:0;">
+              <span style="flex:1;word-break:break-all;">${t.title}</span>
+              <button onclick="deleteTodo('${t.id}')" style="background:none;border:none;color:#ff3b30;cursor:pointer;font-size:12px;">✕</button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+  
+  // 已完成任务
+  const doneTasks = todos.filter(t => t.done);
+  if (doneTasks.length > 0) {
+    html += `
+      <div style="grid-column:1 / -1;margin-top:8px;padding:10px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;">
+        <details>
+          <summary style="font-weight:600;font-size:0.85rem;color:var(--text-secondary);cursor:pointer;">✅ 已完成 (${doneTasks.length})</summary>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+            ${doneTasks.map(t => {
+              const def = defs[t.dimension_key];
+              return `<span style="font-size:0.75rem;background:#e8f0ff;padding:4px 10px;border-radius:12px;color:#2f7cf6;text-decoration:line-through;">${def?.emoji || ''} ${t.title}</span>`;
+            }).join('')}
+          </div>
+        </details>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+  
+  const dimSelect = document.getElementById('todoNewDim');
+  if (dimSelect) {
+    dimSelect.innerHTML = activeDims.map(d => 
+      `<option value="${d.key}">${d.emoji} ${d.name}</option>`
+    ).join('');
+  }
+}
+
+function addTodoTask() {
+  const input = document.getElementById('todoNewInput');
+  const dimSelect = document.getElementById('todoNewDim');
+  const title = input.value.trim();
+  const dimension_key = dimSelect.value;
+  
+  if (!title) { alert('请输入任务内容'); return; }
+  if (!dimension_key) { alert('请选择维度'); return; }
+  
+  if (!progressData.todos) progressData.todos = [];
+  progressData.todos.push({
+    id: 'todo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    dimension_key: dimension_key,
+    title: title,
+    done: false,
+    created_at: new Date().toISOString()
+  });
+  
+  input.value = '';
+  renderTodoList();
+  queueAutoSave();
+}
+
+function toggleTodo(id) {
+  const todo = (progressData.todos || []).find(t => t.id === id);
+  if (!todo) return;
+  
+  const newDone = !todo.done;
+  todo.done = newDone;
+  
+  if (newDone) {
+    const activeKeys = new Set(getActiveDimensionKeys(progressData));
+    if (!activeKeys.has(todo.dimension_key)) {
+      alert('该维度已被禁用');
+      todo.done = false;
+      renderTodoList();
+      return;
+    }
+    
+    const coeff = dimensionCoeff[todo.dimension_key] || 1;
+    const exp = Math.round(10 * coeff);
+    const defs = getDimensionDefs(progressData);
+    const taskType = defs[todo.dimension_key]?.name || todo.dimension_key;
+    
+    const entry = {
+      _uid: 'todo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      date: today,
+      dimension_key: todo.dimension_key,
+      task_type: taskType,
+      difficulty: 'Todo任务',
+      description: `✅ ${todo.title}`,
+      exp_gained: exp,
+      completed: true,
+      from_todo: true
+    };
+    
+    if (!Array.isArray(progressData.history)) progressData.history = [];
+    progressData.history.push(entry);
+    
+    if (!progressData.dimensions[todo.dimension_key]) {
+      progressData.dimensions[todo.dimension_key] = { total_exp: 0 };
+    }
+    progressData.dimensions[todo.dimension_key].total_exp += exp;
+    progressData.total_exp = (Number(progressData.total_exp) || 0) + exp;
+    progressData.level = Math.floor(progressData.total_exp / 200) + 1;
+    progressData.current_level_exp = progressData.total_exp % 200;
+    progressData.exp_to_next = 200 - progressData.current_level_exp;
+    
+    if (!progressData.daily_log) progressData.daily_log = {};
+    if (!progressData.daily_log[today]) {
+      progressData.daily_log[today] = { date: today, entries: [], day_total_exp: 0, dimensions_touched: [] };
+    }
+    progressData.daily_log[today].entries.push(entry);
+    progressData.daily_log[today].day_total_exp += exp;
+    if (!progressData.daily_log[today].dimensions_touched.includes(todo.dimension_key)) {
+      progressData.daily_log[today].dimensions_touched.push(todo.dimension_key);
+    }
+    
+    renderAll(progressData);
+    renderTodoList();
+    queueAutoSave();
+  } else {
+    const idx = (progressData.history || []).findIndex(e => e.from_todo && e.description === `✅ ${todo.title}`);
+    if (idx !== -1) {
+      const exp = Number(progressData.history[idx].exp_gained) || 0;
+      const dimKey = progressData.history[idx].dimension_key;
+      if (progressData.dimensions[dimKey]) {
+        progressData.dimensions[dimKey].total_exp = Math.max(0, progressData.dimensions[dimKey].total_exp - exp);
+      }
+      progressData.total_exp = Math.max(0, (Number(progressData.total_exp) || 0) - exp);
+      progressData.level = Math.floor(progressData.total_exp / 200) + 1;
+      progressData.current_level_exp = progressData.total_exp % 200;
+      progressData.exp_to_next = 200 - progressData.current_level_exp;
+      progressData.history.splice(idx, 1);
+      renderAll(progressData);
+    }
+    renderTodoList();
+    queueAutoSave();
+  }
+}
+
+function deleteTodo(id) {
+  if (!confirm('确定要删除这个任务吗？')) return;
+  const todo = (progressData.todos || []).find(t => t.id === id);
+  if (todo && todo.done) {
+    const idx = (progressData.history || []).findIndex(e => e.from_todo && e.description === `✅ ${todo.title}`);
+    if (idx !== -1) {
+      const exp = Number(progressData.history[idx].exp_gained) || 0;
+      const dimKey = progressData.history[idx].dimension_key;
+      if (progressData.dimensions[dimKey]) {
+        progressData.dimensions[dimKey].total_exp = Math.max(0, progressData.dimensions[dimKey].total_exp - exp);
+      }
+      progressData.total_exp = Math.max(0, (Number(progressData.total_exp) || 0) - exp);
+      progressData.level = Math.floor(progressData.total_exp / 200) + 1;
+      progressData.current_level_exp = progressData.total_exp % 200;
+      progressData.exp_to_next = 200 - progressData.current_level_exp;
+      progressData.history.splice(idx, 1);
+    }
+  }
+  progressData.todos = (progressData.todos || []).filter(t => t.id !== id);
+  renderTodoList();
+  renderAll(progressData);
+  queueAutoSave();
+}
+
 
 document.addEventListener('DOMContentLoaded', () => {
   ensureMobilePwaRuntime();
