@@ -1136,12 +1136,94 @@ body {
   left: 2px;
 }
 
+
+
+
 .timeline-task.done {
   text-decoration: line-through;
   color: var(--text-secondary);
 }
 
+
+
+
+
 @media (max-width: 500px) {
+  /* 🕒 今日战绩 - 字体缩小 */
+  #todayStatsSection .today-stats-hero {
+    padding: 10px 12px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+  }
+  
+  #todayStatsSection .today-stats-date {
+    font-size: 11px !important;
+    margin-bottom: 2px !important;
+    line-height: 1.4 !important;
+  }
+  
+  #todayStatsSection .today-stats-exp {
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+  }
+  
+  #todayStatsSection .today-stats-exp-value {
+    font-size: 18px !important;
+  }
+  
+  #todayStatsSection .today-stats-right {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    gap: 6px !important;
+  }
+  
+  #todayStatsSection .today-stats-progress {
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+  }
+  
+  #todayStatsSection .today-stats-tag {
+    font-size: 10px !important;
+    padding: 3px 8px !important;
+    line-height: 1.4 !important;
+  }
+  
+  #todayStatsSection .today-stats-panel-title {
+    font-size: 12px !important;
+  }
+  
+  #todayStatsSection .today-stats-panel .dimension-name {
+    font-size: 9px !important;
+  }
+  
+  #todayStatsSection .today-stats-panel .dimension-level,
+  #todayStatsSection .today-stats-panel .dimension-status,
+  #todayStatsSection .today-stats-panel .dimension-exp {
+    font-size: 8px !important;
+  }
+  
+  #todayStatsSection .history-table th,
+  #todayStatsSection .history-table td {
+    font-size: 9px !important;
+  }
+  
+  #todayStatsSection .battle-week-day {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 500px) {
+  
+  
+  
+  
+  
+  
+  
+  
+  
   /* top-row 改成上下排列 */
   .top-row {
     display: flex !important;
@@ -1149,6 +1231,10 @@ body {
     gap: 8px !important;
     width: 100% !important;
   }
+
+
+
+
   
   /* 经验值卡片 - 第一行（在上面） */
   .top-row .overview-card {
@@ -2782,7 +2868,9 @@ body {
   .hero-bar {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    margin-bottom: 2px !important;
+    gap: 4px !important;  /* 从 10px 改为 4px */
+    padding: 6px 12px !important;  /* 减少上下内边距 */
   }
   .hero-right {
     width: 100%;
@@ -3608,16 +3696,93 @@ body.focus-home-mode #mobileFocusHome {
 
   <main class="main-content">
 <header class="hero-bar page-header">
-  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;">
-    <div class="header-left" style="text-align:left;">
-      <h1 id="appTitleText" style="margin:0;text-align:left;">Life OS</h1>
-      <div style="font-size:0.75rem;color:#8e8e93;margin-top:3px;letter-spacing:1.5px;font-weight:400;text-align:left;font-family:Calibri, sans-serif;">
-  Health · Wealth · Freedom
-</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:nowrap;gap:6px;">
+    <div class="header-left" style="text-align:left;flex-shrink:0;">
+      <h1 id="appTitleText" style="margin:0;text-align:left;font-size:clamp(1rem, 3vw, 2.2rem);">Life OS</h1>
+      <div style="font-size:0.6rem;color:#8e8e93;margin-top:2px;letter-spacing:1px;font-weight:400;text-align:left;font-family:Calibri, sans-serif;white-space:nowrap;">
+        Health · Wealth · Freedom
+      </div>
     </div>
-    <div style="text-align:right;">
-      <div class="header-datetime" id="headerDatetime" style="margin:0;font-size:14px;color:#6e7486;"></div>
-      <div class="autosave-chip" id="autosaveStatus" style="margin-top:4px;">未修改</div>
+    
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:1;min-width:0;">
+      <!-- 日期时间 -->
+      <div class="header-datetime" id="headerDatetime" style="margin:0;font-size:clamp(10px, 1.5vw, 14px);color:#6e7486;white-space:nowrap;"></div>
+      
+      <!-- 状态 + 按钮行 - 全部在一行 -->
+      <div style="display:flex;align-items:center;gap:clamp(4px, 1vw, 10px);flex-wrap:nowrap;justify-content:flex-end;width:100%;">
+        <!-- 状态显示 -->
+        <div class="autosave-chip" id="autosaveStatus" style="
+          margin:0;
+          font-size:clamp(9px, 1.2vw, 11px);
+          padding:2px clamp(6px, 1vw, 12px);
+          border-radius:4px;
+          background:#ecfdf3;
+          border:1px solid #a7f3d0;
+          color:#047857;
+          display:inline-flex;
+          align-items:center;
+          height:clamp(20px, 3vw, 26px);
+          line-height:1;
+          font-weight:600;
+          white-space:nowrap;
+          flex-shrink:1;
+          min-width:0;
+        ">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📦 已保存</span>
+        </div>
+        
+        <!-- 上传按钮 -->
+        <button id="gistUploadBtn" style="
+          padding:2px clamp(6px, 1vw, 12px);
+          border:1px solid #2f7cf6;
+          border-radius:4px;
+          background:transparent;
+          color:#2f7cf6;
+          font-size:clamp(9px, 1.2vw, 11px);
+          font-weight:600;
+          cursor:pointer;
+          font-family:inherit;
+          transition:all 0.2s ease;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:2px;
+          white-space:nowrap;
+          height:clamp(20px, 3vw, 26px);
+          line-height:1;
+          min-width:clamp(36px, 5vw, 52px);
+          flex-shrink:0;
+        " onmouseover="this.style.background='#e8f0ff'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:clamp(10px, 1.2vw, 14px);">📤</span>
+          <span style="display:inline;font-size:clamp(8px, 1vw, 11px);">上传</span>
+        </button>
+        
+        <!-- 下载按钮 -->
+        <button id="gistDownloadBtn" style="
+          padding:2px clamp(6px, 1vw, 12px);
+          border:1px solid #2f7cf6;
+          border-radius:4px;
+          background:transparent;
+          color:#2f7cf6;
+          font-size:clamp(9px, 1.2vw, 11px);
+          font-weight:600;
+          cursor:pointer;
+          font-family:inherit;
+          transition:all 0.2s ease;
+          display:inline-flex;
+          align-items:center;
+          justify-content:center;
+          gap:2px;
+          white-space:nowrap;
+          height:clamp(20px, 3vw, 26px);
+          line-height:1;
+          min-width:clamp(36px, 5vw, 52px);
+          flex-shrink:0;
+        " onmouseover="this.style.background='#e8f0ff'" onmouseout="this.style.background='transparent'">
+          <span style="font-size:clamp(10px, 1.2vw, 14px);">📥</span>
+          <span style="display:inline;font-size:clamp(8px, 1vw, 11px);">拉取</span>
+        </button>
+      </div>
     </div>
   </div>
 </header>
@@ -4872,6 +5037,36 @@ let progressData = {
   },
   todos: []  // 👈 加在这里
 };
+
+
+async function safeFetch(url, options) {
+  const response = await fetch(url, options);
+  const clonedResponse = response.clone();
+  return {
+    response,
+    clonedResponse,
+    async json() {
+      return await clonedResponse.json();
+    },
+    async text() {
+      return await clonedResponse.text();
+    },
+    ok: response.ok,
+    status: response.status
+  };
+}
+
+/**
+ * 安全的读取 Response，只读一次
+ */
+async function safeReadResponse(response) {
+  const contentType = response.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    return await response.json();
+  } else {
+    return await response.text();
+  }
+}
 
 const LOCAL_PROGRESS_KEY = 'fd_progress_v3';
 const LOCAL_PROGRESS_LEGACY_KEYS = ['fd_progress_v2', 'fengdingding-progress'];
@@ -7430,9 +7625,12 @@ async function syncToGist() {
     });
 
     if (!getResp.ok) {
-      throw new Error(`获取 Gist 失败: ${getResp.status}`);
+      // ✅ 使用 clone() 避免重复读取
+      const errorText = await getResp.clone().text();
+      throw new Error(`获取 Gist 失败 (${getResp.status}): ${errorText}`);
     }
 
+    // ✅ 只读取一次 JSON
     const gistData = await getResp.json();
     const files = gistData.files || {};
 
@@ -7458,9 +7656,13 @@ async function syncToGist() {
     });
 
     if (!patchResp.ok) {
-      const errText = await patchResp.text();
+      // ✅ 使用 clone() 避免重复读取
+      const errText = await patchResp.clone().text();
       throw new Error(`更新 Gist 失败 (${patchResp.status}): ${errText}`);
     }
+
+    // ✅ 读取响应（只读一次）
+    const patchResult = await patchResp.json();
 
     // 更新本地同步时间
     progressData.meta.last_synced_at = new Date().toISOString();
@@ -7475,7 +7677,6 @@ async function syncToGist() {
     alert(`上传失败: ${err.message}`);
   }
 }
-
 
 async function syncFromGist() {
   const cfg = getGistConfig();
@@ -7497,9 +7698,12 @@ async function syncFromGist() {
     });
 
     if (!resp.ok) {
-      throw new Error(`拉取 Gist 失败: ${resp.status}`);
+      // ✅ 使用 clone() 避免重复读取
+      const errorText = await resp.clone().text();
+      throw new Error(`拉取 Gist 失败 (${resp.status}): ${errorText}`);
     }
 
+    // ✅ 只读取一次 JSON
     const gistData = await resp.json();
     const files = gistData.files || {};
     const targetFile = files[cfg.filename];
@@ -7508,17 +7712,25 @@ async function syncFromGist() {
       throw new Error(`Gist 中找不到文件: ${cfg.filename}`);
     }
 
-    const remoteData = JSON.parse(targetFile.content);
+    // 解析远程数据
+    let remoteData;
+    try {
+      remoteData = JSON.parse(targetFile.content);
+    } catch (parseErr) {
+      throw new Error(`解析 Gist 数据失败: ${parseErr.message}`);
+    }
 
-    // 保留本地的重要数据
+    // 保存本地的重要数据（防止覆盖）
     const localPlan = progressData.ai_plan_direction;
     const localTaskCamp = progressData.task_camp;
     const localWealth = progressData.wealth;
+    const localTodos = progressData.todos;
+    const localInsights = progressData.insights;
 
     // 用远程数据覆盖大部分
     progressData = normalizeLoadedProgress(remoteData, progressData);
 
-    // 恢复本地的重要数据
+    // ✅ 恢复本地的重要数据（这些数据更适合保留本地版本）
     if (localPlan && typeof localPlan === 'object') {
       progressData.ai_plan_direction = localPlan;
     }
@@ -7527,6 +7739,12 @@ async function syncFromGist() {
     }
     if (localWealth && typeof localWealth === 'object') {
       progressData.wealth = localWealth;
+    }
+    if (localTodos && Array.isArray(localTodos)) {
+      progressData.todos = localTodos;
+    }
+    if (localInsights && Array.isArray(localInsights)) {
+      progressData.insights = localInsights;
     }
 
     progressData.meta.last_synced_at = new Date().toISOString();
@@ -7541,8 +7759,7 @@ async function syncFromGist() {
     if (statusEl) statusEl.textContent = `❌ 拉取失败: ${err.message}`;
     alert(`拉取失败: ${err.message}`);
   }
-}  // 👈 这个闭合括号之前缺失了
-
+}
 
 // ============================================================
 // ✅ Todo List 功能
@@ -7736,6 +7953,9 @@ function deleteTodo(id) {
 
 
 document.addEventListener('DOMContentLoaded', () => {
+  // ============================================================
+  // 🚀 基础初始化
+  // ============================================================
   ensureMobilePwaRuntime();
   setupPwaInstallGuide();
   updateCurrentDateTime();
@@ -7745,13 +7965,236 @@ document.addEventListener('DOMContentLoaded', () => {
   renderWealth();
   bindFocusHomeActions();
   bindSidebarMenus();
- 
   bindMobileTabbar();
   bindBattleWeekStrip();
   clearPreview();
-   loadGistConfigUI(); 
+  loadGistConfigUI();
+
+  // ============================================================
+  // 🔁 Gist 上传/下载按钮绑定（顶部状态栏）
+  // ============================================================
+  const uploadBtn = document.getElementById('gistUploadBtn');
+  const downloadBtn = document.getElementById('gistDownloadBtn');
+  const statusEl = document.getElementById('autosaveStatus');
+  
+  // 上传按钮
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const cfg = getGistConfig();
+      if (!cfg || !cfg.token || !cfg.gist_id) {
+        alert('⚠️ 请先在「设置中心」配置 Gist Token 和 Gist ID');
+        document.getElementById('menuSettings')?.click();
+        return;
+      }
+      // 显示上传中状态
+      if (statusEl) {
+        statusEl.textContent = '⏳ 上传中...';
+        statusEl.className = 'autosave-chip saving';
+      }
+      const originalText = uploadBtn.textContent;
+      uploadBtn.textContent = '⏳ 上传中';
+      uploadBtn.disabled = true;
+      
+      syncToGist().finally(() => {
+        if (statusEl) {
+          statusEl.textContent = '✅ 已上传到 Gist';
+          statusEl.className = 'autosave-chip saved';
+          setTimeout(() => {
+            statusEl.textContent = '📦 已加载本地数据';
+            statusEl.className = 'autosave-chip';
+          }, 3000);
+        }
+        uploadBtn.textContent = originalText || '📤 上传';
+        uploadBtn.disabled = false;
+      });
+    });
+  }
+  
+  // 下载按钮
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const cfg = getGistConfig();
+      if (!cfg || !cfg.token || !cfg.gist_id) {
+        alert('⚠️ 请先在「设置中心」配置 Gist Token 和 Gist ID');
+        document.getElementById('menuSettings')?.click();
+        return;
+      }
+      // 显示拉取中状态
+      if (statusEl) {
+        statusEl.textContent = '⏳ 拉取中...';
+        statusEl.className = 'autosave-chip saving';
+      }
+      const originalText = downloadBtn.textContent;
+      downloadBtn.textContent = '⏳ 拉取中';
+      downloadBtn.disabled = true;
+      
+      syncFromGist().finally(() => {
+        if (statusEl) {
+          statusEl.textContent = '✅ 已从 Gist 拉取';
+          statusEl.className = 'autosave-chip saved';
+          setTimeout(() => {
+            statusEl.textContent = '📦 已加载本地数据';
+            statusEl.className = 'autosave-chip';
+          }, 3000);
+        }
+        downloadBtn.textContent = originalText || '📥 拉取';
+        downloadBtn.disabled = false;
+      });
+    });
+  }
+
+  // ============================================================
+  // 📊 Gist 状态更新函数（左侧菜单）
+  // ============================================================
+  function updateGistQuickStatus() {
+    const cfg = getGistConfig();
+    const statusEl = document.getElementById('gistQuickStatus');
+    if (!statusEl) return;
+    if (cfg && cfg.token && cfg.gist_id) {
+      const shortToken = cfg.token.slice(0, 8) + '...';
+      statusEl.textContent = `✅ ${shortToken}`;
+      statusEl.style.color = 'rgba(52, 199, 89, 0.8)';
+    } else {
+      statusEl.textContent = '⚠️ 未配置';
+      statusEl.style.color = 'rgba(255, 59, 48, 0.6)';
+    }
+  }
+
+  // 更新初始状态
+  updateGistQuickStatus();
+
+  // ============================================================
+  // 🔗 URL 参数检测（自动加载分享链接配置）
+  // ============================================================
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get('config');
+  if (encoded) {
+    try {
+      const config = JSON.parse(atob(encoded));
+      if (config.token && config.gistId) {
+        const tokenInput = document.getElementById('gistToken');
+        const idInput = document.getElementById('gistId');
+        if (tokenInput) tokenInput.value = config.token;
+        if (idInput) idInput.value = config.gistId;
+        saveGistConfigToStorage({ 
+          token: config.token, 
+          gist_id: config.gistId,
+          filename: 'lifeos_progress.json' 
+        });
+        loadGistConfigUI();
+        updateGistQuickStatus();
+        alert('✅ 配置已从分享链接加载！');
+        // 清除 URL 参数
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    } catch {
+      // 无效配置，忽略
+    }
+  }
+
+  // ============================================================
+  // 📱 弹窗事件绑定
+  // ============================================================
+  const popupClose = document.getElementById('popupCloseBtn');
+  const popupCancel = document.getElementById('popupCancelBtn');
+  const popupOverlay = document.getElementById('quickPopup');
+  const popupConfirm = document.getElementById('popupConfirmBtn');
+
+  if (popupClose) popupClose.addEventListener('click', closeQuickPopup);
+  if (popupCancel) popupCancel.addEventListener('click', closeQuickPopup);
+  if (popupOverlay) {
+    popupOverlay.addEventListener('click', function(e) {
+      if (e.target === this) closeQuickPopup();
+    });
+  }
+  if (popupConfirm) popupConfirm.addEventListener('click', submitQuickPopup);
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeQuickPopup();
+  });
+
+  // ============================================================
+  // 📤 导出 JSON 按钮绑定（如果有）
+  // ============================================================
+  const exportBtn = document.getElementById('exportFullJsonBtn');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', exportFullJson);
+  }
+
+  // ============================================================
+  // 🔄 自动保存定时器
+  // ============================================================
+  setInterval(() => {
+    if (progressData && progressData.history) {
+      queueAutoSave(500);
+    }
+  }, 30000);
+
+  // ============================================================
+  // 🎯 页面可见性变化时保存（用户离开页面时保存）
+  // ============================================================
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      saveProgress({ silent: true });
+    }
+  });
+
+  // ============================================================
+  // ⌨️ 快捷键支持
+  // ============================================================
+  document.addEventListener('keydown', function(e) {
+    // Ctrl+Shift+U: 上传到 Gist
+    if (e.ctrlKey && e.shiftKey && e.key === 'U') {
+      e.preventDefault();
+      if (uploadBtn) uploadBtn.click();
+    }
+    // Ctrl+Shift+D: 从 Gist 拉取
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') {
+      e.preventDefault();
+      if (downloadBtn) downloadBtn.click();
+    }
+    // Ctrl+Shift+S: 保存到本地
+    if (e.ctrlKey && e.shiftKey && e.key === 'S') {
+      e.preventDefault();
+      saveProgress(true);
+    }
+  });
+
+  // ============================================================
+  // 📊 控制台提示（开发者友好）
+  // ============================================================
+  console.log('🚀 Life OS 已加载');
+  console.log('📊 数据版本:', progressData?.meta?.schema_version || '未知');
+  console.log('📦 总经验:', progressData?.total_exp || 0);
+  console.log('🏆 等级:', progressData?.level || 1);
+  console.log('💡 快捷键: Ctrl+Shift+U 上传 | Ctrl+Shift+D 拉取 | Ctrl+Shift+S 保存');
+  console.log('🔗 GitHub: https://github.com');
+
+  console.log('✅ 所有功能已就绪！');
 });
 
+// ============================================================
+// 🛠️ 辅助：重写 saveGistConfig 以更新状态
+// ============================================================
+const originalSaveGistConfig = saveGistConfig;
+saveGistConfig = function() {
+  originalSaveGistConfig.call(this);
+  // 更新左侧状态
+  const statusEl = document.getElementById('gistQuickStatus');
+  if (statusEl) {
+    const cfg = getGistConfig();
+    if (cfg && cfg.token && cfg.gist_id) {
+      const shortToken = cfg.token.slice(0, 8) + '...';
+      statusEl.textContent = `✅ ${shortToken}`;
+      statusEl.style.color = 'rgba(52, 199, 89, 0.8)';
+    } else {
+      statusEl.textContent = '⚠️ 未配置';
+      statusEl.style.color = 'rgba(255, 59, 48, 0.6)';
+    }
+  }
+};
 // ===== 快捷打卡弹窗控制 =====
 let popupTargetDimKey = null;
 
