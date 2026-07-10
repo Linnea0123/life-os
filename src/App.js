@@ -1,4 +1,3 @@
-
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 
@@ -12638,7 +12637,8 @@ const [newTaskProgressCurrent, setNewTaskProgressCurrent] = useState(0);
 const [newTaskTargetProgress, setNewTaskTargetProgress] = useState(100);
 const [enableProgress, setEnableProgress] = useState(false);
 const [showSearchModal, setShowSearchModal] = useState(false);
-
+const [showExpDetail, setShowExpDetail] = useState(false);
+const expDetailRef = useRef(null);
 
 
 const [dailyTaskTemplates, setDailyTaskTemplates] = useState(() => {
@@ -13037,13 +13037,17 @@ const calculateLevel = useCallback((exp) => {
 }, []);
 
 
-// ===== 3. ExpPanel 组件（使用上面的所有函数） =====
-const ExpPanel = ({ selectedDate }) => {
-  const [showDetail, setShowDetail] = useState(false);
+const ExpPanel = ({ selectedDate, isOpen = false, onToggle }) => {
+  const [showDetail, setShowDetail] = useState(isOpen);
   const [showTaskDetail, setShowTaskDetail] = useState(null);
   const [showSkillDetail, setShowSkillDetail] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
   const panelRef = useRef(null);
+
+  // 当外部 isOpen 变化时同步
+  useEffect(() => {
+    setShowDetail(isOpen);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 480);
@@ -13057,11 +13061,12 @@ const ExpPanel = ({ selectedDate }) => {
         setShowDetail(false);
         setShowTaskDetail(null);
         setShowSkillDetail(null);
+        if (onToggle) onToggle(false);
       }
     };
     document.addEventListener('click', handleClickOutside);
     return () => document.removeEventListener('click', handleClickOutside);
-  }, []);
+  }, [onToggle]);
 
   const getTodayRating = () => {
     const rating = dailyRatings[selectedDate] || 0;
@@ -13549,61 +13554,100 @@ const ExpPanel = ({ selectedDate }) => {
     );
   };
 
+  // 切换函数
+  const handleToggle = () => {
+    const newState = !showDetail;
+    setShowDetail(newState);
+    if (onToggle) onToggle(newState);
+  };
+
   // ========== 主渲染 ==========
   return (
     <div ref={panelRef} style={{ position: 'relative', display: 'inline-block' }}>
-      <div
-        onClick={() => setShowDetail(!showDetail)}
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: isMobile ? '1px' : '2px',
-          padding: isMobile ? '1px 4px' : '1px 6px',
-          height: isMobile ? '20px' : '24px',
-          backgroundColor: todayTotal > 0 ? '#e8f5e9' : '#f5f5f5',
-          borderRadius: '10px',
-          cursor: 'pointer',
-          fontSize: isMobile ? '8px' : '9px',
-          whiteSpace: 'nowrap',
-          border: '1px solid #e0e0e0',
-          flexShrink: 0
-        }}
-        title={`今日积分: +${todayTotal} | 总积分: ${grandTotal} | Lv.${level}`}
-      >
-        <span style={{ fontSize: isMobile ? '9px' : '10px' }}>{getRatingEmoji()}</span>
-        <span style={{ 
-          fontWeight: 'bold', 
-          color: todayTotal > 0 ? '#2e7d32' : '#999', 
-          fontSize: isMobile ? '8px' : '9px' 
-        }}>
-          +{todayTotal}
-        </span>
-        <span style={{ fontSize: isMobile ? '5px' : '6px', color: '#999' }}> </span>
-        <span style={{ 
-          fontSize: isMobile ? '8px' : '9px', 
-          color: '#999',
-          fontWeight: 'bold'
-        }}>
-          Lv.{level}
-        </span>
-        <span style={{ fontSize: isMobile ? '5px' : '6px', color: '#ccc' }}>▼</span>
-      </div>
+      {/* 收起的按钮 - 进度条样式 */}
+      {/* 收起的按钮 - 进度条样式，去掉背景色和边框 */}
+{/* 收起的按钮 - 进度条样式 */}
+<div
+  onClick={handleToggle}
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '4px 0',
+    height: '28px',
+    backgroundColor: 'transparent',
+    borderRadius: '0',
+    cursor: 'pointer',
+    fontSize: '13px',
+    whiteSpace: 'nowrap',
+    border: 'none',
+    flexShrink: 0
+  }}
+  title={`今日积分: +${todayTotal} | 总积分: ${grandTotal} | Lv.${level}`}
+>
+  {/* 今日经验值 */}
+  <span style={{
+    fontWeight: 'bold',
+    color: todayTotal > 0 ? '#4caf50' : '#999',
+    fontSize: '14px',
+    minWidth: '40px'
+  }}>
+    +{todayTotal}
+  </span>
+  
+  {/* 进度条 */}
+  <div style={{
+    width: '180px',
+    height: '6px',
+    backgroundColor: '#f0f0f0',
+    borderRadius: '3px',
+    overflow: 'hidden'
+  }}>
+    <div style={{
+      width: `${Math.min((grandTotal % 50) / 50 * 100, 100)}%`,
+      height: '100%',
+      backgroundColor: '#61A2Da',
+      borderRadius: '3px',
+      transition: 'width 0.3s ease'
+    }} />
+  </div>
+  
+  {/* 等级 + 总经验值 - 放在一起 */}
+  <span style={{
+    fontWeight: 'bold',
+    color: '#61A2Da',
+    fontSize: '11px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px'  // ← 改为 2px，更靠近
+  }}>
+    Lv.{level}
+    <span style={{
+      fontSize: '11px',
+      color: '#999',
+      fontWeight: '500'
+    }}>
+      {grandTotal}
+    </span>
+  </span>
+</div>
 
+
+      {/* 展开的详细面板 - 在按钮下方 */}
       {showDetail && (
         <div style={{
-          position: 'fixed',
-          top: isMobile ? '60px' : '70px',
+          position: 'absolute',
+          top: 'calc(100% + 8px)',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: isMobile ? 'calc(100vw - 32px)' : '420px',
-          maxWidth: isMobile ? 'calc(100vw - 32px)' : '450px',
-          minWidth: isMobile ? 'calc(100vw - 32px)' : '320px',
-          maxHeight: isMobile ? '80vh' : '70vh',
+          width: '400px',
+          maxWidth: 'calc(100vw - 32px)',
+          maxHeight: '70vh',
           backgroundColor: '#fff',
-          borderRadius: isMobile ? '16px' : '12px',
+          borderRadius: '12px',
           boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
           border: '1px solid #e0e0e0',
-          padding: isMobile ? '14px 16px' : '18px 22px',
+          padding: '16px 20px',
           zIndex: 9999,
           overflowY: 'auto',
           overscrollBehavior: 'contain'
@@ -13613,14 +13657,14 @@ const ExpPanel = ({ selectedDate }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: isMobile ? '12px' : '16px',
-            paddingBottom: isMobile ? '10px' : '12px',
+            marginBottom: '12px',
+            paddingBottom: '10px',
             borderBottom: '1px solid #f0f0f0'
           }}>
             <div>
-              <div style={{ fontSize: isMobile ? '11px' : '13px', color: '#999' }}>今日</div>
+              <div style={{ fontSize: '11px', color: '#999' }}>今日</div>
               <div style={{ 
-                fontSize: isMobile ? '18px' : '22px', 
+                fontSize: '18px', 
                 fontWeight: 'bold', 
                 color: '#34c759',
                 display: 'flex',
@@ -13628,15 +13672,15 @@ const ExpPanel = ({ selectedDate }) => {
                 gap: '6px'
               }}>
                 +{todayTotal}
-                <span style={{ fontSize: isMobile ? '11px' : '14px', color: '#999', fontWeight: 'normal' }}>
+                <span style={{ fontSize: '11px', color: '#999', fontWeight: 'normal' }}>
                   ({done}/{total})
                 </span>
               </div>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: isMobile ? '11px' : '13px', color: '#999' }}>总积分</div>
+              <div style={{ fontSize: '11px', color: '#999' }}>总积分</div>
               <div style={{ 
-                fontSize: isMobile ? '18px' : '22px', 
+                fontSize: '18px', 
                 fontWeight: 'bold', 
                 color: '#1a73e8',
                 display: 'flex',
@@ -13644,7 +13688,7 @@ const ExpPanel = ({ selectedDate }) => {
                 gap: '6px'
               }}>
                 {grandTotal}
-                <span style={{ fontSize: isMobile ? '11px' : '14px', color: '#999', fontWeight: 'normal' }}>
+                <span style={{ fontSize: '11px', color: '#999', fontWeight: 'normal' }}>
                   Lv.{level}
                 </span>
               </div>
@@ -13655,7 +13699,7 @@ const ExpPanel = ({ selectedDate }) => {
           <div style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
-            gap: isMobile ? '4px' : '6px',
+            gap: '4px',
           }}>
             {Object.keys(DIMENSIONS).map((key) => {
               const dim = DIMENSIONS[key];
@@ -13675,11 +13719,11 @@ const ExpPanel = ({ selectedDate }) => {
                 <div 
                   key={key} 
                   style={{
-                    padding: isMobile ? '6px 8px' : '8px 12px',
-                    borderRadius: isMobile ? '6px' : '8px',
+                    padding: '6px 8px',
+                    borderRadius: '6px',
                     backgroundColor: hasExp ? bgColor : '#fafafa',
                     border: '1px solid #f0f0f0',
-                    fontSize: isMobile ? '11px' : '12px',
+                    fontSize: '11px',
                     cursor: 'pointer',
                     transition: 'all 0.2s ease'
                   }}
@@ -13703,20 +13747,20 @@ const ExpPanel = ({ selectedDate }) => {
                     <span style={{ 
                       display: 'flex', 
                       alignItems: 'center', 
-                      gap: isMobile ? '3px' : '6px',
-                      fontSize: isMobile ? '11px' : '13px'
+                      gap: '3px',
+                      fontSize: '11px'
                     }}>
-                      <span style={{ fontSize: isMobile ? '14px' : '16px' }}>{dim.emoji}</span>
+                      <span style={{ fontSize: '14px' }}>{dim.emoji}</span>
                       <span style={{ 
                         color: '#333', 
-                        fontSize: isMobile ? '11px' : '13px', 
+                        fontSize: '11px', 
                         fontWeight: '500' 
                       }}>
                         {dimName}
                       </span>
                       {taskCount > 0 && (
                         <span style={{
-                          fontSize: isMobile ? '8px' : '9px',
+                          fontSize: '8px',
                           color: '#4caf50',
                           backgroundColor: '#e8f5e9',
                           padding: '1px 4px',
@@ -13728,7 +13772,7 @@ const ExpPanel = ({ selectedDate }) => {
                       )}
                     </span>
                     <span style={{
-                      fontSize: isMobile ? '10px' : '12px',
+                      fontSize: '10px',
                       fontWeight: 'bold',
                       color: today > 0 ? '#34c759' : '#999'
                     }}>
@@ -13737,10 +13781,10 @@ const ExpPanel = ({ selectedDate }) => {
                   </div>
                   
                   <div style={{
-                    height: isMobile ? '3px' : '4px',
+                    height: '3px',
                     backgroundColor: '#eee',
                     borderRadius: '2px',
-                    marginTop: isMobile ? '3px' : '4px',
+                    marginTop: '3px',
                     overflow: 'hidden'
                   }}>
                     <div style={{
@@ -13754,9 +13798,9 @@ const ExpPanel = ({ selectedDate }) => {
                   <div style={{
                     display: 'flex',
                     justifyContent: 'space-between',
-                    fontSize: isMobile ? '8px' : '10px',
+                    fontSize: '8px',
                     color: '#999',
-                    marginTop: isMobile ? '2px' : '3px'
+                    marginTop: '2px'
                   }}>
                     <span>{expInLevel}/{EXP_PER_LEVEL}</span>
                     <span>Lv.{dimLevel}</span>
@@ -13768,25 +13812,25 @@ const ExpPanel = ({ selectedDate }) => {
 
           {/* 技能区域 */}
           <div style={{
-            marginTop: isMobile ? '10px' : '14px',
-            paddingTop: isMobile ? '10px' : '12px',
+            marginTop: '10px',
+            paddingTop: '10px',
             borderTop: '1px solid #f0f0f0'
           }}>
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              marginBottom: isMobile ? '8px' : '10px'
+              marginBottom: '8px'
             }}>
               <span style={{
-                fontSize: isMobile ? '11px' : '12px',
+                fontSize: '11px',
                 fontWeight: 'bold',
                 color: '#333'
               }}>
                 🎯 技能
               </span>
               <span style={{
-                fontSize: isMobile ? '9px' : '10px',
+                fontSize: '9px',
                 color: '#999'
               }}>
                 从标签中识别
@@ -13796,7 +13840,7 @@ const ExpPanel = ({ selectedDate }) => {
             <div style={{
               display: 'grid',
               gridTemplateColumns: '1fr 1fr',
-              gap: isMobile ? '4px' : '6px'
+              gap: '4px'
             }}>
               {(() => {
                 const todayTasks = tasksByDate[selectedDate] || [];
@@ -13821,7 +13865,7 @@ const ExpPanel = ({ selectedDate }) => {
                       gridColumn: '1 / -1',
                       textAlign: 'center',
                       padding: '20px',
-                      fontSize: isMobile ? '10px' : '11px',
+                      fontSize: '10px',
                       color: '#999',
                       backgroundColor: '#f8f9fa',
                       borderRadius: '8px'
@@ -13858,8 +13902,8 @@ const ExpPanel = ({ selectedDate }) => {
                       <div
                         key={skill}
                         style={{
-                          padding: isMobile ? '6px 8px' : '8px 10px',
-                          borderRadius: isMobile ? '6px' : '8px',
+                          padding: '6px 8px',
+                          borderRadius: '6px',
                           backgroundColor: config.bgColor || '#fafafa',
                           border: '1px solid #e8e8e8',
                           cursor: 'pointer',
@@ -13881,20 +13925,20 @@ const ExpPanel = ({ selectedDate }) => {
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          marginBottom: isMobile ? '2px' : '3px'
+                          marginBottom: '2px'
                         }}>
                           <span style={{ 
                             display: 'flex', 
                             alignItems: 'center', 
-                            gap: isMobile ? '3px' : '5px',
-                            fontSize: isMobile ? '10px' : '11px',
+                            gap: '3px',
+                            fontSize: '10px',
                             fontWeight: '500',
                             color: '#333'
                           }}>
-                            <span style={{ fontSize: isMobile ? '12px' : '13px' }}>{config.icon}</span>
+                            <span style={{ fontSize: '12px' }}>{config.icon}</span>
                             <span>{skill}</span>
                             <span style={{
-                              fontSize: isMobile ? '7px' : '8px',
+                              fontSize: '7px',
                               color: '#999',
                               backgroundColor: '#f5f5f5',
                               padding: '1px 5px',
@@ -13904,7 +13948,7 @@ const ExpPanel = ({ selectedDate }) => {
                             </span>
                           </span>
                           <span style={{
-                            fontSize: isMobile ? '9px' : '10px',
+                            fontSize: '9px',
                             fontWeight: 'bold',
                             color: totalExp > 0 ? '#4caf50' : '#999'
                           }}>
@@ -13913,7 +13957,7 @@ const ExpPanel = ({ selectedDate }) => {
                         </div>
                         
                         <div style={{
-                          height: isMobile ? '2px' : '3px',
+                          height: '2px',
                           backgroundColor: '#eee',
                           borderRadius: '2px',
                           overflow: 'hidden'
@@ -13930,9 +13974,9 @@ const ExpPanel = ({ selectedDate }) => {
                         <div style={{
                           display: 'flex',
                           justifyContent: 'space-between',
-                          fontSize: isMobile ? '7px' : '8px',
+                          fontSize: '7px',
                           color: '#999',
-                          marginTop: isMobile ? '1px' : '2px'
+                          marginTop: '1px'
                         }}>
                           <span>{expInLevel}/{EXP_PER_LEVEL}</span>
                           <span>Lv.{level}</span>
@@ -13945,15 +13989,17 @@ const ExpPanel = ({ selectedDate }) => {
           </div>
 
           <div
-            onClick={() => setShowDetail(false)}
+            onClick={() => {
+              setShowDetail(false);
+              if (onToggle) onToggle(false);
+            }}
             style={{
-              marginTop: isMobile ? '6px' : '0',
-              padding: isMobile ? '4px 0' : '0',
+              marginTop: '6px',
               textAlign: 'center',
-              fontSize: isMobile ? '11px' : '0',
-              color: '#999',
+              fontSize: '10px',
+              color: '#bbb',
               cursor: 'pointer',
-              display: isMobile ? 'block' : 'none'
+              padding: '4px 0'
             }}
           >
             ✕ 关闭
@@ -13977,6 +14023,8 @@ const ExpPanel = ({ selectedDate }) => {
     </div>
   );
 };
+
+
 
 
   // 获取跨日期任务在指定日期的完成类型
@@ -20066,25 +20114,8 @@ onSave={(newConfig) => {
   marginBottom: 15,
   padding: "0 40px"
 }}>
-  {/* 左侧：奖杯按钮 + 属性面板 */}
-  <div style={{
-    position: "absolute",
-    top: 5,
-    left: 0,
-    display: "flex",
-    alignItems: "center",
-    gap: "6px",
-    zIndex: 10
-  }}>
-    {/* 奖杯按钮 - 里程碑 */}
-   
-
-    {/* ✅ 属性面板（经验值）- 放在奖杯右侧 */}
-    <ExpPanel 
-  selectedDate={selectedDate}
-  dailyRatings={dailyRatings}  // ← 添加这行
-/>
-  </div>
+ 
+ 
 
 
 
@@ -20453,34 +20484,83 @@ onSave={(newConfig) => {
   </div>
 )}
 
-      
- <div style={{
-  display: "flex",
-  justifyContent: "center",     // ← 改成 center
-  alignItems: "center",
-  fontSize: 12,
-  marginTop: "-8px",
-  marginBottom: 10,
-  padding: "0 4px",
-  position: "relative"          // ← 添加相对定位
-}}>
-  {/* 左侧：打卡统计 - 现在居中 */}
-  <div style={{ color: "#666" }}>
-    已打卡 {
-      Object.values(tasksByDate).filter(dailyTasks => 
-        dailyTasks.some(task => task.done === true)
-      ).length
-    } 天，累计完成 {
-      Object.values(tasksByDate).flat().filter(t => t.done).length
-    } 个任务
+
+
+{/* ========== 点击展开 ExpPanel ========== */}
+{showExpDetail && (
+  <div style={{
+    marginBottom: '8px',
+    padding: '12px',
+    backgroundColor: '#fff',
+    borderRadius: '8px',
+    border: '1px solid #e8e8e8',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    animation: 'slideDown 0.25s ease'
+  }}>
+    <style>{`
+      @keyframes slideDown {
+        0% { opacity: 0; transform: translateY(-8px); }
+        100% { opacity: 1; transform: translateY(0); }
+      }
+    `}</style>
+    
+    {/* ✅ 直接使用 ExpPanel 组件 */}
+    <ExpPanel 
+      selectedDate={selectedDate}
+      dailyRatings={dailyRatings}
+    />
+    
+    {/* 关闭提示 */}
+    <div style={{
+      textAlign: 'center',
+      fontSize: '10px',
+      color: '#bbb',
+      marginTop: '6px',
+      cursor: 'pointer',
+      userSelect: 'none'
+    }}
+    onClick={(e) => {
+      e.stopPropagation();
+      setShowExpDetail(false);
+    }}>
+      点击收起
+    </div>
   </div>
-  
-{/* 右侧：本学期倒计时 - 可点击编辑 */}
-{/* 右侧：本学期倒计时 - 可点击编辑 */}
+)}
 
 
+{/* ========== ExpPanel 放在打卡统计上方 ========== */}
+<div style={{
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+   marginTop: -12,   
+  marginBottom: 2
+}}>
+  <ExpPanel 
+    selectedDate={selectedDate}
+    dailyRatings={dailyRatings}
+  />
 </div>
 
+{/* 打卡统计 */}
+<div style={{
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  fontSize: 12,
+  marginBottom: 10,
+  padding: "0 4px",
+  color: "#666"
+}}>
+  已打卡 {
+    Object.values(tasksByDate).filter(dailyTasks => 
+      dailyTasks.some(task => task.done === true)
+    ).length
+  } 天，累计完成 {
+    Object.values(tasksByDate).flat().filter(t => t.done).length
+  } 个任务
+</div>
 
 
   {/* 第一行：周次靠左显示 */}
@@ -23164,5 +23244,3 @@ if (totalCount === 0) {
   
   
   export default App
-
-    
