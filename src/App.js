@@ -2550,33 +2550,26 @@ const handleManualBackup = async () => {
 const GitHubSyncModal = ({ config, onSave, onClose }) => {
   const [token, setToken] = useState(config.token || '');
 const [autoSync, setAutoSync] = useState(config.autoSync !== undefined ? config.autoSync : false); // ✅ 改成 false
-  const [gistId, setGistId] = useState(config.gistId || '46c9f5bb3a6a62057759293b0399a15c');
+  const [gistId, setGistId] = useState(config.gistId || '978de7cead4b35c6c0784051f5cc7405');
 
   // 获取 Token 后四位
-  const getTokenSuffix = (tokenValue) => {
-    if (!tokenValue || tokenValue.length < 4) return '';
-    return tokenValue.slice(-4);
-  };
+const handleSave = () => {
+  if (!token.trim()) {
+    alert('请输入 GitHub Token');
+    return;
+  }
+  
+
+  
+  onSave({ token, autoSync, gistId });
+  onClose();
+};
 
   // ✅ 修改这里：期望的后四位改为 ocb0
-  const expectedSuffix = 'ocb0';
+
    const hasAutoSavedRef = useRef(false);  // <-- 添加这行
 
-  const handleSave = () => {
-    if (!token.trim()) {
-      alert('请输入 GitHub Token');
-      return;
-    }
-    
-    const suffix = getTokenSuffix(token);
-    if (suffix !== expectedSuffix) {
-      alert(`Token 后四位是 "${suffix}"，不是 "${expectedSuffix}"！\n请检查 Token 是否正确。`);
-      return;
-    }
-    
-    onSave({ token, autoSync, gistId });
-    onClose();
-  };
+ 
 
   return (
     <div style={{
@@ -2625,17 +2618,7 @@ const [autoSync, setAutoSync] = useState(config.autoSync !== undefined ? config.
             }}
           />
           
-          {/* 显示后四位验证状态 */}
-          {token.length >= 4 && (
-            <div style={{ 
-              fontSize: 12, 
-              marginTop: 5,
-              color: getTokenSuffix(token) === expectedSuffix ? '#4caf50' : '#f44336'
-            }}>
-              Token 后四位: <strong>{getTokenSuffix(token)}</strong>
-              {getTokenSuffix(token) === expectedSuffix ? ' ✓ 正确' : ' ✗ 不正确（应为 a15c）'}
-            </div>
-          )}
+        
           
           {token.length > 0 && token.length < 4 && (
             <div style={{ fontSize: 12, marginTop: 5, color: '#ff9800' }}>
@@ -2667,9 +2650,7 @@ const [autoSync, setAutoSync] = useState(config.autoSync !== undefined ? config.
               boxSizing: 'border-box'
             }}
           />
-          <div style={{ fontSize: 12, color: '#666', marginTop: 5 }}>
-            💡 默认 Gist ID: 46c9f5bb3a6a62057759293b0399a15c
-          </div>
+          
         </div>
 
         <div style={{ marginBottom: 15 }}>
@@ -13710,7 +13691,7 @@ const restoreFromGitHub = useCallback(async () => {
 
 const [syncConfig, setSyncConfig] = useState({
   token: localStorage.getItem(PAGE_ID + '_github_token') || '',
-  gistId: localStorage.getItem(PAGE_ID + '_github_gist_id') || '46c9f5bb3a6a62057759293b0399a15c',  // ✅ 修改这里
+   gistId: localStorage.getItem(PAGE_ID + '_github_gist_id') || '978de7cead4b35c6c0784051f5cc7405',
  autoSync: false,  // ✅ 改成 false，关闭自动同步
   lastSync: localStorage.getItem(PAGE_ID + '_github_last_sync') || ''
 });
@@ -14590,7 +14571,7 @@ const performCloudRestore = useCallback(async () => {
     let targetGistId = localStorage.getItem('github_gist_id') || localStorage.getItem('PAGE_A_github_gist_id');
     
     if (!targetGistId) {
-      targetGistId = '46c9f5bb3a6a62057759293b0399a15c';
+      targetGistId = '978de7cead4b35c6c0784051f5cc7405';
     }
     
     console.log('📁 开始获取 Gist 数据:', targetGistId);
