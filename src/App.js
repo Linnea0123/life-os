@@ -2134,8 +2134,8 @@ const baseCategories = [
   }
 ];
 // 保持这样就行
-const PAGE_ID = 'PAGE_A'; 
-const STORAGE_KEY = `study-tracker-${PAGE_ID}-v2`;
+const PAGE_ID = 'LIFE_OS'; 
+const STORAGE_KEY = `life-os-${PAGE_ID}-v2`;
 
 
 
@@ -2749,11 +2749,11 @@ const fetchFromGitHub = async (gistId) => {
           const files = Object.values(gist.files);
           
           // 查找学习跟踪器数据文件
-          const dataFile = files.find(file => 
-            file.filename.includes('study-tracker') || 
-            file.filename.includes('json') ||
-            file.filename.includes('backup')
-          );
+const dataFile = files.find(file => 
+  file.filename.includes('life-os') || 
+  file.filename.includes('json') ||
+  file.filename.includes('backup')
+);
           
           if (!dataFile) {
             throw new Error('未找到学习跟踪器数据文件');
@@ -2769,13 +2769,13 @@ const fetchFromGitHub = async (gistId) => {
     const gist = await response.json();
     const files = Object.values(gist.files);
     
-    // 查找学习跟踪器数据文件（更宽松的匹配）
-    const dataFile = files.find(file => 
-      file.filename.includes('study-tracker') || 
-      file.filename.includes('json') ||
-      file.filename.includes('backup') ||
-      file.filename === 'study-tracker-data.json'
-    );
+   // 查找学习跟踪器数据文件（更宽松的匹配）
+const dataFile = files.find(file => 
+  file.filename.includes('life-os') || 
+  file.filename.includes('json') ||
+  file.filename.includes('backup') ||
+  file.filename === 'life-os-data.json'
+);
     
     if (!dataFile) {
       throw new Error('未找到学习跟踪器数据文件，请检查文件名称');
@@ -3424,37 +3424,7 @@ const getWeekNumber = (date) => {
  
 
 
-// 数据迁移函数 - 从旧版本迁移数据
-const migrateLegacyData = async () => {
-  const LEGACY_STORAGE_KEY = 'study-tracker-main';
-  
-  try {
-    // 检查旧版本数据是否存在
-    const legacyTasks = localStorage.getItem(`${LEGACY_STORAGE_KEY}_tasks`);
-    const hasNewData = localStorage.getItem(`${STORAGE_KEY}_tasks`);
-    
-    // 如果旧数据存在且新数据不存在，则迁移
-    if (legacyTasks && !hasNewData) {
-      console.log('🔁 检测到旧版本数据，开始迁移...');
-      
-      const keys = ['tasks'];
-      let migratedCount = 0;
-      
-      keys.forEach(key => {
-        const legacyData = localStorage.getItem(`${LEGACY_STORAGE_KEY}_${key}`);
-        if (legacyData) {
-          localStorage.setItem(`${STORAGE_KEY}_${key}`, legacyData);
-          migratedCount++;
-          console.log(`✅ 迁移 ${key} 数据`);
-        }
-      });
-      
-      console.log(`🎉 数据迁移完成，共迁移 ${migratedCount} 项数据`);
-    }
-  } catch (error) {
-    console.error('数据迁移失败:', error);
-  }
-};
+
 
 
 
@@ -13428,33 +13398,11 @@ const [collapsedSubCategories, setCollapsedSubCategories] = useState({});
 
 // ✅ 修改为优先使用 localStorage，如果没有则用完整的 baseCategories
 const [categories, setCategories] = useState(() => {
-  const saved = localStorage.getItem('study-tracker-PAGE_A-v2_categories');
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      // 检查是否有"通识"、"综合"、"心理"分类，如果没有则补充
-      const allNames = parsed.map(c => c.name);
-      const fullCategories = [...parsed];
-      
-      // 补充缺失的分类
-      const missingCategories = [
-        { name: "通识", color: "#E1F5FE", subCategories: [] },
-        { name: "综合", color: "#FFF3E0", subCategories: [] },
-        { name: "心理", color: "#EDE7F6", subCategories: [] }
-      ];
-      
-      missingCategories.forEach(cat => {
-        if (!allNames.includes(cat.name)) {
-          fullCategories.push(cat);
-        }
-      });
-      
-      return fullCategories;
-    } catch (e) {
-      return baseCategories.map(cat => ({ ...cat, subCategories: cat.subCategories || [] }));
-    }
-  }
-  return baseCategories.map(cat => ({ ...cat, subCategories: cat.subCategories || [] }));
+  // ✅ 强制使用新的 baseCategories，不读取旧数据
+  return baseCategories.map(cat => ({ 
+    ...cat, 
+    subCategories: cat.subCategories || [] 
+  }));
 });
 const categoryTabs = useMemo(() => {
   const cats = ['全部'];
@@ -13593,12 +13541,12 @@ const handleDeleteMonthTask = (taskId) => {
       // 过滤出学习跟踪器的gist，按更新时间排序
       const studyGists = gists
         .filter(gist => {
-          const files = Object.values(gist.files);
-          return files.some(file => 
-            file.filename.includes('study-tracker') || 
-            file.filename.includes('json')
-          );
-        })
+  const files = Object.values(gist.files);
+  return files.some(file => 
+    file.filename.includes('life-os') || 
+    file.filename.includes('json')
+  );
+})
         .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at));
       
       return studyGists[0]; // 返回最新的一个
@@ -13650,8 +13598,7 @@ const restoreFromGitHub = useCallback(async () => {
     const gist = await response.json();
     console.log('Gist 获取成功:', gist);
     
-    const content = gist.files['study-tracker-data.json'].content;
-    const backupData = JSON.parse(content);
+const content = gist.files['life-os-data.json'].content;    const backupData = JSON.parse(content);
     console.log('备份数据:', backupData);
 
     if (window.confirm(`确定要恢复 ${new Date(backupData.syncTime).toLocaleString()} 的备份数据吗？这将覆盖当前所有数据！`)) {
@@ -14254,14 +14201,14 @@ const syncToGitHub = useCallback(async (silent = false) => {
     }
 
     const gistData = {
-      description: 'Study Tracker Backup - 学习跟踪器备份',
-      public: false,
-      files: {
-        'study-tracker-data.json': {
-          content: jsonString
-        }
-      }
-    };
+  description: 'Life OS Backup - 人生操作系统备份',
+  public: false,
+  files: {
+    'life-os-data.json': {
+      content: jsonString
+    }
+  }
+};
 
     const response = await fetch(url, {
       method: method,
@@ -14588,7 +14535,6 @@ const performCloudRestore = useCallback(async () => {
     }
     
     const gist = await response.json();
-    const content = gist.files['study-tracker-data.json']?.content;
     
     if (!content) {
       throw new Error('未找到数据文件');
@@ -15485,7 +15431,7 @@ const triggerConfetti = (categoryName) => {
   // 使用大拇指图片，但保持撒花的动画效果
   parts.push({
     id: Date.now(),
-    imageUrl: 'https://raw.githubusercontent.com/Linnea0123/study-tracker/main/public/confetti.png',
+    imageUrl: 'https://raw.githubusercontent.com/Linnea0123/life-os/main/public/confetti.png',
     startX: centerX,
     startY: centerY,
     width: 50,
@@ -16600,7 +16546,7 @@ if (savedCategories) {
 
 
       // 设置定时备份
-      localStorage.setItem('study-tracker-PAGE_A-v2_isInitialized', 'true');
+      localStorage.setItem('life-os-PAGE_A-v2_isInitialized', 'true');
       
       setIsInitialized(true);
       
@@ -19074,7 +19020,7 @@ const clearAllData = async () => {
     });
     
     // 清空初始化状态
-    localStorage.removeItem('study-tracker-PAGE_A-v2_isInitialized');
+    localStorage.removeItem('life-os-PAGE_A-v2_isInitialized');
     
     // 重新初始化每日数据（清空今天的）
     const today = new Date().toISOString().split("T")[0];
@@ -19103,9 +19049,9 @@ const generateDailyLog = () => {
 const handleExportData = async () => {
   try {
     // 获取所有数据
-    const tasks = JSON.parse(localStorage.getItem('study-tracker-PAGE_A-v2_tasks') || '{}');
-    const dailyRatings = JSON.parse(localStorage.getItem('study-tracker-PAGE_A-v2_dailyRatings') || '{}');
-    const monthTasks = JSON.parse(localStorage.getItem('study-tracker-PAGE_A-v2_monthTasks') || '[]');
+    const tasks = JSON.parse(localStorage.getItem('life-os-PAGE_A-v2_tasks') || '{}');
+    const dailyRatings = JSON.parse(localStorage.getItem('life-os-PAGE_A-v2_dailyRatings') || '{}');
+    const monthTasks = JSON.parse(localStorage.getItem('life-os-PAGE_A-v2_monthTasks') || '[]');
     
     // 创建一个包含所有数据的对象
     const exportData = {
@@ -19121,7 +19067,7 @@ const handleExportData = async () => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `study-tracker-backup_${new Date().toISOString().slice(0, 10)}.json`;
+    link.download = `life-os-backup_${new Date().toISOString().slice(0, 10)}.json`;
     link.click();
     URL.revokeObjectURL(url);
     
@@ -19680,7 +19626,7 @@ onSave={(newConfig) => {
     padding: "10px 0",
     lineHeight: "16px"
   }}>
-    学习记录
+    Life OS
   </h1>
 </div>
 
@@ -20028,7 +19974,7 @@ onSave={(newConfig) => {
       ).length
     } 天，累计完成 {
       Object.values(tasksByDate).flat().filter(t => t.done).length
-    } 个学习任务
+    } 个任务
   </div>
   
 {/* 右侧：本学期倒计时 - 可点击编辑 */}
@@ -21941,7 +21887,7 @@ if (totalCount === 0) {
           if (!response.ok) throw new Error(`获取失败: ${response.status}`);
 
           const gist = await response.json();
-          const content = gist.files['study-tracker-data.json']?.content;
+          const content = gist.files['life-os-data.json']?.content;
           const backupData = JSON.parse(content);
 
           await handleRestoreData(backupData, 'overwrite');
