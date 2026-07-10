@@ -1,7 +1,7 @@
 {
   "name": "-new",
   "version": "0.1.0",
-  "homepage": ".",
+  "homepage": "https://linnea0123.github.io/life-os",
   "private": true,
   "dependencies": {
     "@cloudbase/js-sdk": "^2.22.4",
