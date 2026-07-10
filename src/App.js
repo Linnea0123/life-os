@@ -12204,32 +12204,126 @@ const CustomConfirmModal = ({ message, onConfirm, onCancel, onClose }) => {
   );
 };
 
-// 经验获得弹窗组件 - RPG风格
+const MAX_EXP = 1000;
+
+// 经验等级配置
+const EXP_PER_LEVEL = 50;
+
+// 经验获得弹窗组件 - 简洁大屏版
 const ExpPopup = ({ expData, onClose }) => {
+  const [totalProgress, setTotalProgress] = useState(0);
+  const [dimProgress, setDimProgress] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsVisible(false);
-      setTimeout(onClose, 300);
-    }, 1800);
-    return () => clearTimeout(timer);
-  }, [onClose]);
+  // ✅ 从 localStorage 读取所有日期的总经验
+  const getGrandTotalFromStorage = () => {
+    try {
+      const saved = localStorage.getItem('exp_data_v2');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const total = data.total || {};
+        return Object.values(total).reduce((sum, val) => sum + val, 0);
+      }
+    } catch (e) {
+      console.error('读取经验数据失败:', e);
+    }
+    return 0;
+  };
   
-  if (!isVisible) {
-    return (
-      <div style={{
-        position: 'fixed',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 9999,
-        opacity: 0,
-        transition: 'opacity 0.3s ease',
-        pointerEvents: 'none'
-      }} />
-    );
-  }
+  // ✅ 获取数据
+  const earnedExp = expData.totalExp || 0;
+  const grandTotal = expData.grandTotal || getGrandTotalFromStorage();
+  const beforeTotal = Math.max(0, grandTotal - earnedExp);
+  
+  // ✅ 获取本次获得经验的第一个维度
+  const expEntries = Object.entries(expData.exp || {});
+  const firstDim = expEntries.length > 0 ? expEntries[0] : null;
+  const dimKey = firstDim ? firstDim[0] : null;
+  const dimValue = firstDim ? firstDim[1] : 0;
+  
+  // ✅ 获取该维度的总经验值
+  const getDimTotalFromStorage = (dimKey) => {
+    try {
+      const saved = localStorage.getItem('exp_data_v2');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const total = data.total || {};
+        return total[dimKey] || 0;
+      }
+    } catch (e) {
+      console.error('读取维度经验失败:', e);
+    }
+    return 0;
+  };
+  
+  const dimGrandTotal = dimKey ? getDimTotalFromStorage(dimKey) : 0;
+  const dimBeforeTotal = Math.max(0, dimGrandTotal - dimValue);
+  
+  const expPerLevel = EXP_PER_LEVEL;
+  
+  // ✅ 计算百分比
+  const beforeTotalPercent = expPerLevel > 0 ? Math.min((beforeTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+  const afterTotalPercent = expPerLevel > 0 ? Math.min((grandTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+  const beforeDimPercent = expPerLevel > 0 ? Math.min((dimBeforeTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+  const afterDimPercent = expPerLevel > 0 ? Math.min((dimGrandTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+  
+  // 等级
+  const currentLevel = Math.floor(grandTotal / expPerLevel) + 1;
+  const expInLevel = grandTotal % expPerLevel;
+  const targetExp = expPerLevel;
+  
+  const dimLevel = dimKey ? Math.floor(dimGrandTotal / expPerLevel) + 1 : 0;
+  const dimExpInLevel = dimKey ? dimGrandTotal % expPerLevel : 0;
+  
+  const dimNames = {
+    tipuo: '体魄',
+    xiuye: '修业',
+    xinshen: '心神',
+    shouhu: '守护',
+    caiye: '财业',
+    yiqu: '逸趣'
+  };
+  
+  useEffect(() => {
+    const duration = 1200;
+    const interval = 16;
+    const steps = duration / interval;
+    let currentStep = 0;
+    
+    const totalDiff = afterTotalPercent - beforeTotalPercent;
+    const dimDiff = afterDimPercent - beforeDimPercent;
+    
+    if (totalDiff === 0 && dimDiff === 0) {
+      setTotalProgress(afterTotalPercent);
+      setDimProgress(afterDimPercent);
+      setTimeout(() => {
+        setIsVisible(false);
+        setTimeout(onClose, 400);
+      }, 1000);
+      return;
+    }
+    
+    const timer = setInterval(() => {
+      currentStep++;
+      const t = Math.min(currentStep / steps, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      
+      setTotalProgress(Math.min(beforeTotalPercent + totalDiff * eased, 100));
+      setDimProgress(Math.min(beforeDimPercent + dimDiff * eased, 100));
+      
+      if (currentStep >= steps) {
+        clearInterval(timer);
+        setTimeout(() => {
+          setIsVisible(false);
+          setTimeout(onClose, 400);
+        }, 1200);
+      }
+    }, interval);
+    
+    return () => clearInterval(timer);
+  }, [beforeTotalPercent, afterTotalPercent, beforeDimPercent, afterDimPercent, onClose]);
+  
+  if (!isVisible) return null;
   
   const hasSkills = expData.skills && expData.skills.length > 0;
   const hasExp = expData.exp && Object.keys(expData.exp).length > 0;
@@ -12241,148 +12335,289 @@ const ExpPopup = ({ expData, onClose }) => {
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: 'rgba(0,0,0,0.3)',
       display: 'flex',
       justifyContent: 'center',
       alignItems: 'center',
       zIndex: 9999,
-      pointerEvents: 'none',
-      animation: 'fadeIn 0.3s ease'
+      animation: 'fadeIn 0.2s ease'
     }}>
       <style>{`
         @keyframes fadeIn {
-          0% { opacity: 0; transform: scale(0.8); }
-          100% { opacity: 1; transform: scale(1); }
+          0% { opacity: 0; }
+          100% { opacity: 1; }
         }
-        @keyframes floatUp {
+        @keyframes slideUp {
           0% { opacity: 0; transform: translateY(20px); }
-          20% { opacity: 1; transform: translateY(0); }
-          80% { opacity: 1; transform: translateY(0); }
-          100% { opacity: 0; transform: translateY(-30px); }
+          100% { opacity: 1; transform: translateY(0); }
         }
-        @keyframes glowPulse {
-          0%, 100% { text-shadow: 0 0 10px rgba(255, 215, 0, 0.3); }
-          50% { text-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
-        }
-        .exp-popup {
-          background: linear-gradient(145deg, #1a1a2e, #16213e);
-          border: 2px solid #FFD700;
-          border-radius: 20px;
-          padding: 24px 32px;
-          min-width: 250px;
-          max-width: 350px;
-          text-align: center;
-          box-shadow: 0 0 60px rgba(255, 215, 0, 0.2);
-          animation: fadeIn 0.4s ease;
-          pointer-events: none;
-        }
-        .exp-title {
-          font-size: 20px;
-          font-weight: bold;
-          color: #FFD700;
-          margin-bottom: 12px;
-          animation: glowPulse 1.5s ease-in-out infinite;
-        }
-        .exp-item {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 4px 0;
-          color: #fff;
-          font-size: 15px;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .exp-item:last-child {
-          border-bottom: none;
-        }
-        .exp-value {
-          color: #4CAF50;
-          font-weight: bold;
-          font-size: 16px;
-        }
-        .exp-value.negative {
-          color: #f44336;
-        }
-        .skill-tag {
-          display: inline-block;
-          padding: 2px 10px;
-          border-radius: 12px;
-          font-size: 12px;
-          margin: 2px 4px;
-          color: #fff;
-        }
-        .level-up {
-          color: #FFD700;
-          font-weight: bold;
-          font-size: 14px;
-          margin-top: 8px;
-          animation: glowPulse 0.8s ease-in-out infinite;
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
       
-      <div className="exp-popup">
-        <div className="exp-title">✨ 完成！</div>
-        
-        {/* 经验值显示 */}
-        {hasExp && Object.entries(expData.exp).map(([dim, value]) => {
-          const dimNames = {
-            tipuo: '💪 体魄',
-            xiuye: '📚 修业',
-            xinshen: '🧠 心神',
-            shouhu: '👨‍👩‍👧 守护',
-            caiye: '💼 财业',
-            yiqu: '🎮 逸趣'
-          };
-          return (
-            <div key={dim} className="exp-item">
-              <span>{dimNames[dim] || dim}</span>
-              <span className="exp-value">+{value}</span>
-            </div>
-          );
-        })}
-        
-        {/* 技能标签显示 */}
-        {hasSkills && (
-          <div style={{ marginTop: '10px', paddingTop: '10px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontSize: '12px', color: '#999', marginBottom: '6px' }}>🏷️ 技能</div>
-            <div>
-              {expData.skills.map((skill, idx) => {
-                const skillColors = {
-                  '健身': '#4CAF50',
-                  '阅读': '#2196F3',
-                  '英语': '#E91E63',
-                  '冥想': '#9C27B0',
-                  '理财': '#FFC107',
-                  '烹饪': '#FF9800',
-                  '写作': '#3F51B5',
-                  '运动': '#4CAF50',
-                  '育儿': '#E91E63',
-                  '摄影': '#03A9F4',
-                  '音乐': '#9C27B0',
-                  '设计': '#E91E63',
-                  '编程': '#4CAF50'
-                };
-                const color = skillColors[skill] || '#61A2Da';
-                return (
-                  <span key={idx} className="skill-tag" style={{ backgroundColor: color }}>
-                    #{skill}
-                  </span>
-                );
-              })}
-            </div>
-          </div>
-        )}
-        
-        {/* 等级提升提示（如果有） */}
-        {expData.levelUp && (
-          <div className="level-up">
-            ⬆ Lv.{expData.levelUp} 达成！
-          </div>
-        )}
-        
-        <div style={{ fontSize: '11px', color: '#666', marginTop: '10px' }}>
-          +{expData.totalExp || 0} 经验值
+      <div style={{
+        backgroundColor: '#fff',
+        borderRadius: '16px',
+        padding: '24px 28px 28px',
+        minWidth: '280px',
+        maxWidth: '340px',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
+        border: '1px solid #e8e8e8',
+        animation: 'slideUp 0.3s ease'
+      }}>
+        {/* 标题 */}
+        <div style={{
+          textAlign: 'center',
+          fontSize: '18px',
+          fontWeight: '600',
+          color: '#61A2Da',
+          marginBottom: '18px',
+          letterSpacing: '1px'
+        }}>
+          任务完成
         </div>
+        
+        {/* ========== 第一条：总经验 ========== */}
+        <div style={{ marginBottom: '18px' }}>
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '6px'
+          }}>
+            <span style={{
+              fontSize: '14px',
+              fontWeight: '500',
+              color: '#333'
+            }}>
+              总经验
+            </span>
+            <span style={{
+              fontSize: '13px',
+              color: '#666'
+            }}>
+              Lv.{currentLevel}  {expInLevel}/{targetExp}
+            </span>
+          </div>
+          
+          <div style={{
+            position: 'relative',
+            width: '100%',
+            height: '8px',
+            backgroundColor: '#f0f0f0',
+            borderRadius: '4px',
+            overflow: 'visible'
+          }}>
+            {/* 原来位置标记 */}
+            <div style={{
+              position: 'absolute',
+              left: `${beforeTotalPercent}%`,
+              top: '-3px',
+              width: '2px',
+              height: '14px',
+              backgroundColor: '#bbb',
+              borderRadius: '1px',
+              zIndex: 3
+            }} />
+            
+            <div style={{
+              width: `${totalProgress}%`,
+              height: '100%',
+              borderRadius: '4px',
+              background: totalProgress >= 100 
+                ? 'linear-gradient(90deg, #FFD700, #FF6B00)' 
+                : 'linear-gradient(90deg, #61A2Da, #4CAF50)',
+              transition: 'width 0.02s linear',
+              position: 'relative',
+              zIndex: 1
+            }}>
+              {totalProgress > beforeTotalPercent && totalProgress < 100 && (
+                <div style={{
+                  position: 'absolute',
+                  right: 0,
+                  top: 0,
+                  width: '24px',
+                  height: '100%',
+                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                  animation: 'shimmer 0.5s ease-in-out'
+                }} />
+              )}
+            </div>
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            marginTop: '4px',
+            fontSize: '11px',
+            color: '#bbb'
+          }}>
+            <span>{beforeTotal}</span>
+            <span style={{ color: '#4caf50', fontWeight: '500' }}>{grandTotal}</span>
+          </div>
+        </div>
+        
+        {/* ========== 第二条：对应属性 ========== */}
+        {dimKey && (
+          <div style={{ marginBottom: '18px' }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '6px'
+            }}>
+              <span style={{
+                fontSize: '14px',
+                fontWeight: '500',
+                color: '#333'
+              }}>
+                {dimNames[dimKey]}
+              </span>
+              <span style={{
+                fontSize: '13px',
+                color: '#666'
+              }}>
+                Lv.{dimLevel}  {dimExpInLevel}/{targetExp}
+              </span>
+            </div>
+            
+            <div style={{
+              position: 'relative',
+              width: '100%',
+              height: '8px',
+              backgroundColor: '#f0f0f0',
+              borderRadius: '4px',
+              overflow: 'visible'
+            }}>
+              {/* 原来位置标记 */}
+              <div style={{
+                position: 'absolute',
+                left: `${beforeDimPercent}%`,
+                top: '-3px',
+                width: '2px',
+                height: '14px',
+                backgroundColor: '#bbb',
+                borderRadius: '1px',
+                zIndex: 3
+              }} />
+              
+              <div style={{
+                width: `${dimProgress}%`,
+                height: '100%',
+                borderRadius: '4px',
+                background: dimProgress >= 100 
+                  ? 'linear-gradient(90deg, #FFD700, #FF6B00)' 
+                  : 'linear-gradient(90deg, #FF9800, #FF5722)',
+                transition: 'width 0.02s linear',
+                position: 'relative',
+                zIndex: 1
+              }}>
+                {dimProgress > beforeDimPercent && dimProgress < 100 && (
+                  <div style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    width: '24px',
+                    height: '100%',
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
+                    animation: 'shimmer 0.5s ease-in-out'
+                  }} />
+                )}
+              </div>
+            </div>
+            
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginTop: '4px',
+              fontSize: '11px',
+              color: '#bbb'
+            }}>
+              <span>{dimBeforeTotal}</span>
+              <span style={{ color: '#4caf50', fontWeight: '500' }}>{dimGrandTotal}</span>
+            </div>
+          </div>
+        )}
+        
+        {/* ✅ 只显示各维度获得的经验，不单独显示 +2 */}
+        {hasExp && (
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '8px 20px',
+            justifyContent: 'center',
+            padding: '10px 0',
+            borderTop: '1px solid #f0f0f0',
+            borderBottom: hasSkills ? '1px solid #f0f0f0' : 'none'
+          }}>
+            {Object.entries(expData.exp).map(([dim, value]) => (
+              <span
+                key={dim}
+                style={{
+                  fontSize: '14px',
+                  color: '#333',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                {dimNames[dim]}
+                <span style={{
+                  color: '#4caf50',
+                  fontWeight: '600',
+                  fontSize: '15px'
+                }}>
+                  +{value}
+                </span>
+              </span>
+            ))}
+          </div>
+        )}
+        
+        {/* 技能标签 */}
+        {hasSkills && (
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px',
+            justifyContent: 'center',
+            paddingTop: '10px'
+          }}>
+            {expData.skills.map((skill, idx) => (
+              <span
+                key={idx}
+                style={{
+                  fontSize: '12px',
+                  padding: '3px 14px',
+                  borderRadius: '14px',
+                  backgroundColor: '#f5f5f5',
+                  color: '#555',
+                  border: '1px solid #e8e8e8'
+                }}
+              >
+                {skill}
+              </span>
+            ))}
+          </div>
+        )}
+        
+        {/* 等级提升 */}
+        {expData.levelUp && (
+          <div style={{
+            textAlign: 'center',
+            marginTop: '12px',
+            padding: '8px 12px',
+            backgroundColor: '#FFF8E1',
+            borderRadius: '8px',
+            fontSize: '15px',
+            fontWeight: '600',
+            color: '#F57C00'
+          }}>
+            Lv.{expData.levelUp} 达成！
+          </div>
+        )}
       </div>
     </div>
   );
@@ -12443,7 +12678,7 @@ const [showTemplateList, setShowTemplateList] = useState(false);
 
 const [showTimeRecordModal, setShowTimeRecordModal] = useState(false);
   // 在 App 组件开头，其他 useState 附近添加
-const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+
   // 在 App 组件中，找到其他 useRef 定义的位置，添加：
 const isUserTogglingRef = useRef(false);
   // 添加这个状态定义
@@ -12699,8 +12934,7 @@ const BASE_EXP = {
 };
 
 // 2.4 经验等级配置
-const EXP_PER_LEVEL = 50;
-const MAX_EXP = 1000;
+
 
 // 2.5 经验数据状态
 const [expData, setExpData] = useState(() => {
@@ -15641,7 +15875,6 @@ const toggleDone = (task, currentDateFromTask = null) => {
     // 收集技能标签
     if (task.tags && task.tags.length > 0) {
       task.tags.forEach(tag => {
-        // 只显示在技能配置中定义的标签
         const skillConfig = {
           '健身': true, '阅读': true, '英语': true, '冥想': true,
           '理财': true, '烹饪': true, '写作': true, '运动': true,
@@ -15661,7 +15894,7 @@ const toggleDone = (task, currentDateFromTask = null) => {
     const newLevel = Math.floor(newTotal / EXP_PER_LEVEL) + 1;
     const levelUp = newLevel > currentLevel ? newLevel : null;
     
-    // ✅ 显示弹窗
+    // 显示弹窗
     if (Object.keys(expData).length > 0 || skills.length > 0) {
       setShowExpPopup({
         exp: expData,
@@ -15685,9 +15918,101 @@ const toggleDone = (task, currentDateFromTask = null) => {
     }
   }
 
-  // ... 后续的任务状态更新逻辑保持不变 ...
+  // ============================================================
+  // ✅ 关键修复：更新任务的 done 状态
+  // ============================================================
+  
+  // 检查任务是否是常规任务（完成后移动到目标分类）
+  const isRegularTask = task.isRegularTask === true;
+  
+  if (task.isWeekTask) {
+    // 本周任务
+    setTasksByDate(prev => {
+      const newTasksByDate = { ...prev };
+      Object.keys(newTasksByDate).forEach(date => {
+        newTasksByDate[date] = newTasksByDate[date].map(t =>
+          t.isWeekTask && t.text === task.text && t.weekStart === task.weekStart
+            ? { 
+                ...t, 
+                done: newDoneState,
+                actualCompletedDate: newDoneState ? currentDate : null,
+                updatedAt: new Date().toISOString()
+              }
+            : t
+        );
+      });
+      return newTasksByDate;
+    });
+    
+  } else if (task.crossDateId) {
+    // 跨日期任务：更新所有关联日期
+    setTasksByDate(prev => {
+      const newTasksByDate = { ...prev };
+      Object.keys(newTasksByDate).forEach(date => {
+        newTasksByDate[date] = newTasksByDate[date].map(t =>
+          t.crossDateId === task.crossDateId
+            ? { 
+                ...t, 
+                done: newDoneState,
+                actualCompletedDate: newDoneState ? currentDate : null,
+                updatedAt: new Date().toISOString()
+              }
+            : t
+        );
+      });
+      return newTasksByDate;
+    });
+    
+  } else if (isRegularTask && newDoneState === true && task.targetCategory) {
+    // 常规任务完成：从常规任务区域移除，添加到目标分类
+    setTasksByDate(prev => {
+      const newTasksByDate = { ...prev };
+      
+      // 1. 从当前日期移除该任务
+      if (newTasksByDate[currentDate]) {
+        newTasksByDate[currentDate] = newTasksByDate[currentDate].filter(t => t.id !== task.id);
+        if (newTasksByDate[currentDate].length === 0) {
+          delete newTasksByDate[currentDate];
+        }
+      }
+      
+      // 2. 在目标分类中创建已完成的任务（isRegularTask = false）
+      if (!newTasksByDate[currentDate]) {
+        newTasksByDate[currentDate] = [];
+      }
+      
+      const completedTask = {
+        ...task,
+        done: true,
+        isRegularTask: false, // 不再是常规任务
+        category: task.targetCategory || task.category,
+        subCategory: task.targetSubCategory || task.subCategory || '',
+        actualCompletedDate: currentDate,
+        updatedAt: new Date().toISOString()
+      };
+      
+      newTasksByDate[currentDate].push(completedTask);
+      
+      return newTasksByDate;
+    });
+    
+  } else {
+    // 普通任务
+    setTasksByDate(prev => ({
+      ...prev,
+      [currentDate]: (prev[currentDate] || []).map(t =>
+        t.id === task.id 
+          ? { 
+              ...t, 
+              done: newDoneState,
+              actualCompletedDate: newDoneState ? currentDate : null,
+              updatedAt: new Date().toISOString()
+            }
+          : t
+      )
+    }));
+  }
 };
-
 // ===== 更新任务经验值 =====
 
 
@@ -17288,13 +17613,7 @@ const getWeekTasks = () => {
 }, [todayTasks]);
   const weekDates = getWeekDates(currentMonday);
 
-const calculateTotalCompletedTasks = useMemo(() => {
-  let total = 0;
-  Object.values(tasksByDate).forEach(dayTasks => {
-    total += dayTasks.filter(task => task.done === true).length;
-  });
-  return total;
-}, [tasksByDate]);
+
 
 // 计算今日统计数据（排除未完成的常规任务）
 const calculateTodayStats = () => {
@@ -19474,14 +19793,6 @@ if (isInitialized && Object.keys(tasksByDate).length === 0) {
 
 
 
-{/* 里程碑模态框 */}
-{showMilestoneModal && (
-  <MilestoneModal
-    onClose={() => setShowMilestoneModal(false)}
-    totalCompletedTasks={calculateTotalCompletedTasks}
-  />
-)}
- 
 
 {showSubjectTodoModal && (
   <SubjectTodoModal
@@ -19758,7 +20069,7 @@ onSave={(newConfig) => {
   {/* 左侧：奖杯按钮 + 属性面板 */}
   <div style={{
     position: "absolute",
-    top: 0,
+    top: 5,
     left: 0,
     display: "flex",
     alignItems: "center",
@@ -19766,27 +20077,7 @@ onSave={(newConfig) => {
     zIndex: 10
   }}>
     {/* 奖杯按钮 - 里程碑 */}
-    <button
-      onClick={() => setShowMilestoneModal(true)}
-      style={{
-        width: 32,
-        height: 32,
-        backgroundColor: "transparent",
-        border: "none",
-        cursor: "pointer",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 0
-      }}
-      title="里程碑"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="12" cy="10" r="7" stroke="#61A2Da" strokeWidth="1.8" fill="none"/>
-        <polygon points="12,5.5 13.5,9 17,9 14.2,11.2 15.2,14.5 12,12.5 8.8,14.5 9.8,11.2 7,9 10.5,9" fill="#61A2Da"/>
-        <path d="M9 17 L7 22 L12 20 L17 22 L15 17" stroke="#61A2Da" strokeWidth="1.5" fill="none" strokeLinejoin="round"/>
-      </svg>
-    </button>
+   
 
     {/* ✅ 属性面板（经验值）- 放在奖杯右侧 */}
     <ExpPanel 
