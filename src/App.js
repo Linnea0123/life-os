@@ -12660,19 +12660,20 @@ const ExpPanel = ({ selectedDate, isOpen = false, onToggle }) => {
   const todayExp = expData.daily[selectedDate] || {};
   const totalExp = expData.total || {};
   const grandTotal = useMemo(() => {
-  const dimensions = ['tipuo', 'xiuye', 'xinshen', 'shouhu', 'caiye', 'yiqu'];
-  let total = 0;
-  dimensions.forEach(dim => {
-    total += (totalExp[dim] || 0);
-  });
-  return total;
-}, [totalExp]);
+    const dimensions = ['tipuo', 'xiuye', 'xinshen', 'shouhu', 'caiye', 'yiqu'];
+    let total = 0;
+    dimensions.forEach(dim => {
+      total += (totalExp[dim] || 0);
+    });
+    return total;
+  }, [totalExp]);
+  
   const todayTotal = Object.values(todayExp).reduce((sum, val) => sum + val, 0);
   const level = Math.floor(grandTotal / EXP_PER_LEVEL) + 1;
-const healthValue = expData.total?.health || 0;
-// ✅ 替换为这行
-const todayHealthChange = expData.daily[selectedDate]?.health || 0;
-const currentHealth = Math.max(0, 20 + todayHealthChange);
+  const healthValue = expData.total?.health || 0;
+  const todayHealthChange = expData.daily[selectedDate]?.health || 0;
+  const currentHealth = Math.max(0, 20 + todayHealthChange);
+  
   const todayTasks = tasksByDate[selectedDate] || [];
   let done = 0;
   let total = 0;
@@ -12682,8 +12683,6 @@ const currentHealth = Math.max(0, 20 + todayHealthChange);
       if (task.done && !task.abandoned) done++;
     }
   });
-
-  
 
   const getTasksForDimension = (dimKey) => {
     const dimName = getDimName(dimKey);
@@ -12765,13 +12764,13 @@ const currentHealth = Math.max(0, 20 + todayHealthChange);
 
   const getDimName = (key) => {
     const names = {
-  tipuo: '健康',
-  xiuye: '智慧',
-  xinshen: '心神',
-  shouhu: '家庭',
-  caiye: '财富',
-  yiqu: '悦己'
-};
+      tipuo: '健康',
+      xiuye: '智慧',
+      xinshen: '心神',
+      shouhu: '家庭',
+      caiye: '财富',
+      yiqu: '悦己'
+    };
     return names[key] || key;
   };
 
@@ -12781,8 +12780,8 @@ const currentHealth = Math.max(0, 20 + todayHealthChange);
       xiuye: '📚',
       xinshen: '🧠',
       shouhu: '👨‍👩‍👧',
-      caiye: '💼',
-      yiqu: '🎮'
+      caiye: '💰',
+      yiqu: '⛰️'
     };
     return emojis[key] || '📌';
   };
@@ -13147,556 +13146,208 @@ const currentHealth = Math.max(0, 20 + todayHealthChange);
     if (onToggle) onToggle(newState);
   };
 
-  // ========== 主渲染 ==========
-  return (
-    <div ref={panelRef} style={{ position: 'relative', display: 'block', width: '100%' }}>
-      {/* 收起的按钮 - 进度条样式 */}
-      {/* 收起的按钮 - 进度条样式，去掉背景色和边框 */}
-{/* 收起的按钮 - 进度条样式 */}
-<div
-  onClick={handleToggle}
-  style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px',
-    padding: '4px 0',
-    height: '28px',
-    backgroundColor: 'transparent',
-    borderRadius: '0',
-    cursor: 'pointer',
-    fontSize: '13px',
-    whiteSpace: 'nowrap',
-    border: 'none',
-    flexShrink: 0,
+  // ========== 主渲染：卡片样式 6个属性 2行3列 ==========
+  // ========== 主渲染：卡片样式 6个属性 2行3列 ==========
+// ========== 主渲染：卡片样式 6个属性 2行3列 ==========
+// ========== 主渲染：卡片样式 6个属性 2行3列 ==========
+return (
+  <div ref={panelRef} style={{ 
+    display: 'block', 
     width: '100%',
-    justifyContent: 'space-between'
-  }}
-  title={`今日积分: +${todayTotal} | 总积分: ${grandTotal} | Lv.${level}`}
->
-  {/* ====== 三条进度条容器 - 总宽度占满 ====== */}
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    flex: 1,
-    minWidth: 0,
-    width: '100%'
+    marginBottom: '2px'
   }}>
-    
- {/* 1️⃣ 气血 - 每天重置 */}
-<div style={{
-  display: 'flex',
-  alignItems: 'center',
-  gap: '3px',
-  flex: 1,
-  minWidth: 0,
-}}>
-  <span style={{ fontSize: '9px', flexShrink: 0 }}>❤️</span>
-  <div style={{
-    flex: 1,
-    height: '5px',
-    backgroundColor: '#fce4ec',
-    borderRadius: '3px',
-    overflow: 'hidden',
-    minWidth: '15px'
-  }}>
+    {/* ===== 顶部统计行：今日 + 打卡统计 + 总积分 ===== */}
     <div style={{
-      width: `${Math.min((currentHealth / 20) * 100, 100)}%`,
-      height: '100%',
-      backgroundColor: '#e53935',
-      borderRadius: '3px',
-      transition: 'width 0.3s ease'
-    }} />
-  </div>
-  <span style={{
-    fontSize: '8px',
-    color: '#e53935',
-    fontWeight: 'bold',
-    flexShrink: 0,
-    minWidth: '18px',
-    textAlign: 'right'
-  }}>
-    {Math.max(0, currentHealth)}/20
-  </span>
-</div>
-
-{/* 2️⃣ 总经验 - 累计永久 */}
-<div style={{
-  display: 'flex',
-  alignItems: 'center',
-  gap: '3px',
-  flex: 1,
-  minWidth: 0
-}}>
-  <span style={{ fontSize: '9px', flexShrink: 0 }}>⭐</span>
-  <div style={{
-    flex: 1,
-    height: '5px',
-    backgroundColor: '#e3f2fd',
-    borderRadius: '3px',
-    overflow: 'hidden',
-    minWidth: '15px'
-  }}>
-    <div style={{
-      width: `${Math.min((grandTotal % 50) / 50 * 100, 100)}%`,
-      height: '100%',
-      backgroundColor: '#1a73e8',
-      borderRadius: '3px',
-      transition: 'width 0.3s ease'
-    }} />
-  </div>
-  <span style={{
-    fontSize: '8px',
-    color: '#1a73e8',
-    fontWeight: 'bold',
-    flexShrink: 0,
-    minWidth: '18px',
-    textAlign: 'right'
-  }}>
-    {grandTotal % 50}/50
-  </span>
-</div>
-
-{/* 3️⃣ 任务完成 - 每天重置 */}
-<div style={{
-  display: 'flex',
-  alignItems: 'center',
-  gap: '3px',
-  flex: 1,
-  minWidth: 0
-}}>
-  <span style={{ fontSize: '9px', flexShrink: 0 }}>✅</span>
-  <div style={{
-    flex: 1,
-    height: '5px',
-    backgroundColor: '#e8f5e9',
-    borderRadius: '3px',
-    overflow: 'hidden',
-    minWidth: '15px'
-  }}>
-    <div style={{
-      width: `${Math.min((done / Math.max(total, 1)) * 100, 100)}%`,
-      height: '100%',
-      backgroundColor: '#43a047',
-      borderRadius: '3px',
-      transition: 'width 0.3s ease'
-    }} />
-  </div>
-  <span style={{
-    fontSize: '8px',
-    color: '#43a047',
-    fontWeight: 'bold',
-    flexShrink: 0,
-    minWidth: '18px',
-    textAlign: 'right'
-  }}>
-    {done}/{total}
-  </span>
-</div>
-
-  </div>
-
-  {/* 等级显示 */}
-  <span style={{
-    fontWeight: 'bold',
-    color: '#61A2Da',
-    fontSize: '11px',
-    flexShrink: 0,
-    marginLeft: '4px'
-  }}>
-    Lv.{level}
-  </span>
-</div>
-
-
-      {/* 展开的详细面板 - 在按钮下方 */}
-      {showDetail && (
-        <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 8px)',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '400px',
-          maxWidth: 'calc(100vw - 32px)',
-          maxHeight: '70vh',
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          boxShadow: '0 8px 40px rgba(0,0,0,0.3)',
-          border: '1px solid #e0e0e0',
-          padding: '16px 20px',
-          zIndex: 9999,
-          overflowY: 'auto',
-          overscrollBehavior: 'contain'
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      padding: '2px 0',
+      marginBottom: '4px',
+      backgroundColor: 'transparent',
+      border: 'none'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#333' }}>
+          今日
+        </span>
+        <span style={{ 
+          fontSize: '14px', 
+          fontWeight: 'bold', 
+          color: '#4caf50'
         }}>
-          {/* 顶部统计 */}
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '12px',
-            paddingBottom: '10px',
-            borderBottom: '1px solid #f0f0f0'
-          }}>
-            <div>
-              <div style={{ fontSize: '11px', color: '#999' }}>今日</div>
-              <div style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                color: '#34c759',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                +{todayTotal}
-                <span style={{ fontSize: '11px', color: '#999', fontWeight: 'normal' }}>
-                  ({done}/{total})
-                </span>
-              </div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '11px', color: '#999' }}>总积分</div>
-              <div style={{ 
-                fontSize: '18px', 
-                fontWeight: 'bold', 
-                color: '#1a73e8',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px'
-              }}>
-                {grandTotal}
-                <span style={{ fontSize: '11px', color: '#999', fontWeight: 'normal' }}>
-                  Lv.{level}
-                </span>
-              </div>
-            </div>
-          </div>
+          +{todayTotal}
+        </span>
+        <span style={{ fontSize: '11px', color: '#999' }}>
+          ({done}/{total})
+        </span>
+        
+        {/* 打卡统计 */}
+        <span style={{ 
+          fontSize: '9px', 
+          color: '#bbb',
+          marginLeft: '4px'
+        }}>
+          已打卡 {
+            Object.keys(tasksByDate).filter(date => {
+              const tasks = tasksByDate[date] || [];
+              return tasks.some(t => t.done === true && t.abandoned !== true);
+            }).length
+          } 天 · 累计 {
+            Object.values(tasksByDate).reduce((sum, tasks) => 
+              sum + tasks.filter(t => t.done === true && t.abandoned !== true).length, 0
+            )
+          } 个
+        </span>
+      </div>
+      
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontSize: '11px', color: '#999' }}>总积分</span>
+        <span style={{ 
+          fontSize: '14px', 
+          fontWeight: 'bold', 
+          color: '#1a73e8'
+        }}>
+          {grandTotal}
+        </span>
+        <span style={{ 
+          fontSize: '10px', 
+          color: '#61A2Da',
+          backgroundColor: '#e8f0fe',
+          padding: '1px 6px',
+          borderRadius: '10px'
+        }}>
+          Lv.{level}
+        </span>
+      </div>
+    </div>
 
-          {/* 维度列表 */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '4px',
-          }}>
-            {Object.keys(DIMENSIONS).map((key) => {
-              const dim = DIMENSIONS[key];
-              const today = todayExp[key] || 0;
-              const total = totalExp[key] || 0;
-              const hasExp = today > 0 || total > 0;
-              const progress = getProgress(total);
-              const expInLevel = getExpInLevel(total);
-              const dimLevel = Math.floor(total / EXP_PER_LEVEL) + 1;
-              const color = getExpColor(total);
-              const bgColor = getDimColor(key, 0.08);
-              const dimName = dim.name;
-              const tasksForDim = getTasksForDimension(key);
-              const taskCount = tasksForDim.length;
+    {/* ===== 6个属性卡片 2行3列 ===== */}
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr 1fr',
+      gap: '4px'
+    }}>
+      {Object.keys(DIMENSIONS).map((key) => {
+        const dim = DIMENSIONS[key];
+        const today = todayExp[key] || 0;
+        const total = totalExp[key] || 0;
+        const hasExp = today > 0 || total > 0;
+        const progress = getProgress(total);
+        const expInLevel = getExpInLevel(total);
+        const dimLevel = Math.floor(total / EXP_PER_LEVEL) + 1;
+        const color = getExpColor(total);
+        const bgColor = getDimColor(key, 0.08);
+        const dimName = dim.name;
+        const tasksForDim = getTasksForDimension(key);
+        const taskCount = tasksForDim.length;
 
-              return (
-                <div 
-                  key={key} 
-                  style={{
-                    padding: '6px 8px',
-                    borderRadius: '6px',
-                    backgroundColor: hasExp ? bgColor : '#fafafa',
-                    border: '1px solid #f0f0f0',
-                    fontSize: '11px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onClick={() => {
-                    setShowTaskDetail(key);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#61A2Da';
-                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(97, 162, 218, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#f0f0f0';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                  }}>
-                    <span style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '3px',
-                      fontSize: '11px'
-                    }}>
-                      <span style={{ fontSize: '14px' }}>{dim.emoji}</span>
-                      <span style={{ 
-                        color: '#333', 
-                        fontSize: '11px', 
-                        fontWeight: '500' 
-                      }}>
-                        {dimName}
-                      </span>
-                      {taskCount > 0 && (
-                        <span style={{
-                          fontSize: '8px',
-                          color: '#4caf50',
-                          backgroundColor: '#e8f5e9',
-                          padding: '1px 4px',
-                          borderRadius: '8px',
-                          marginLeft: '2px'
-                        }}>
-                          {taskCount}
-                        </span>
-                      )}
-                    </span>
-                    <span style={{
-                      fontSize: '10px',
-                      fontWeight: 'bold',
-                      color: today > 0 ? '#34c759' : '#999'
-                    }}>
-                      {today > 0 ? `+${today}` : ''}
-                    </span>
-                  </div>
-                  
-                  <div style={{
-                    height: '3px',
-                    backgroundColor: '#eee',
-                    borderRadius: '2px',
-                    marginTop: '3px',
-                    overflow: 'hidden'
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${progress}%`,
-                      backgroundColor: color,
-                      borderRadius: '2px'
-                    }} />
-                  </div>
-                  
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontSize: '8px',
-                    color: '#999',
-                    marginTop: '2px'
-                  }}>
-                    <span>{expInLevel}/{EXP_PER_LEVEL}</span>
-                    <span>Lv.{dimLevel}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* 技能区域 */}
-          <div style={{
-            marginTop: '10px',
-            paddingTop: '10px'
-          }}>
+        return (
+          <div 
+            key={key} 
+            style={{
+              padding: '4px 6px',
+              borderRadius: '6px',
+              backgroundColor: hasExp ? bgColor : 'transparent',
+              border: '1px solid #e8e8e8',
+              cursor: 'pointer'
+              // ❌ 删除所有 transition、transform、hover 相关样式
+            }}
+            onClick={() => {
+              setShowTaskDetail(key);
+            }}
+            // ❌ 删除 onMouseEnter 和 onMouseLeave
+          >
+            {/* 第一行：图标 + 名称 + 今日加分 */}
             <div style={{
               display: 'flex',
               justifyContent: 'space-between',
-              alignItems: 'center',
-              marginBottom: '8px'
+              alignItems: 'center'
             }}>
-              <span style={{
-                fontSize: '11px',
-                fontWeight: 'bold',
-                color: '#333'
+              <span style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '3px',
+                fontSize: '11px'
               }}>
-                🎯 技能
+                <span style={{ fontSize: '13px' }}>{dim.emoji}</span>
+                <span style={{ 
+                  color: '#333', 
+                  fontSize: '10px', 
+                  fontWeight: '500' 
+                }}>
+                  {dimName}
+                </span>
+                {taskCount > 0 && (
+                  <span style={{
+                    fontSize: '7px',
+                    color: '#4caf50',
+                    backgroundColor: '#e8f5e9',
+                    padding: '1px 4px',
+                    borderRadius: '8px',
+                    marginLeft: '1px'
+                  }}>
+                    {taskCount}
+                  </span>
+                )}
               </span>
               <span style={{
                 fontSize: '9px',
-                color: '#999'
+                fontWeight: 'bold',
+                color: today > 0 ? '#4caf50' : '#999'
               }}>
-                从标签中识别
+                {today > 0 ? `+${today}` : ''}
               </span>
             </div>
             
+            {/* 进度条 */}
             <div style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '4px'
+              height: '2px',
+              backgroundColor: '#eee',
+              borderRadius: '2px',
+              marginTop: '3px',
+              overflow: 'hidden'
             }}>
-              {(() => {
-                const todayTasks = tasksByDate[selectedDate] || [];
-                const skillMap = new Map();
-                
-                todayTasks.forEach(task => {
-                  if (task.done === true && task.abandoned !== true && task.tags && task.tags.length > 0) {
-                    task.tags.forEach(tag => {
-                      Object.keys(skillConfig).forEach(keyword => {
-                        if (tag.toLowerCase().includes(keyword.toLowerCase()) || tag === keyword) {
-                          const count = skillMap.get(keyword) || 0;
-                          skillMap.set(keyword, count + 1);
-                        }
-                      });
-                    });
-                  }
-                });
-                
-                if (skillMap.size === 0) {
-                  return (
-                    <div style={{
-                      gridColumn: '1 / -1',
-                      textAlign: 'center',
-                      padding: '20px',
-                      fontSize: '10px',
-                      color: '#999',
-                      backgroundColor: '#f8f9fa',
-                      borderRadius: '8px'
-                    }}>
-                      今日暂无技能记录
-                    </div>
-                  );
-                }
-                
-                const getSkillTotalExp = (skillName) => {
-                  let total = 0;
-                  todayTasks.forEach(task => {
-                    if (task.done === true && task.abandoned !== true && task.tags && task.tags.length > 0) {
-                      task.tags.forEach(tag => {
-                        if (tag.toLowerCase().includes(skillName.toLowerCase()) || tag === skillName) {
-                          total += task.expValue || 2;
-                        }
-                      });
-                    }
-                  });
-                  return total;
-                };
-                
-                return Array.from(skillMap.entries())
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([skill, count]) => {
-                    const config = skillConfig[skill] || { icon: '🏷️', color: '#999', bgColor: '#fafafa' };
-                    const totalExp = getSkillTotalExp(skill);
-                    const level = Math.floor(totalExp / EXP_PER_LEVEL) + 1;
-                    const expInLevel = totalExp % EXP_PER_LEVEL;
-                    const progress = Math.min((totalExp / MAX_EXP) * 100, 100);
-                    
-                    return (
-                      <div
-                        key={skill}
-                        style={{
-                          padding: '6px 8px',
-                          borderRadius: '6px',
-                          backgroundColor: config.bgColor || '#fafafa',
-                          border: '1px solid #e8e8e8',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s ease'
-                        }}
-                        onClick={() => {
-                          setShowSkillDetail(skill);
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.borderColor = config.color;
-                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.08)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.borderColor = '#e8e8e8';
-                          e.currentTarget.style.boxShadow = 'none';
-                        }}
-                      >
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '2px'
-                        }}>
-                          <span style={{ 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            gap: '3px',
-                            fontSize: '10px',
-                            fontWeight: '500',
-                            color: '#333'
-                          }}>
-                            <span style={{ fontSize: '12px' }}>{config.icon}</span>
-                            <span>{skill}</span>
-                            <span style={{
-                              fontSize: '7px',
-                              color: '#999',
-                              backgroundColor: '#f5f5f5',
-                              padding: '1px 5px',
-                              borderRadius: '8px'
-                            }}>
-                              ×{count}
-                            </span>
-                          </span>
-                          <span style={{
-                            fontSize: '9px',
-                            fontWeight: 'bold',
-                            color: totalExp > 0 ? '#4caf50' : '#999'
-                          }}>
-                            +{totalExp}
-                          </span>
-                        </div>
-                        
-                        <div style={{
-                          height: '2px',
-                          backgroundColor: '#eee',
-                          borderRadius: '2px',
-                          overflow: 'hidden'
-                        }}>
-                          <div style={{
-                            height: '100%',
-                            width: `${progress}%`,
-                            backgroundColor: config.color || '#999',
-                            borderRadius: '2px',
-                            transition: 'width 0.3s ease'
-                          }} />
-                        </div>
-                        
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          fontSize: '7px',
-                          color: '#999',
-                          marginTop: '1px'
-                        }}>
-                          <span>{expInLevel}/{EXP_PER_LEVEL}</span>
-                          <span>Lv.{level}</span>
-                        </div>
-                      </div>
-                    );
-                  });
-              })()}
+              <div style={{
+                height: '100%',
+                width: `${progress}%`,
+                backgroundColor: color,
+                borderRadius: '2px'
+              }} />
+            </div>
+            
+            {/* 底部：等级 + 进度 */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              fontSize: '7px',
+              color: '#999',
+              marginTop: '1px'
+            }}>
+              <span>{expInLevel}/{EXP_PER_LEVEL}</span>
+              <span>Lv.{dimLevel}</span>
             </div>
           </div>
-
-          <div
-            onClick={() => {
-              setShowDetail(false);
-              if (onToggle) onToggle(false);
-            }}
-            style={{
-              marginTop: '6px',
-              textAlign: 'center',
-              fontSize: '10px',
-              color: '#bbb',
-              cursor: 'pointer',
-              padding: '4px 0'
-            }}
-          >
-            ✕ 关闭
-          </div>
-        </div>
-      )}
-
-      {showTaskDetail && (
-        <TaskDetailModal
-          dimKey={showTaskDetail}
-          onClose={() => setShowTaskDetail(null)}
-        />
-      )}
-
-      {showSkillDetail && (
-        <SkillDetailModal
-          skillName={showSkillDetail}
-          onClose={() => setShowSkillDetail(null)}
-        />
-      )}
+        );
+      })}
     </div>
-  );
+
+    {/* 任务详情弹窗 */}
+    {showTaskDetail && (
+      <TaskDetailModal
+        dimKey={showTaskDetail}
+        onClose={() => setShowTaskDetail(null)}
+      />
+    )}
+
+    {/* 技能详情弹窗 */}
+    {showSkillDetail && (
+      <SkillDetailModal
+        skillName={showSkillDetail}
+        onClose={() => setShowSkillDetail(null)}
+      />
+    )}
+  </div>
+);
 };
 
 
@@ -19815,78 +19466,464 @@ onSave={(newConfig) => {
 )}
 
 
+{/* ===== 页面最顶部：跑马灯提醒 ===== */}
+<div style={{
+  display: "flex",
+  alignItems: "center",
+  gap: "8px",
+  marginBottom: 6
+}}>
+  {/* 跑马灯提醒 - 点击可编辑 */}
+  <div
+    onClick={() => {
+      // 创建自定义编辑弹窗
+      const modalDiv = document.createElement('div');
+      modalDiv.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+      `;
+      
+      const contentDiv = document.createElement('div');
+      contentDiv.style.cssText = `
+        background: white;
+        padding: 20px;
+        border-radius: 16px;
+        width: 85%;
+        max-width: 350px;
+        text-align: center;
+      `;
+      
+      contentDiv.innerHTML = `
+        <h3 style="margin: 0 0 12px 0; color: #61A2Da; font-size: 16px;">编辑提醒内容</h3>
+        <textarea id="reminder-textarea" placeholder="输入每日提醒内容..." style="
+          width: 100%;
+          padding: 12px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 14px;
+          font-family: inherit;
+          box-sizing: border-box;
+          resize: none;
+          overflow: hidden;
+          margin-bottom: 16px;
+          line-height: 1.5;
+        ">${reminderText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        <div style="display: flex; gap: 10px;">
+          <button id="cancel-btn" style="
+            flex: 1;
+            padding: 10px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+          ">取消</button>
+          <button id="confirm-btn" style="
+            flex: 1;
+            padding: 10px;
+            background: #61A2Da;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+          ">保存</button>
+        </div>
+      `;
+      
+      modalDiv.appendChild(contentDiv);
+      document.body.appendChild(modalDiv);
+      
+      const textarea = contentDiv.querySelector('#reminder-textarea');
+      
+      const autoResize = () => {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      };
+      
+      setTimeout(autoResize, 10);
+      textarea.addEventListener('input', autoResize);
+      
+      textarea.focus();
+      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
+      
+      const confirmBtn = contentDiv.querySelector('#confirm-btn');
+      confirmBtn.onclick = () => {
+        const newText = textarea.value;
+        handleReminderChange(newText);
+        document.body.removeChild(modalDiv);
+      };
+      
+      const cancelBtn = contentDiv.querySelector('#cancel-btn');
+      cancelBtn.onclick = () => {
+        document.body.removeChild(modalDiv);
+      };
+      
+      modalDiv.onclick = (e) => {
+        if (e.target === modalDiv) {
+          document.body.removeChild(modalDiv);
+        }
+      };
+    }}
+    style={{
+      flex: 1,
+      padding: '0 12px',
+      backgroundColor: '#ffebee',
+      borderRadius: 8,
+      height: '28px',
+      display: 'flex',
+      alignItems: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+      boxShadow: '0 1px 4px rgba(244, 67, 54, 0.1)',
+      cursor: 'pointer'
+    }}
+  >
+    <div style={{
+      flex: 1,
+      overflow: 'hidden',
+      position: 'relative',
+      height: '100%'
+    }}>
+      {reminderText ? (
+        <div
+          style={{
+            position: 'absolute',
+            whiteSpace: 'nowrap',
+            fontSize: '12px',
+            color: '#c62828',
+            fontWeight: '500',
+            lineHeight: '28px',
+            animation: 'rightToLeft 30s linear infinite',
+            display: 'flex',
+            gap: '48px'
+          }}
+        >
+          <span>{reminderText}</span>
+          <span style={{ marginLeft: '80px' }}>{reminderText}</span>
+          <span style={{ marginLeft: '80px' }}>{reminderText}</span>
+        </div>
+      ) : (
+        <div style={{
+          fontSize: '12px',
+          color: '#ef5350',
+          fontStyle: 'italic',
+          lineHeight: '28px',
+          textAlign: 'center'
+        }}>
+          点击添加每日提醒...
+        </div>
+      )}
+    </div>
+  </div>
+</div>
 
-
+{/* ===== 顶部区域 ===== */}
 <div style={{
   position: "relative",
-  textAlign: "center",
-  marginBottom: 15,
-  padding: "0 40px"
+  marginBottom: 12,
+  padding: "0 4px"
 }}>
- 
- 
+  
+  {/* ===== ExpPanel 卡片 ===== */}
+ <div style={{
+  marginBottom: 6,
+  padding: "0 2px"
+}}>
+    <ExpPanel 
+      selectedDate={selectedDate}
+      dailyRatings={dailyRatings}
+    />
+  </div>
 
+  
 
-
-  {/* 右上角更多按钮 - 保持不变 */}
-  <button
-    onClick={() => setShowMoreMenu(!showMoreMenu)}
-    style={{
-      position: "absolute",
-      top: 0,
-      right: 0,
-      width: 32,
-      height: 32,
-      backgroundColor: "transparent",
-      border: "none",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      zIndex: 10,
-      padding: 0
-    }}
-    title="更多功能"
-  >
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="6" r="1.5" fill="#61A2Da"/>
-      <circle cx="12" cy="12" r="1.5" fill="#61A2Da"/>
-      <circle cx="12" cy="18" r="1.5" fill="#61A2Da"/>
-    </svg>
-  </button>
-
-  {/* 标题 */}
-  <h1 style={{
-    textAlign: "center",
-    color: "#61A2Da",
-    fontSize: "18px",
-    margin: 0,
-    padding: "10px 0",
-    lineHeight: "16px"
+  {/* ===== 第二行：本周切换 + 本月剩余 + 更多按钮 ===== */}
+  <div style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 6,
+    padding: "0 4px"
   }}>
-    Life OS
-  </h1>
+    {/* 左侧：本周切换 */}
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center"
+    }}>
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          prevWeek();
+        }}
+        style={{
+          backgroundColor: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: "0",
+          margin: "0",
+          fontSize: "14px",
+          width: "28px",
+          height: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          color: "#61A2Da"
+        }}
+        title="上一周"
+      >
+        ◀
+      </button>
+      
+      <span 
+        onClick={() => setShowDatePickerModal(true)}
+        style={{
+          fontWeight: "bold",
+          margin: "0 4px",
+          fontSize: "13px",
+          cursor: "pointer",
+          padding: "4px 8px",
+          borderRadius: "6px",
+          display: "inline-block",
+          lineHeight: "16px",
+          verticalAlign: "middle",
+          color: "#61A2Da",
+          whiteSpace: "nowrap"
+        }}
+        title="点击选择日期"
+      >
+        {currentMonday.getFullYear()}年 第{getWeekNumber(currentMonday)}周
+      </span>
+      
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          nextWeek();
+        }}
+        style={{
+          backgroundColor: "transparent",
+          border: "none",
+          cursor: "pointer",
+          padding: "0",
+          margin: "0",
+          fontSize: "14px",
+          width: "28px",
+          height: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          color: "#61A2Da"
+        }}
+        title="下一周"
+      >
+        ▶
+      </button>
+    </div>
 
- {/* 统计信息 - 纯灰色 11号字，自动计算 */}
-<div style={{
-  textAlign: "center",
-  fontSize: "12px",
-  color: "#666",
-  padding: "0px 0"
-}}>
-  已打卡 {
-    Object.keys(tasksByDate).filter(date => {
-      const tasks = tasksByDate[date] || [];
-      return tasks.some(t => t.done === true && t.abandoned !== true);
-    }).length
-  } 天，累计完成 {
-    Object.values(tasksByDate).reduce((sum, tasks) => 
-      sum + tasks.filter(t => t.done === true && t.abandoned !== true).length, 0
-    )
-  } 个任务
+    {/* 右侧：本月剩余 + 更多按钮 */}
+    <div style={{ 
+      display: "flex", 
+      alignItems: "center", 
+      gap: "6px"
+    }}>
+      {/* 本月剩余 */}
+      <div style={{ 
+        color: "#61A2Da", 
+        fontWeight: "500",
+        padding: "2px 10px",
+        borderRadius: "16px",
+        backgroundColor: "#e8f0fe",
+        fontSize: "12px",
+        display: "flex",
+        alignItems: "center",
+        gap: "4px"
+      }}>
+        <span>本月剩余</span>
+        <span style={{ 
+          color: "#FF0000", 
+          fontWeight: "bold",
+          fontSize: "13px"
+        }}>
+          {
+            (() => {
+              const today = new Date();
+              const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+              const diffTime = lastDay - today;
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+              return diffDays > 0 ? diffDays : 0;
+            })()
+          }
+        </span>
+        <span>天</span>
+      </div>
+
+      {/* 更多按钮 - 移到右边 */}
+      <button
+        onClick={() => setShowMoreMenu(!showMoreMenu)}
+        style={{
+          width: 28,
+          height: 28,
+          backgroundColor: "transparent",
+          border: "none",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 0,
+          borderRadius: "50%"
+        }}
+        title="更多功能"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="6" r="1.5" fill="#61A2Da"/>
+          <circle cx="12" cy="12" r="1.5" fill="#61A2Da"/>
+          <circle cx="12" cy="18" r="1.5" fill="#61A2Da"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  {/* ===== 打卡统计 ===== */}
+
 </div>
 
-</div>
+{/* 更多菜单 - 在按钮下方展开 */}
+{showMoreMenu && (
+  <div style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+    marginTop: 4,
+    marginBottom: 8,
+    padding: "6px 0",
+    backgroundColor: "#f0f4f8",
+    borderRadius: 12,
+    flexWrap: "wrap",
+    animation: "fadeIn 0.2s ease"
+  }}>
+    <div
+      onClick={() => {
+        setShowStats(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      汇总
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowSubjectTodoModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      待办
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowWeekTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      本周
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowMonthTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      本月
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowSearchModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      搜索
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowDailyTaskManager(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "3px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center"
+      }}
+    >
+      每日
+    </div>
+  </div>
+)}
 
 
 {/* 更多菜单 - 展开的按钮行 */}
@@ -20044,11 +20081,6 @@ onSave={(newConfig) => {
       }
     `}</style>
     
-    {/* ✅ 直接使用 ExpPanel 组件 */}
-    <ExpPanel 
-      selectedDate={selectedDate}
-      dailyRatings={dailyRatings}
-    />
     
     {/* 关闭提示 */}
     <div style={{
@@ -20075,137 +20107,6 @@ onSave={(newConfig) => {
 
 
 
-  {/* 第一行：周次靠左显示 */}
-<div style={{
-  display: "flex",
-  marginTop: -6,
-  justifyContent: "space-between",
-  alignItems: "center",
-  marginBottom: 4
-}}>
-  {/* 左侧：周次显示 - 靠左 */}
-  <div style={{ 
-    display: "flex", 
-    alignItems: "center"
-  }}>
-    <button
-      className="week-nav-btn"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        prevWeek();
-      }}
-      style={{
-        backgroundColor: "transparent",
-        border: "none",
-        cursor: "pointer",
-        padding: "0",
-        margin: "0",
-        fontSize: "14px",
-        width: "28px",
-        height: "28px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: "#61A2Da"
-      }}
-      title="上一周"
-    >
-      ◀
-    </button>
-    
-    <span 
-      onClick={() => setShowDatePickerModal(true)}
-      style={{
-        fontWeight: "bold",
-        margin: "0 4px",
-        fontSize: "13px",
-        cursor: "pointer",
-        padding: "4px 8px",
-        borderRadius: "6px",
-        display: "inline-block",
-        lineHeight: "16px",
-        verticalAlign: "middle",
-        color: "#61A2Da",
-        whiteSpace: "nowrap"
-      }}
-      title="点击选择日期"
-    >
-      {currentMonday.getFullYear()}年 第{getWeekNumber(currentMonday)}周
-    </span>
-    
-    <button
-      className="week-nav-btn"
-      onClick={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        nextWeek();
-      }}
-      style={{
-        backgroundColor: "transparent",
-        border: "none",
-        cursor: "pointer",
-        padding: "0",
-        margin: "0",
-        fontSize: "14px",
-        width: "28px",
-        height: "28px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        color: "#61A2Da"
-      }}
-      title="下一周"
-    >
-      ▶
-    </button>
-  </div>
-  
-
-
-{/* 本学期剩余 - 靠右显示 */}
-{/* 本月剩余 - 靠右显示 */}
-<div style={{ display: "flex", justifyContent: "flex-end" }}>
-  <div 
-    style={{ 
-      color: "#61A2Da", 
-      fontWeight: "500",
-      padding: "4px 10px",
-      borderRadius: "16px",
-      backgroundColor: "#e8f0fe",
-      fontSize: "12px",
-      display: "flex",
-      alignItems: "center",
-      gap: "4px"
-    }}
-  >
-    <span>本月剩余</span>
-    <span style={{ 
-      color: "#FF0000", 
-      fontWeight: "bold",
-      padding: "2px 2px",
-      borderRadius: "16px",
-      fontSize: "13px"
-    }}>
-      {
-        (() => {
-          const today = new Date();
-          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          const diffTime = lastDay - today;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          return diffDays > 0 ? diffDays : 0;
-        })()
-      }
-    </span>
-    <span>天</span>
-  </div>
-</div>
-
-
-  
-</div>
 
 
 
@@ -20213,11 +20114,14 @@ onSave={(newConfig) => {
 
 
 
-{/* 第三行：日期（周一到周日） */}
+
+
+{/* 第三行：日期（周一到周日）- 紧凑版 */}
 <div style={{
   display: "flex",
   justifyContent: "space-between",
-  marginBottom: 10
+  marginBottom: 16,
+  gap: "2px"
 }}>
   
   {weekDates.map((d) => {
@@ -20225,13 +20129,10 @@ onSave={(newConfig) => {
   const isSelected = dateStr === selectedDate;
   const dayTasks = tasksByDate[dateStr] || [];
   
-
-
   const hasCrossDateTask = dayTasks.some(task => task.crossDateId || task.dateRange);
   
   // 获取每日评分
   const dailyRating = dailyRatings[dateStr] || 0;
-  const studyEndTime = studyEndTimes[dateStr] || '';
   
   const getRatingColor = (rating) => {
     switch(rating) {
@@ -20244,108 +20145,114 @@ onSave={(newConfig) => {
     }
   };
   
- 
-const learningTasks = dayTasks.filter(task => {
-  if (task.category === "本周任务") return false;
-  if (task.isRegularTask && !task.done) return false;
+  const learningTasks = dayTasks.filter(task => {
+    if (task.category === "本周任务") return false;
+    if (task.isRegularTask && !task.done) return false;
+    return true;
+  });
 
-  return true;
-});
+  // 统计任务完成情况
+  let totalCount = 0;
+  let completedCount = 0;
+  let abandonedCount = 0;
 
-// ✅ 新的统计逻辑：有子任务的统计子任务，没子任务的统计母任务
-let totalCount = 0;
-let completedCount = 0;
-let abandonedCount = 0;
-
-learningTasks.forEach(task => {
-  const hasSubTasks = task.subTasks && Array.isArray(task.subTasks) && task.subTasks.length > 0;
-  
-  if (hasSubTasks) {
-    // 有子任务：统计子任务（母任务本身不计入）
-    task.subTasks.forEach(subTask => {
+  learningTasks.forEach(task => {
+    const hasSubTasks = task.subTasks && Array.isArray(task.subTasks) && task.subTasks.length > 0;
+    
+    if (hasSubTasks) {
+      task.subTasks.forEach(subTask => {
+        totalCount++;
+        if (subTask.done) {
+          completedCount++;
+        }
+      });
+    } else {
       totalCount++;
-      if (subTask.done) {
+      if (task.done === true && task.abandoned !== true) {
         completedCount++;
       }
-    });
+      if (task.abandoned) {
+        abandonedCount++;
+      }
+    }
+  });
+
+  const incompleteCount = totalCount - completedCount - abandonedCount;
+
+  // 设置颜色
+  let numberColor = "#666";
+  let dotColor = "#666";
+
+  if (totalCount === 0) {
+    numberColor = "transparent";
+    dotColor = "transparent";
+  } else if (incompleteCount > 0) {
+    numberColor = "#f44336";
+    dotColor = "#f44336";
+  } else if (completedCount === totalCount) {
+    numberColor = "#4caf50";
+    dotColor = "#4caf50";
   } else {
-    // 没有子任务：统计母任务本身
-    totalCount++;
-    if (task.done === true && task.abandoned !== true) {
-      completedCount++;
-    }
-    if (task.abandoned) {
-      abandonedCount++;
-    }
+    numberColor = "#999";
+    dotColor = "#999";
   }
-});
-
-
-// 计算未完成数量
-const incompleteCount = totalCount - completedCount - abandonedCount;
-
-// 设置颜色
-let numberColor = "#666";
-let dotColor = "#666";
-
-if (totalCount === 0) {
-  numberColor = "transparent";
-  dotColor = "transparent";
-} else if (incompleteCount > 0) {
-  // 有未完成的任务 → 红色
-  numberColor = "#f44336";
-  dotColor = "#f44336";
-} else if (completedCount === totalCount) {
-  // 全部完成 → 绿色
-  numberColor = "#4caf50";
-  dotColor = "#4caf50";
-} else {
-  // 没有未完成，但有放弃 → 灰色
-  numberColor = "#999";
-  dotColor = "#999";
-}
-  // 显示数字（有任务时才显示）
-  const showNumber = totalCount > 0;
   
   return (
     <div
       key={dateStr}
       onClick={() => setSelectedDate(dateStr)}
       style={{
-        padding: "4px 6px",
-        borderBottom: `2px solid ${isSelected ? "#0b52b0" : "#e0e0e0"}`,
+        padding: "2px 4px",
+        // ❌ 删除 borderBottom
         textAlign: "center",
         flex: 1,
         minWidth: 0,
-        margin: "0 2px",
-        fontSize: 12,
+        margin: "0 1px",
+        fontSize: 11,
         cursor: "pointer",
         backgroundColor: isSelected ? "#fff9c4" : "transparent",
         color: isSelected ? "#000" : "#000",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        minHeight: "20px",
+        minHeight: "16px",
         background: dailyRating > 0 
           ? `linear-gradient(to bottom, ${isSelected ? '#fff9c4' : 'transparent'} 0%, ${isSelected ? '#fff9c4' : 'transparent'} 50%, ${getRatingColor(dailyRating)}20 100%)`
-          : isSelected ? '#fff9c4' : 'transparent'
+          : isSelected ? '#fff9c4' : 'transparent',
+        position: "relative"
       }}
     >
-      {/* 星期几 */}
-      <div style={{ position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontFamily: "sans-serif" }}>{d.label}</span>
+      {/* 星期几 - 居中 */}
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center",
+        fontSize: 10,
+        fontWeight: isSelected ? "bold" : "normal",
+        width: "100%",
+        position: "relative"
+      }}>
+        <span>{d.label}</span>
+        
+        {/* 完成任务数 - 靠右显示 */}
+        {completedCount > 0 && (
+          <span style={{
+            position: "absolute",
+            right: "2px",
+            fontSize: "8px",
+            color: "#4caf50",
+            fontWeight: "bold"
+          }}>
+            {completedCount}
+          </span>
+        )}
+        
         {hasCrossDateTask && (
           <span style={{
             position: "absolute",
-            left: "100%",
-            marginLeft: "2px",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "10px",
-            height: "10px",
-            fontSize: "7px",
-            color: "#f44336",
+            right: completedCount > 0 ? "22px" : "2px",
+            fontSize: "6px",
+            color: "#f44336"
           }}>
             休
           </span>
@@ -20354,47 +20261,17 @@ if (totalCount === 0) {
       
       {/* 日期 */}
       <div style={{ 
-        fontSize: 10,
-        fontFamily: "sans-serif"
+        fontSize: 9,
+        fontFamily: "sans-serif",
+        fontWeight: isSelected ? "bold" : "normal"
       }}>
         {d.date.slice(5)}
       </div>
-      
-      {/* 任务数量显示 - 固定宽度 */}
-      {showNumber && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          marginTop: "4px"
-        }}>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "1px 6px",
-            backgroundColor: "#fff",
-            borderRadius: "4px",
-            border: `0.5px solid ${numberColor}`,
-            width: "36px"
-          }}>
-            <span style={{
-              fontSize: "9px",
-              fontWeight: "bold",
-              color: numberColor,
-              fontFamily: "sans-serif"
-            }}>
-              {completedCount}/{totalCount}
-            </span>
-          </div>
-        </div>
-      )}
-      
-
     </div>
   );
 })}
 </div>
+
 
 {/* ========== ExpPanel 放在打卡统计上方 ========== */}
 <div style={{
@@ -20404,180 +20281,10 @@ if (totalCount === 0) {
    marginTop: -12,   
   marginBottom: 2
 }}>
-  <ExpPanel 
-    selectedDate={selectedDate}
-    dailyRatings={dailyRatings}
-  />
+ 
 </div>
 
-{/* 跑马灯提醒 + 两个小按钮 - 同一行，按钮靠右 */}
-<div style={{
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: "8px",
-  marginBottom: 10
-}}>
-  {/* 跑马灯提醒 - 点击可编辑 */}
-  <div
-    onClick={() => {
-      // 创建自定义编辑弹窗
-      const modalDiv = document.createElement('div');
-      modalDiv.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0,0,0,0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-      `;
-      
-      const contentDiv = document.createElement('div');
-      contentDiv.style.cssText = `
-        background: white;
-        padding: 20px;
-        border-radius: 16px;
-        width: 85%;
-        max-width: 350px;
-        text-align: center;
-      `;
-      
-      contentDiv.innerHTML = `
-        <h3 style="margin: 0 0 12px 0; color: #61A2Da; font-size: 16px;">编辑提醒内容</h3>
-        <textarea id="reminder-textarea" placeholder="输入每日提醒内容..." style="
-          width: 100%;
-          padding: 12px;
-          border: 1px solid #ccc;
-          border-radius: 8px;
-          font-size: 14px;
-          font-family: inherit;
-          box-sizing: border-box;
-          resize: none;
-          overflow: hidden;
-          margin-bottom: 16px;
-          line-height: 1.5;
-        ">${reminderText.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-        <div style="display: flex; gap: 10px;">
-          <button id="cancel-btn" style="
-            flex: 1;
-            padding: 10px;
-            background: #f0f0f0;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-          ">取消</button>
-          <button id="confirm-btn" style="
-            flex: 1;
-            padding: 10px;
-            background: #61A2Da;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: bold;
-          ">保存</button>
-        </div>
-      `;
-      
-      modalDiv.appendChild(contentDiv);
-      document.body.appendChild(modalDiv);
-      
-      const textarea = contentDiv.querySelector('#reminder-textarea');
-      
-      // 自动调整高度的函数
-      const autoResize = () => {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-      };
-      
-      // 初始调整高度
-      setTimeout(autoResize, 10);
-      
-      // 监听输入事件
-      textarea.addEventListener('input', autoResize);
-      
-      // 聚焦到输入框末尾
-      textarea.focus();
-      textarea.setSelectionRange(textarea.value.length, textarea.value.length);
-      
-      const confirmBtn = contentDiv.querySelector('#confirm-btn');
-      confirmBtn.onclick = () => {
-        const newText = textarea.value;
-        handleReminderChange(newText);
-        document.body.removeChild(modalDiv);
-      };
-      
-      const cancelBtn = contentDiv.querySelector('#cancel-btn');
-      cancelBtn.onclick = () => {
-        document.body.removeChild(modalDiv);
-      };
-      
-      modalDiv.onclick = (e) => {
-        if (e.target === modalDiv) {
-          document.body.removeChild(modalDiv);
-        }
-      };
-    }}
-    style={{
-      flex: 1,
-      padding: '0 12px',
-      backgroundColor: '#ffebee',
-      borderRadius: 8,
-      height: '32px',
-      display: 'flex',
-      alignItems: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-      boxShadow: '0 2px 4px rgba(244, 67, 54, 0.1)',
-      cursor: 'pointer'
-    }}
-  >
-    <div style={{
-      flex: 1,
-      overflow: 'hidden',
-      position: 'relative',
-      height: '100%'
-    }}>
-      {reminderText ? (
-        <div
-          style={{
-            position: 'absolute',
-            whiteSpace: 'nowrap',
-            fontSize: '13px',
-            color: '#c62828',
-            fontWeight: '500',
-            lineHeight: '32px',
-            animation: 'rightToLeft 30s linear infinite',
-            display: 'flex',
-            gap: '48px'
-          }}
-        >
-          <span>{reminderText}</span>
-          <span style={{ marginLeft: '80px' }}>{reminderText}</span>
-          <span style={{ marginLeft: '80px' }}>{reminderText}</span>
-        </div>
-      ) : (
-        <div style={{
-          fontSize: '13px',
-          color: '#ef5350',
-          fontStyle: 'italic',
-          lineHeight: '32px',
-          textAlign: 'center'
-        }}>
-          点击添加每日提醒...
-        </div>
-      )}
-    </div>
-  </div>
-  
 
-</div>
 
 
 
