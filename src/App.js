@@ -13868,268 +13868,162 @@ const saveDailyData = useCallback(async (date = selectedDate) => {
 const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => {
   try {
     console.log('🔄 开始恢复数据...', mode);
-// 在覆盖模式中添加
-if (backupData.gradeSubCategories) {
-  localStorage.setItem('grade_subcategories', backupData.gradeSubCategories);
-  console.log('✅ 恢复成绩子分类:', JSON.parse(backupData.gradeSubCategories));
-}
-
-// 在合并模式中添加
-if (backupData.gradeSubCategories) {
-  const current = JSON.parse(localStorage.getItem('grade_subcategories') || '{}');
-  const backup = JSON.parse(backupData.gradeSubCategories);
-  const merged = { ...backup, ...current };  // 云端优先，本地补充
-  localStorage.setItem('grade_subcategories', JSON.stringify(merged));
-  console.log('✅ 合并成绩子分类:', merged);
-}
-    // 恢复每日任务模板
+    
+    // ========== 只保留覆盖模式 ==========
+    if (mode !== 'overwrite') {
+      console.log('⚠️ 只支持覆盖模式，自动切换为覆盖模式');
+    }
+    
+    // 1. 恢复任务数据
+    if (backupData.tasksByDate) {
+      setTasksByDate(backupData.tasksByDate);
+      await saveMainData('tasks', backupData.tasksByDate);
+      console.log('✅ 恢复任务数据:', Object.keys(backupData.tasksByDate).length, '天');
+    }
+    
+    // 2. 恢复每日评分
+    if (backupData.dailyRatings) {
+      setDailyRatings(backupData.dailyRatings);
+      localStorage.setItem(`${STORAGE_KEY}_dailyRatings`, JSON.stringify(backupData.dailyRatings));
+      console.log('✅ 恢复每日评分:', Object.keys(backupData.dailyRatings).length, '天');
+    }
+    
+    // 3. 恢复每日复盘
+    if (backupData.dailyReflections) {
+      setDailyReflections(backupData.dailyReflections);
+      localStorage.setItem(`${STORAGE_KEY}_dailyReflections`, JSON.stringify(backupData.dailyReflections));
+      console.log('✅ 恢复每日复盘:', Object.keys(backupData.dailyReflections).length, '天');
+    }
+    
+    // 4. 恢复学习结束时间
+    if (backupData.studyEndTimes) {
+      setStudyEndTimes(backupData.studyEndTimes);
+      localStorage.setItem('daily_study_end_times', JSON.stringify(backupData.studyEndTimes));
+      console.log('✅ 恢复学习结束时间');
+    }
+    
+    // 5. 恢复本月任务
+    if (backupData.monthTasks) {
+      setMonthTasks(backupData.monthTasks);
+      await saveMainData('monthTasks', backupData.monthTasks);
+      console.log('✅ 恢复本月任务:', backupData.monthTasks.length, '个');
+    }
+    
+    // 6. 恢复分类数据
+    if (backupData.categories) {
+      setCategories(backupData.categories);
+      await saveMainData('categories', backupData.categories);
+      console.log('✅ 恢复分类数据');
+    }
+    
+    // 7. 恢复经验数据
+    if (backupData.expData) {
+      setExpData(backupData.expData);
+      localStorage.setItem('exp_data_v2', JSON.stringify(backupData.expData));
+      console.log('✅ 恢复经验数据:', backupData.expData);
+    }
+    
+    // 8. 恢复每日提醒
+    if (backupData.reminderText !== undefined) {
+      setReminderText(backupData.reminderText);
+      localStorage.setItem(`${STORAGE_KEY}_daily_reminder`, backupData.reminderText);
+      console.log('✅ 恢复每日提醒');
+    }
+    
+    // 9. 恢复学期结束日期
+    if (backupData.semesterEndDate) {
+      setSemesterEndDate(backupData.semesterEndDate);
+      localStorage.setItem('semester_end_date', backupData.semesterEndDate);
+      console.log('✅ 恢复学期结束日期:', backupData.semesterEndDate);
+    }
+    
+    // 10. 恢复任务排序顺序
+    if (backupData.taskOrders) {
+      Object.entries(backupData.taskOrders).forEach(([key, value]) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      });
+      console.log('✅ 恢复任务排序顺序');
+    }
+    
+    // 11. 恢复子分类排序顺序
+    if (backupData.subCategoryOrders) {
+      Object.entries(backupData.subCategoryOrders).forEach(([key, value]) => {
+        localStorage.setItem(key, JSON.stringify(value));
+      });
+      console.log('✅ 恢复子分类排序顺序');
+    }
+    
+    // 12. 恢复科目待办
+    if (backupData.subjectTodoEntries) {
+      localStorage.setItem('subject_todo_entries_v2', JSON.stringify(backupData.subjectTodoEntries));
+      console.log('✅ 恢复科目待办');
+    }
+    
+    // 13. 恢复每日任务模板
     if (backupData.dailyTaskTemplates) {
       setDailyTaskTemplates(backupData.dailyTaskTemplates);
       localStorage.setItem('daily_task_templates', JSON.stringify(backupData.dailyTaskTemplates));
       console.log('✅ 恢复每日任务模板:', backupData.dailyTaskTemplates.length, '个');
     }
-
-    // 覆盖模式：直接用云端数据替换本地
-    if (mode === 'overwrite') {
-      // 1. 恢复任务数据
-      if (backupData.tasksByDate) {
-        setTasksByDate(backupData.tasksByDate);
-        await saveMainData('tasks', backupData.tasksByDate);
-        console.log('✅ 恢复任务数据:', Object.keys(backupData.tasksByDate).length, '天');
-      }
-      
-      // 2. 恢复每日评分
-      if (backupData.dailyRatings) {
-        setDailyRatings(backupData.dailyRatings);
-        localStorage.setItem(`${STORAGE_KEY}_dailyRatings`, JSON.stringify(backupData.dailyRatings));
-        console.log('✅ 恢复每日评分:', Object.keys(backupData.dailyRatings).length, '天');
-      }
-      
-      // 3. 恢复每日复盘
-     // 在覆盖模式中
-if (backupData.dailyReflections) {
-  setDailyReflections(backupData.dailyReflections);
-  // ✅ 立即保存到 localStorage
-  localStorage.setItem(`${STORAGE_KEY}_dailyReflections`, JSON.stringify(backupData.dailyReflections));
-  console.log('✅ 恢复每日复盘:', Object.keys(backupData.dailyReflections).length, '天');
-}
-
-// 同时恢复 daily_ 文件
-if (backupData.dailyReflections) {
-  Object.entries(backupData.dailyReflections).forEach(([date, reflection]) => {
-    const dailyData = {
-      date: date,
-      rating: backupData.dailyRatings?.[date] || 0,
-      reflection: reflection,
-      updatedAt: new Date().toISOString()
-    };
-    localStorage.setItem(`${STORAGE_KEY}_daily_${date}`, JSON.stringify(dailyData));
-  });
-  console.log('✅ 恢复 daily_ 文件完成');
-}
-      
-      // 4. 恢复学习结束时间
-      if (backupData.studyEndTimes) {
-        setStudyEndTimes(backupData.studyEndTimes);
-        localStorage.setItem('daily_study_end_times', JSON.stringify(backupData.studyEndTimes));
-        console.log('✅ 恢复学习结束时间');
-      }
-      
-      // 5. 恢复本月任务
-      if (backupData.monthTasks) {
-        setMonthTasks(backupData.monthTasks);
-        await saveMainData('monthTasks', backupData.monthTasks);
-        console.log('✅ 恢复本月任务:', backupData.monthTasks.length, '个');
-      }
-      
-      // 6. 恢复分类数据
-      if (backupData.categories) {
-        setCategories(backupData.categories);
-        await saveMainData('categories', backupData.categories);
-        console.log('✅ 恢复分类数据');
-      }
-      
-     
-      
-      if (backupData.reminderText) {
-  setReminderText(backupData.reminderText);
-  localStorage.setItem(`${STORAGE_KEY}_daily_reminder`, backupData.reminderText);
-  console.log('✅ 恢复每日提醒');
-}
-      
-      // 9. 恢复学期结束日期
-      if (backupData.semesterEndDate) {
-        setSemesterEndDate(backupData.semesterEndDate);
-        localStorage.setItem('semester_end_date', backupData.semesterEndDate);
-        console.log('✅ 恢复学期结束日期:', backupData.semesterEndDate);
-      }
-      
-      // 10. 恢复经验数据
-      // 10. 恢复经验数据
-if (backupData.expData) {
-  setExpData(backupData.expData);
-  localStorage.setItem('exp_data_v2', JSON.stringify(backupData.expData));
-  console.log('✅ 恢复经验数据:', backupData.expData);
-}
-      
-      // 11. 恢复任务排序顺序
-      if (backupData.taskOrders) {
-        Object.entries(backupData.taskOrders).forEach(([key, value]) => {
-          localStorage.setItem(key, JSON.stringify(value));
-        });
-        console.log('✅ 恢复任务排序顺序');
-      }
-      
-      // 12. 恢复子分类排序顺序
-      if (backupData.subCategoryOrders) {
-        Object.entries(backupData.subCategoryOrders).forEach(([key, value]) => {
-          localStorage.setItem(key, JSON.stringify(value));
-        });
-        console.log('✅ 恢复子分类排序顺序');
-      }
-      
-      // 13. 恢复科目待办
-      if (backupData.subjectTodoEntries) {
-        localStorage.setItem('subject_todo_entries_v2', JSON.stringify(backupData.subjectTodoEntries));
-        console.log('✅ 恢复科目待办');
-      }
-      
-      // 14. 恢复每日任务模板（已经在前面恢复了）
-      
-      // 15. 恢复子分类颜色
-      if (backupData.subCategoryColors) {
-        localStorage.setItem('subcategory_colors', JSON.stringify(backupData.subCategoryColors));
-        console.log('✅ 恢复子分类颜色');
-      }
-      
-      // 16. 恢复类别颜色
-      if (backupData.categoryColors) {
-        localStorage.setItem('category_colors', JSON.stringify(backupData.categoryColors));
-        console.log('✅ 恢复类别颜色');
-      }
-      
-      console.log('✅ 覆盖恢复完成！');
-      alert('数据已覆盖恢复！页面将重新加载。');
-      
-      return;
+    
+    // 14. 恢复子分类颜色
+    if (backupData.subCategoryColors) {
+      localStorage.setItem('subcategory_colors', JSON.stringify(backupData.subCategoryColors));
+      console.log('✅ 恢复子分类颜色');
     }
     
-    // ========== 合并模式 ==========
-    if (mode === 'merge') {
-      console.log('🔄 开始智能合并恢复...');
-      
-      // 1. 合并任务数据
-      if (backupData.tasksByDate) {
-        const mergedTasks = { ...tasksByDate };
-        Object.entries(backupData.tasksByDate).forEach(([date, tasks]) => {
-          if (!mergedTasks[date]) {
-            mergedTasks[date] = [];
-          }
-          tasks.forEach(cloudTask => {
-            const exists = mergedTasks[date].some(localTask => localTask.id === cloudTask.id);
-            if (!exists) {
-              mergedTasks[date].push(cloudTask);
-            }
-          });
-        });
-        setTasksByDate(mergedTasks);
-        await saveMainData('tasks', mergedTasks);
-        console.log('✅ 合并任务数据完成');
-      }
-      
-      // 2. 合并每日评分（本地优先）
-      if (backupData.dailyRatings) {
-        const mergedRatings = { ...backupData.dailyRatings, ...dailyRatings };
-        setDailyRatings(mergedRatings);
-        localStorage.setItem(`${STORAGE_KEY}_dailyRatings`, JSON.stringify(mergedRatings));
-        console.log('✅ 合并每日评分完成');
-      }
-      
-      // 3. 合并每日复盘（本地优先）
-      if (backupData.dailyReflections) {
-        const mergedReflections = { ...backupData.dailyReflections, ...dailyReflections };
-        setDailyReflections(mergedReflections);
-        console.log('✅ 合并每日复盘完成');
-      }
-      
-      // 4. 合并学习结束时间（本地优先）
-      if (backupData.studyEndTimes) {
-        const mergedEndTimes = { ...backupData.studyEndTimes, ...studyEndTimes };
-        setStudyEndTimes(mergedEndTimes);
-        localStorage.setItem('daily_study_end_times', JSON.stringify(mergedEndTimes));
-        console.log('✅ 合并学习结束时间完成');
-      }
-      
-      // 5. 合并经验数据（本地优先）
-      if (backupData.expData) {
-        const mergedExpData = {
-          daily: { ...backupData.expData.daily, ...expData.daily },
-          total: { ...backupData.expData.total, ...expData.total }
-        };
-        setExpData(mergedExpData);
-        localStorage.setItem('exp_data_v2', JSON.stringify(mergedExpData));
-        console.log('✅ 合并经验数据完成');
-      }
-      
-      // 6. 合并本月任务
-      if (backupData.monthTasks) {
-        const taskMap = new Map();
-        monthTasks.forEach(t => taskMap.set(t.id, t));
-        backupData.monthTasks.forEach(t => {
-          if (!taskMap.has(t.id)) {
-            taskMap.set(t.id, t);
-          }
-        });
-        const mergedMonthTasks = Array.from(taskMap.values());
-        setMonthTasks(mergedMonthTasks);
-        await saveMainData('monthTasks', mergedMonthTasks);
-        console.log('✅ 合并本月任务完成');
-      }
-    
-      
-      // 8. 合并每日任务模板（本地优先）
-      if (backupData.dailyTaskTemplates) {
-        const templateMap = new Map();
-        dailyTaskTemplates.forEach(t => templateMap.set(t.id, t));
-        backupData.dailyTaskTemplates.forEach(t => {
-          if (!templateMap.has(t.id)) {
-            templateMap.set(t.id, t);
-          }
-        });
-        const mergedTemplates = Array.from(templateMap.values());
-        setDailyTaskTemplates(mergedTemplates);
-        localStorage.setItem('daily_task_templates', JSON.stringify(mergedTemplates));
-        console.log('✅ 合并每日任务模板完成');
-      }
-      
-      console.log('✅ 智能合并完成！');
-      alert('数据合并完成！页面将重新加载。');
-      setTimeout(() => window.location.reload(), 1000);
+    // 15. 恢复类别颜色
+    if (backupData.categoryColors) {
+      localStorage.setItem('category_colors', JSON.stringify(backupData.categoryColors));
+      console.log('✅ 恢复类别颜色');
     }
+    
+    // ===== 16. 恢复消费数据 =====
+    if (backupData.expenseRecords) {
+      setExpenseRecords(backupData.expenseRecords);
+      localStorage.setItem('expense_records', JSON.stringify(backupData.expenseRecords));
+      console.log('✅ 恢复消费记录:', backupData.expenseRecords.length, '条');
+    }
+    
+    if (backupData.todayExpense !== undefined) {
+      setTodayExpense(backupData.todayExpense);
+      localStorage.setItem('today_expense', String(backupData.todayExpense));
+      console.log('✅ 恢复今日消费:', backupData.todayExpense);
+    }
+    
+    if (backupData.dailyBudget) {
+      setDailyBudget(backupData.dailyBudget);
+      localStorage.setItem('daily_budget', String(backupData.dailyBudget));
+      console.log('✅ 恢复每日预算:', backupData.dailyBudget);
+    }
+    
+    if (backupData.expenseDate) {
+      localStorage.setItem('expense_date', backupData.expenseDate);
+      console.log('✅ 恢复消费日期:', backupData.expenseDate);
+    }
+    
+    console.log('✅ 覆盖恢复完成！');
+    alert('数据已覆盖恢复！页面将重新加载。');
+    setTimeout(() => window.location.reload(), 500);
     
   } catch (error) {
     console.error('恢复失败:', error);
     alert('恢复失败: ' + error.message);
   }
 }, [
-  tasksByDate, 
-  dailyRatings, 
-  dailyReflections, 
-  studyEndTimes, 
-  monthTasks, 
-  expData, 
- 
-  dailyTaskTemplates,
-  setTasksByDate, 
-  setDailyRatings, 
-  setDailyReflections, 
-  setStudyEndTimes, 
-  setMonthTasks, 
+  setTasksByDate,
+  setDailyRatings,
+  setDailyReflections,
+  setStudyEndTimes,
+  setMonthTasks,
   setExpData,
   setCategories,
-  setSemesterEndDate,
   setReminderText,
+  setSemesterEndDate,
   setDailyTaskTemplates,
+  setExpenseRecords,
+  setTodayExpense,
+  setDailyBudget,
   saveMainData
 ]);
 
@@ -14298,6 +14192,10 @@ const syncToGitHub = useCallback(async (silent = false) => {
   subCategoryOrders: allSubCategoryOrders,
   syncTime: new Date().toISOString(),
   version: '2.4',
+   expenseRecords: expenseRecords,
+  todayExpense: todayExpense,
+  dailyBudget: dailyBudget,
+  expenseDate: new Date().toISOString().split('T')[0],
   lastSelectedDate: selectedDate,
   lastCurrentMonday: currentMonday.toISOString()
 };
