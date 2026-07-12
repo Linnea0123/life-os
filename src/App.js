@@ -15113,7 +15113,7 @@ if (newDoneState === true) {
       skills: skills,
       totalExp: totalExp,
       levelUp: levelUp,
-      grandTotal: grandTotal  // ✅ 不需要 healthChange
+      grandTotal: newTotal  // ✅ 不需要 healthChange
     });
   }
 }
