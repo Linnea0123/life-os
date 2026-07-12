@@ -7040,7 +7040,8 @@ const TaskEditModal = ({ task, categories, setShowCrossDateModal, setShowMoveTas
     reminderDay: task.reminderTime?.day?.toString() || '',
     reminderHour: task.reminderTime?.hour?.toString() || '',
     reminderMinute: task.reminderTime?.minute?.toString() || '',
-    
+     isCountTask: task.isCountTask || false,
+  count: task.count || 0,
     repeatFrequency: task.repeatFrequency || '',
     repeatDays: task.repeatDays || [false, false, false, false, false, false, false],
     subTasks: task.subTasks || [],
@@ -7781,6 +7782,37 @@ const abandonReasons = [
 </div>
 
 
+{/* ===== ✅ 任务类型选择 ===== */}
+{/* ===== ✅ 任务类型选择 ===== */}
+<div style={{ marginBottom: 8 }}>
+  <label style={{
+    display: 'block',
+    marginBottom: 4,
+    fontWeight: '600',
+    color: '#333',
+    fontSize: 12
+  }}>
+    任务类型
+  </label>
+  <div style={{ display: 'flex', gap: '12px' }}>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer' }}>
+      <input
+        type="radio"
+        checked={!editData.isCountTask}
+        onChange={() => setEditData({ ...editData, isCountTask: false })}
+      />
+      一次性
+    </label>
+    <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer' }}>
+      <input
+        type="radio"
+        checked={editData.isCountTask}
+        onChange={() => setEditData({ ...editData, isCountTask: true })}
+      />
+      多次任务
+    </label>
+  </div>
+</div>
 
 {/* 📊 进度跟踪 */}
 <div>
@@ -8161,11 +8193,13 @@ const TaskItem = ({
   onUpdateProgress,
   onDeleteTask, 
   onDeleteImage,
+  
   onUpdateAbandonInfo,
   onUpdateExpValue, 
   
   onEditSubTask = () => {},
-  isSortingMode = false
+  isSortingMode = false,
+  onIncrementCount,
 }) => {
   const [editingSubTaskIndex, setEditingSubTaskIndex] = useState(null);
   const [editSubTaskText, setEditSubTaskText] = useState('');
@@ -8424,6 +8458,35 @@ const handleProgressAdjust = (increment) => {
       &nbsp; [图片]
     </span>
   )}
+
+  {/* ===== ✅ 在这里添加多次任务 + 按钮 ===== */}
+{/* ===== 多次任务 + 按钮 ===== */}
+{task.isCountTask && (
+  <span
+    onClick={(e) => {
+      e.stopPropagation();
+      onIncrementCount(task);
+    }}
+    style={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: '2px',
+      marginLeft: '6px',
+      padding: '0 8px',
+      height: '20px',
+      backgroundColor: '#61A2Da',
+      color: '#fff',
+      borderRadius: '12px',
+      fontSize: '11px',
+      cursor: 'pointer',
+      fontWeight: 'bold',
+      userSelect: 'none',
+      flexShrink: 0
+    }}
+  >
+    + <span style={{ fontSize: '10px', opacity: 0.8 }}>({task.count || 0})</span>
+  </span>
+)}
   
   {/* 跨日期图标 */}
   {task.crossDateId && task.crossDates && task.crossDates.length > 0 && (
@@ -9171,6 +9234,7 @@ const SortableTaskList = ({
   setShowMoveModal,
   onUpdateProgress,
   onEditSubTask,
+  onIncrementCount, 
   onToggleSubTask
 }) => {
   const [taskList, setTaskList] = useState([]);
@@ -9563,6 +9627,7 @@ const handleMouseDown = (e, index) => {
             onUpdateProgress={onUpdateProgress}
             onEditSubTask={onEditSubTask}
             onToggleSubTask={onToggleSubTask}
+            onIncrementCount={onIncrementCount}
           />
         </div>
       ))}
@@ -12154,7 +12219,7 @@ const encouragementMessages = [
 };
 
 function App() {
-  // 在 App 组件的 useState 区域添加
+const [isCountTask, setIsCountTask] = useState(false);
 const [expTaskDetail, setExpTaskDetail] = useState(null);  // 维度详情
 const [expSkillDetail, setExpSkillDetail] = useState(null);  // 技能详情
 const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 500);
@@ -12610,45 +12675,76 @@ const [expData, setExpData] = useState(() => {
 // ===== 获取任务奖励 =====
 // ===== 获取任务奖励 =====
 const getTaskRewards = useCallback((task) => {
+  // ✅ 安全检查
+  if (!task) {
+    console.warn('⚠️ getTaskRewards: task is undefined');
+    return {};
+  }
+  
   const rewards = {};
   const category = task.category;
   const subCategory = task.subCategory || '';
+  const expValue = task.expValue || 2;
   
-  let dimKey = null;
-  let expValue = task.expValue || 2;
-
-  // 主分类映射
-  const catMap = {
+  // 维度映射
+  const dimMap = {
     '健康': 'tipuo',
-     '财富': 'caiye',
     '智慧': 'xiuye',
-    
+    '心神': 'xinshen',
     '家庭': 'shouhu',
-   '心神': 'xinshen',
+    '财富': 'caiye',
     '悦己': 'yiqu'
   };
-  dimKey = catMap[category];
   
-  // 校内分类映射
+  let dimKey = dimMap[category];
+  
+  // 校内分类特殊处理
   if (category === '校内' && subCategory) {
-    const subMap = {
+    const subDimMap = {
       '数学': 'xiuye',
       '语文': 'xiuye',
       '英语': 'xiuye',
-      '运动': 'tipuo',
-      '科学': 'xiuye'
+      '运动': 'tipuo'
     };
-    dimKey = subMap[subCategory] || dimKey;
+    dimKey = subDimMap[subCategory] || dimKey;
   }
   
-  if (!dimKey) return rewards;
+  // ✅ 如果找不到维度，默认到智慧
+  if (!dimKey) {
+    console.warn('⚠️ 未找到维度，使用默认:', category);
+    dimKey = 'xiuye';
+  }
   
+  // ✅ 确保返回对象
   rewards[dimKey] = expValue;
   return rewards;
 }, []);
 
+// 在 App 组件顶部添加（useRef 附近）
+const addExpCache = new Map();
+
 const addExp = useCallback((date, rewards) => {
-  console.log('📊 addExp 被调用:', date, rewards);
+  console.group('🔍 addExp 被调用');
+  console.log('日期:', date);
+  console.log('奖励:', rewards);
+  console.trace('📍 调用堆栈:');
+  console.groupEnd();
+  if (!date || !rewards || Object.keys(rewards).length === 0) {
+    return;
+  }
+  
+  // ✅ 防重复：同一任务同一秒内只执行一次
+  const cacheKey = `${date}_${JSON.stringify(rewards)}`;
+  const now = Date.now();
+  const lastCall = addExpCache.get(cacheKey) || 0;
+  
+  if (now - lastCall < 1000) {
+    console.warn('⏭️ addExp 重复调用被阻止 (1秒内)');
+    return;
+  }
+  addExpCache.set(cacheKey, now);
+  
+  console.log('📊 addExp 执行:', date, rewards);
   
   setExpData(prev => {
     const newDaily = { ...prev.daily };
@@ -12656,13 +12752,11 @@ const addExp = useCallback((date, rewards) => {
     
     if (!newDaily[date]) newDaily[date] = {};
     
-    // 只处理6大维度，不处理 health
     Object.entries(rewards).forEach(([dim, value]) => {
-      if (value !== 0 && dim !== 'health') {
-        const numValue = Number(value);
-        newDaily[date][dim] = (newDaily[date][dim] || 0) + numValue;
-        newTotal[dim] = (newTotal[dim] || 0) + numValue;
-        console.log(`  📈 ${dim}: +${numValue} (累计: ${newTotal[dim]})`);
+      if (value > 0) {
+        newDaily[date][dim] = (newDaily[date][dim] || 0) + value;
+        newTotal[dim] = (newTotal[dim] || 0) + value;
+        console.log(`  📈 ${dim}: +${value} (累计: ${newTotal[dim]})`);
       }
     });
     
@@ -12674,6 +12768,12 @@ const addExp = useCallback((date, rewards) => {
 
 // 2.8 任务完成时加分
 const handleTaskComplete = useCallback((task, date) => {
+  // ✅ 多次任务跳过
+  if (task?.isCountTask === true) {
+    console.log('⏭️ 多次任务跳过 handleTaskComplete:', task.text);
+    return null;
+  }
+  
   const rewards = getTaskRewards(task);
   if (Object.keys(rewards).length > 0) {
     const targetDate = date || new Date().toISOString().split('T')[0];
@@ -15039,190 +15139,210 @@ const updateTaskExpValue = useCallback((task, newExpValue) => {
   }
 }, [selectedDate]);
 
+
+
+// 在 App 组件顶部添加（在 useState 附近）
+const processingLocks = new Map();
+
 const toggleDone = (task, currentDateFromTask = null) => {
- console.log('🔄 toggleDone 调用次数计数器:', Date.now());
-   // ✅ 如果任务已放弃，不允许操作
-  if (task.abandoned) {
-    console.log('⚠️ 任务已放弃，无法勾选');
+  // ✅ 安全检查
+  if (!task) {
+    console.warn('⚠️ toggleDone: task is undefined');
     return;
   }
   
-  const currentDate = currentDateFromTask || selectedDate;
+  // ✅ 如果任务已被放弃，不允许切换
+  if (task.abandoned) {
+    console.log('⏭️ 任务已放弃，不允许切换:', task.text);
+    return;
+  }
+  
+  // ✅ 使用 task.id 作为锁的 key
+  const lockKey = task.id || task.text;
+  if (processingLocks.get(lockKey)) {
+    console.log('⏭️ 任务正在处理中，跳过:', task.text);
+    return;
+  }
+  
+  // ✅ 设置锁
+  processingLocks.set(lockKey, true);
+  
+  const currentDate = currentDateFromTask || selectedDate || new Date().toISOString().split('T')[0];
   const newDoneState = !task.done;
-
-
-
-
-
-
-
-
-
-
-  // ========== 🎯 任务完成时收集经验和技能 ==========
- // 在 toggleDone 函数中，完成任务时：
-if (newDoneState === true) {
-  const rewards = getTaskRewards(task);
-  const expData = {};
-  const skills = [];
-  let totalExp = 0;
   
-  // 收集经验值
-  if (Object.keys(rewards).length > 0) {
-    Object.entries(rewards).forEach(([dim, value]) => {
-      expData[dim] = value;
-      totalExp += value;
-    });
-    // ✅ 调用 addExp（不传 healthChange）
-    addExp(currentDate, rewards);
-    console.log('🎯 获得经验:', rewards);
-  }
+  console.log('📊 toggleDone:', task.text, task.done, '→', newDoneState);
   
-  // 收集技能标签
-  if (task.tags && task.tags.length > 0) {
-    task.tags.forEach(tag => {
-      const skillConfig = {
-        '健身': true, '阅读': true, '英语': true, '冥想': true,
-        '理财': true, '烹饪': true, '写作': true, '运动': true,
-        '育儿': true, '摄影': true, '音乐': true, '设计': true,
-        '编程': true
-      };
-      if (skillConfig[tag]) {
-        skills.push(tag);
-      }
-    });
-  }
-  
-  // 计算等级变化
-  const currentTotal = grandTotal;
-  const newTotal = currentTotal + totalExp;
-  const currentLevel = Math.floor(currentTotal / EXP_PER_LEVEL) + 1;
-  const newLevel = Math.floor(newTotal / EXP_PER_LEVEL) + 1;
-  const levelUp = newLevel > currentLevel ? newLevel : null;
-  
-  // ✅ 触发弹窗（删除 healthChange）
-  if (Object.keys(expData).length > 0 || skills.length > 0) {
-    setShowExpPopup({
-      exp: expData,
-      skills: skills,
-      totalExp: totalExp,
-      levelUp: levelUp,
-      grandTotal: newTotal  // ✅ 不需要 healthChange
-    });
-  }
-}
-
-  // ========== 取消完成时扣除经验 ==========
-  if (newDoneState === false) {
-    const rewards = getTaskRewards(task);
-    if (Object.keys(rewards).length > 0) {
-      const negativeRewards = {};
-      Object.entries(rewards).forEach(([dim, value]) => {
-        negativeRewards[dim] = -value;
-      });
-      addExp(currentDate, negativeRewards);
-      console.log('🔄 扣除经验:', negativeRewards);
+  // ========== 更新任务状态 ==========
+  setTasksByDate(prev => {
+    if (!prev) return {};
+    
+    const newTasksByDate = { ...prev };
+    const dateToUpdate = currentDate;
+    
+    if (!newTasksByDate[dateToUpdate]) {
+      newTasksByDate[dateToUpdate] = [];
     }
-  }
-
-  // ============================================================
-  // ✅ 关键修复：更新任务的 done 状态
-  // ============================================================
-  
-  // 检查任务是否是常规任务（完成后移动到目标分类）
-  const isRegularTask = task.isRegularTask === true;
-  
-  if (task.isWeekTask) {
-    // 本周任务
-    setTasksByDate(prev => {
-      const newTasksByDate = { ...prev };
-      Object.keys(newTasksByDate).forEach(date => {
-        newTasksByDate[date] = newTasksByDate[date].map(t =>
-          t.isWeekTask && t.text === task.text && t.weekStart === task.weekStart
-            ? { 
-                ...t, 
-                done: newDoneState,
-                actualCompletedDate: newDoneState ? currentDate : null,
-                updatedAt: new Date().toISOString()
-              }
-            : t
-        );
-      });
-      return newTasksByDate;
-    });
     
-  } else if (task.crossDateId) {
-    // 跨日期任务：更新所有关联日期
-    setTasksByDate(prev => {
-      const newTasksByDate = { ...prev };
-      Object.keys(newTasksByDate).forEach(date => {
-        newTasksByDate[date] = newTasksByDate[date].map(t =>
-          t.crossDateId === task.crossDateId
-            ? { 
-                ...t, 
-                done: newDoneState,
-                actualCompletedDate: newDoneState ? currentDate : null,
-                updatedAt: new Date().toISOString()
-              }
-            : t
-        );
-      });
-      return newTasksByDate;
-    });
-    
-  } else if (isRegularTask && newDoneState === true && task.targetCategory) {
-    // 常规任务完成：从常规任务区域移除，添加到目标分类
-    setTasksByDate(prev => {
-      const newTasksByDate = { ...prev };
-      
-      // 1. 从当前日期移除该任务
-      if (newTasksByDate[currentDate]) {
-        newTasksByDate[currentDate] = newTasksByDate[currentDate].filter(t => t.id !== task.id);
-        if (newTasksByDate[currentDate].length === 0) {
-          delete newTasksByDate[currentDate];
-        }
+    // 查找并更新任务
+    let taskFound = false;
+    newTasksByDate[dateToUpdate] = newTasksByDate[dateToUpdate].map(t => {
+      if (t.id === task.id) {
+        taskFound = true;
+        return {
+          ...t,
+          done: newDoneState,
+          actualCompletedDate: newDoneState ? dateToUpdate : null,
+          updatedAt: new Date().toISOString()
+        };
       }
-      
-      // 2. 在目标分类中创建已完成的任务（isRegularTask = false）
-      if (!newTasksByDate[currentDate]) {
-        newTasksByDate[currentDate] = [];
-      }
-      
-      const completedTask = {
-        ...task,
-        done: true,
-        isRegularTask: false, // 不再是常规任务
-        category: task.targetCategory || task.category,
-        subCategory: task.targetSubCategory || task.subCategory || '',
-        actualCompletedDate: currentDate,
-        updatedAt: new Date().toISOString()
-      };
-      
-      newTasksByDate[currentDate].push(completedTask);
-      
-      return newTasksByDate;
+      return t;
     });
     
-  } else {
-    // 普通任务
-    setTasksByDate(prev => ({
-      ...prev,
-      [currentDate]: (prev[currentDate] || []).map(t =>
-        t.id === task.id 
-          ? { 
-              ...t, 
+    // 如果任务未找到，尝试在其他日期查找
+    if (!taskFound) {
+      Object.keys(newTasksByDate).forEach(date => {
+        if (taskFound) return;
+        newTasksByDate[date] = newTasksByDate[date].map(t => {
+          if (t.id === task.id) {
+            taskFound = true;
+            return {
+              ...t,
               done: newDoneState,
-              actualCompletedDate: newDoneState ? currentDate : null,
+              actualCompletedDate: newDoneState ? dateToUpdate : null,
               updatedAt: new Date().toISOString()
-            }
-          : t
-      )
-    }));
+            };
+          }
+          return t;
+        });
+      });
+    }
+    
+    if (!taskFound) {
+      console.warn('⚠️ 任务未找到，添加到当前日期:', task.text);
+      newTasksByDate[dateToUpdate].push({
+        ...task,
+        done: newDoneState,
+        actualCompletedDate: newDoneState ? dateToUpdate : null,
+        updatedAt: new Date().toISOString()
+      });
+    }
+    
+    return newTasksByDate;
+  });
+  
+  // ========== 处理经验值 ==========
+  // 在 toggleDone 中，处理经验值的部分
+setTimeout(() => {
+  try {
+    // ✅ 如果是多次任务，不在这里处理经验值
+    if (task.isCountTask === true) {
+      console.log('⏭️ 多次任务跳过 toggleDone 加分');
+      // 释放锁后直接返回
+      processingLocks.delete(lockKey);
+      console.log('✅ 锁已释放:', task.text);
+      return;
+    }
+    
+    if (newDoneState === true) {
+      const rewards = getTaskRewards(task);
+      if (rewards && Object.keys(rewards).length > 0) {
+        addExp(currentDate, rewards);
+        console.log('🎯 获得经验:', rewards);
+      }
+    } else {
+      const rewards = getTaskRewards(task);
+      if (rewards && Object.keys(rewards).length > 0) {
+        const negativeRewards = {};
+        Object.entries(rewards).forEach(([dim, value]) => {
+          negativeRewards[dim] = -value;
+        });
+        addExp(currentDate, negativeRewards);
+        console.log('🎯 扣除经验:', negativeRewards);
+      }
+    }
+  } catch (error) {
+    console.error('❌ 经验值处理失败:', error);
+  } finally {
+    processingLocks.delete(lockKey);
+    console.log('✅ 锁已释放:', task.text);
   }
+}, 150);
 };
+
 // ===== 更新任务经验值 =====
-
-
+// ===== 多次任务 +1 =====
+const handleIncrementCount = (task) => {
+  if (!task || task.isCountTask !== true) return;
+  
+  // 防抖
+  const now = Date.now();
+  const lastClick = task._lastClickTime || 0;
+  if (now - lastClick < 100) return;
+  task._lastClickTime = now;
+  
+  const oldCount = task.count || 0;
+  const newCount = oldCount + 1;
+  
+  // ✅ 创建计数记录
+  const countRecord = {
+    time: new Date().toISOString(),
+    count: newCount,
+    note: `第 ${newCount} 次完成`
+  };
+  
+  // 更新任务计数 + 自动完成 + 记录历史
+  setTasksByDate(prev => {
+    const newTasksByDate = { ...prev };
+    const dateToUpdate = selectedDate;
+    if (!newTasksByDate[dateToUpdate]) newTasksByDate[dateToUpdate] = [];
+    newTasksByDate[dateToUpdate] = newTasksByDate[dateToUpdate].map(t => {
+      if (t.id === task.id) {
+        return {
+          ...t,
+          count: newCount,
+          done: true,  // ✅ 自动完成
+          actualCompletedDate: selectedDate,
+          countRecords: [...(t.countRecords || []), countRecord],  // ✅ 记录历史
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return t;
+    });
+    return newTasksByDate;
+  });
+  
+  // 直接操作 localStorage 加分
+  const expData = JSON.parse(localStorage.getItem('exp_data_v2') || '{"daily":{},"total":{}}');
+  const today = selectedDate;
+  
+  if (!expData.daily[today]) expData.daily[today] = {};
+  
+  const expValue = task.expValue || 2;
+  const dimMap = {
+    '健康': 'tipuo',
+    '智慧': 'xiuye',
+    '心神': 'xinshen',
+    '家庭': 'shouhu',
+    '财富': 'caiye',
+    '悦己': 'yiqu'
+  };
+  const dimKey = dimMap[task.category] || 'tipuo';
+  
+  expData.daily[today][dimKey] = (expData.daily[today][dimKey] || 0) + expValue;
+  
+  expData.total = {};
+  Object.values(expData.daily).forEach(dayExp => {
+    Object.entries(dayExp).forEach(([dim, value]) => {
+      expData.total[dim] = (expData.total[dim] || 0) + value;
+    });
+  });
+  
+  localStorage.setItem('exp_data_v2', JSON.stringify(expData));
+  setExpData(expData);
+  
+  console.log(`🎯 +${expValue} 分 (${dimKey})，当前 ${expData.daily[today][dimKey]} 分`);
+  console.log('📊 +1:', task.text, oldCount, '→', newCount, '✅ 已自动完成');
+};
 
 // 检测撒花函数 - 接收当前日期的所有任务
 // 修复撒花检测函数
@@ -17098,6 +17218,9 @@ const handleAddTask = () => {
     reminderTime: reminderTime,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+     isCountTask: isCountTask,
+  count: 0,
+  countRecords: [], 
     repeatFrequency: repeatConfig.frequency || '',
     repeatDays: repeatConfig.days || [false, false, false, false, false, false, false],
     isRepeating: !!(repeatConfig.frequency)
@@ -17115,7 +17238,7 @@ const handleAddTask = () => {
   setNewTaskText('');
   setNewTaskSubCategory('');
    setSelectedSkills([]);
-  
+    setIsCountTask(false);  
   setRepeatConfig({
     frequency: "",
     days: [false, false, false, false, false, false, false],
@@ -18373,9 +18496,12 @@ const saveTaskEdit = (task, editData) => {
             subCategory: editData.subCategory || '',
             scheduledTime: editData.scheduledTime || "",
             tags: editData.tags || [],
+           
             subTasks: editData.subTasks || [],
             progress: editData.progress || t.progress,
             reminderTime: reminderTime,
+            isCountTask: editData.isCountTask || false,
+          count: editData.count || 0,
               // 保留模板ID
             expValue: editData.expValue || 2,
           } : t
@@ -18402,6 +18528,8 @@ const saveTaskEdit = (task, editData) => {
               tags: editData.tags || [],
               subTasks: editData.subTasks || [],
               progress: editData.progress || t.progress,
+               isCountTask: editData.isCountTask || false,
+    count: editData.count || 0,
               reminderTime: reminderTime,
               // 保留跨日期相关属性
               crossDates: t.crossDates,  // 保持原有的日期列表
@@ -18425,6 +18553,8 @@ const saveTaskEdit = (task, editData) => {
         note: editData.note || "",
         reflection: editData.reflection || "",
         category: editData.category,
+        isCountTask: editData.isCountTask || false,
+    count: editData.count || 0,
         subCategory: editData.subCategory || '',
         scheduledTime: editData.scheduledTime || "",
         tags: editData.tags || [],
@@ -18722,6 +18852,20 @@ const clearAllData = async () => {
     
     // 清空本月任务
     setMonthTasks([]);
+     setTodayExpense(0);
+    setExpenseRecords([]);
+    setDailyBudget(100); // 重置为默认预算
+    localStorage.removeItem('today_expense');
+    localStorage.removeItem('expense_date');
+    localStorage.removeItem('expense_records');
+    localStorage.removeItem('daily_budget');
+    console.log('🗑️ 消费数据已清空');
+
+      // ✅ 15. 清空处理锁（新增）
+    if (processingLocks) {
+      processingLocks.clear();
+      console.log('🗑️ 处理锁已清空');
+    }
     
     // 清空每日复盘和评分
     setDailyRatings({});
@@ -19903,6 +20047,7 @@ const getTasksForSkill = (skillName) => {
             onUpdateExpValue={updateTaskExpValue}
             onToggleSubTask={toggleSubTask}
             getTaskCompletionType={getTaskCompletionType}
+             onIncrementCount={handleIncrementCount} 
           />
         </div>
       )}
@@ -20055,6 +20200,7 @@ const getTasksForSkill = (skillName) => {
               formatTimeWithSeconds={formatTimeWithSeconds}
               onMoveTask={moveTask}
               categories={categories}
+               onIncrementCount={handleIncrementCount} 
               setShowMoveModal={setShowMoveModal}
               onUpdateProgress={handleUpdateProgress}
               onEditSubTask={editSubTask}
@@ -20473,71 +20619,84 @@ const getTasksForSkill = (skillName) => {
             </div>
           ) : (
             <div>
-              {getTasksForDimension(expTaskDetail).map((task, idx) => {
-                const minutes = Math.floor((task.timeSpent || 0) / 60);
-                const expValue = task.expValue || 2;
+            {getTasksForDimension(expTaskDetail).map((task, idx) => {
+  const minutes = Math.floor((task.timeSpent || 0) / 60);
+  const expValue = task.expValue || 2;
 
-                return (
-                  <div
-                    key={task.id}
-                    style={{
-                      padding: '8px 12px',
-                      borderBottom: idx < getTasksForDimension(expTaskDetail).length - 1 ? '1px solid #f0f0f0' : 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      backgroundColor: idx % 2 === 0 ? '#fafafa' : 'transparent',
-                      borderRadius: '6px'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
-                      <span style={{ flexShrink: 0 }}>
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                          <path d="M20 6L9 17L4 12" stroke="#4caf50" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
-                        </svg>
-                      </span>
-                      <span style={{
-                        fontSize: '13px',
-                        color: '#333',
-                        wordBreak: 'break-word',
-                        flex: 1
-                      }}>
-                        {task.text}
-                      </span>
-                    </div>
+  return (
+    <div
+      key={task.id}
+      style={{
+        padding: '8px 12px',
+        borderBottom: idx < getTasksForDimension(expTaskDetail).length - 1 ? '1px solid #f0f0f0' : 'none',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: idx % 2 === 0 ? '#fafafa' : 'transparent',
+        borderRadius: '6px'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+        <span style={{ flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17L4 12" stroke="#4caf50" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
+          </svg>
+        </span>
+        <span style={{
+          fontSize: '13px',
+          color: '#333',
+          wordBreak: 'break-word',
+          flex: 1
+        }}>
+          {task.text}
+        </span>
+      </div>
 
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      flexShrink: 0,
-                      marginLeft: '8px'
-                    }}>
-                      <span style={{
-                        fontSize: '11px',
-                        fontWeight: 'bold',
-                        color: '#FF9800',
-                        padding: '1px 8px',
-                        borderRadius: '10px',
-                        minWidth: '20px',
-                        textAlign: 'center'
-                      }}>
-                        {expValue}分
-                      </span>
-                      {minutes > 0 && (
-                        <span style={{
-                          fontSize: '11px',
-                          color: '#999',
-                          minWidth: '30px',
-                          textAlign: 'right'
-                        }}>
-                          {minutes}m
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        flexShrink: 0,
+        marginLeft: '8px'
+      }}>
+        {/* ✅ 在这里添加：如果是多次任务，显示次数 */}
+        {task.isCountTask && task.count > 0 && (
+          <span style={{
+            fontSize: '11px',
+            color: '#61A2Da',
+            backgroundColor: '#e8f0fe',
+            padding: '1px 8px',
+            borderRadius: '10px',
+            fontWeight: 'bold'
+          }}>
+            ×{task.count}
+          </span>
+        )}
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 'bold',
+          color: '#FF9800',
+          padding: '1px 8px',
+          borderRadius: '10px',
+          minWidth: '20px',
+          textAlign: 'center'
+        }}>
+          {expValue}分
+        </span>
+        {minutes > 0 && (
+          <span style={{
+            fontSize: '11px',
+            color: '#999',
+            minWidth: '30px',
+            textAlign: 'right'
+          }}>
+            {minutes}m
+          </span>
+        )}
+      </div>
+    </div>
+  );
+})}
             </div>
           )}
 
@@ -21081,6 +21240,9 @@ const getTasksForSkill = (skillName) => {
               boxSizing: 'border-box'
             }}
           />
+
+
+
           
           {/* 技能标签选择 */}
           <div style={{
@@ -21186,6 +21348,32 @@ const getTasksForSkill = (skillName) => {
               ))}
             </div>
           </div>
+
+  {/* ===== ✅ 在这里插入：任务类型选择 ===== */}
+      {/* 👇👇👇 插入位置 👇👇👇 */}
+      
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 12, color: '#666', marginBottom: 5 }}>任务类型：</div>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              checked={!isCountTask}
+              onChange={() => setIsCountTask(false)}
+            />
+            一次性
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer' }}>
+            <input
+              type="radio"
+              checked={isCountTask}
+              onChange={() => setIsCountTask(true)}
+            />
+            多次任务
+          </label>
+        </div>
+      </div>
+
           
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 5, display: 'block' }}>
