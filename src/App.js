@@ -1527,14 +1527,15 @@ const TimeEditModal = ({ task, onClose, onSave, onEditRecord, onDeleteRecord, to
   };
 
   // 保存实际时间
-  const handleSave = () => {
+   const handleSave = () => {
     const minutes = parseInt(addMinutes);
-    if (!isNaN(minutes) && minutes > 0) {
+    if (!isNaN(minutes)) {  // ✅ 允许负数，不再要求 > 0
       if (onSave) {
         onSave(task, minutes, note);
       }
       
-      if (task.done !== true && typeof toggleDone === 'function') {
+      // ✅ 如果是正数且任务未完成，自动完成
+      if (minutes > 0 && task.done !== true && typeof toggleDone === 'function') {
         toggleDone(task);
       }
     }
@@ -8470,21 +8471,26 @@ const handleProgressAdjust = (increment) => {
     style={{
       display: 'inline-flex',
       alignItems: 'center',
-      gap: '2px',
+      justifyContent: 'center',
+      gap: '0px',
       marginLeft: '6px',
-      padding: '0 8px',
-      height: '20px',
+      padding: '0 6px',
+      height: '18px',  // ✅ 改成18px，和标签一样高
       backgroundColor: '#61A2Da',
       color: '#fff',
-      borderRadius: '12px',
+      borderRadius: '10px',  // ✅ 改成10px，和标签弧度一样
       fontSize: '11px',
       cursor: 'pointer',
       fontWeight: 'bold',
       userSelect: 'none',
-      flexShrink: 0
+      flexShrink: 0,
+      lineHeight: 1,
+      verticalAlign: 'middle',
+      boxSizing: 'border-box',
+      paddingBottom: '0px' 
     }}
   >
-    + <span style={{ fontSize: '10px', opacity: 0.8 }}>({task.count || 0})</span>
+    +{task.count || 0}
   </span>
 )}
   
@@ -9124,37 +9130,26 @@ const handleProgressAdjust = (increment) => {
     
   </label>
   <input
-    type="number"
-    min="0"
-    max="100"
-    value={expInputValue}
-    onChange={(e) => {
-      const val = parseInt(e.target.value) || 0;
-      setExpInputValue(Math.min(Math.max(0, val), 100));
-    }}
-    style={{
-      width: '100%',
-      padding: '10px',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      fontSize: '16px',
-      textAlign: 'center',
-      boxSizing: 'border-box'
-    }}
-    autoFocus
-    onFocus={(e) => e.target.select()}
-  />
-  {/* ❌ 删除这两行 */}
-  {/* <div style={{
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '11px',
-    color: '#999',
-    marginTop: '4px'
-  }}>
-    <span>0</span>
-    <span>100</span>
-  </div> */}
+  type="number"
+  step="1"
+  value={expInputValue}
+  onChange={(e) => {
+    const val = parseInt(e.target.value) || 0;
+    setExpInputValue(val);  // ✅ 直接设置，不限制
+  }}
+  style={{
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #ddd',
+    borderRadius: '8px',
+    fontSize: '16px',
+    textAlign: 'center',
+    boxSizing: 'border-box'
+  }}
+  autoFocus
+  onFocus={(e) => e.target.select()}
+/>
+ 
 </div>
       
       <div style={{
@@ -9176,26 +9171,27 @@ const handleProgressAdjust = (increment) => {
         >
           取消
         </div>
-        <div
-          onClick={() => {
-            const finalExp = Math.min(Math.max(0, expInputValue), 100);
-            onUpdateExpValue?.(task, finalExp);
-            setShowExpModal(false);
-          }}
-          style={{
-            flex: 1,
-            padding: '10px',
-            backgroundColor: '#61A2Da',
-            color: 'white',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            fontWeight: 'bold',
-            textAlign: 'center'
-          }}
-        >
-          确认
-        </div>
+       <div
+  onClick={() => {
+    const finalExp = parseInt(expInputValue) || 0;
+    // ✅ 不限制正负，直接传
+    onUpdateExpValue?.(task, finalExp);
+    setShowExpModal(false);
+  }}
+  style={{
+    flex: 1,
+    padding: '10px',
+    backgroundColor: '#61A2Da',
+    color: 'white',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '14px',
+    fontWeight: 'bold',
+    textAlign: 'center'
+  }}
+>
+  确认
+</div>
       </div>
     </div>
   </div>
@@ -12753,10 +12749,11 @@ const addExp = useCallback((date, rewards) => {
     if (!newDaily[date]) newDaily[date] = {};
     
     Object.entries(rewards).forEach(([dim, value]) => {
-      if (value > 0) {
+      // ✅ 改成 !== 0，允许负数
+      if (value !== 0) {
         newDaily[date][dim] = (newDaily[date][dim] || 0) + value;
         newTotal[dim] = (newTotal[dim] || 0) + value;
-        console.log(`  📈 ${dim}: +${value} (累计: ${newTotal[dim]})`);
+        console.log(`  📈 ${dim}: ${value > 0 ? '+' : ''}${value} (累计: ${newTotal[dim]})`);
       }
     });
     
@@ -15032,24 +15029,19 @@ const handleCrossDateTask = (task, targetDates) => {
 const updateTaskExpValue = useCallback((task, newExpValue) => {
   console.log('📝 更新经验值:', task.text, '→', newExpValue);
   
-  // 限制范围 0-100
-  const finalValue = Math.min(Math.max(0, newExpValue), 100);
-  
-  // 获取任务当前的 expValue
+  const finalValue = Number(newExpValue);
   const oldExpValue = task.expValue || 2;
+  const diff = finalValue - oldExpValue;
   
-  // ========== 如果任务已完成，调整总积分 ==========
+  // ✅ 只有任务已完成时，修改经验值才会影响积分
   const isTaskDone = task.done === true && task.abandoned !== true;
   
-  if (isTaskDone && oldExpValue !== finalValue) {
-    const diff = finalValue - oldExpValue;
-    
+  if (diff !== 0 && isTaskDone) {
     // 获取任务对应的维度
     const category = task.category;
     const subCategory = task.subCategory || '';
     let dimKey = null;
     
-    // 主分类映射
     const catMap = {
       '健康': 'tipuo',
       '智慧': 'xiuye',
@@ -15060,53 +15052,47 @@ const updateTaskExpValue = useCallback((task, newExpValue) => {
     };
     dimKey = catMap[category];
     
-    // 校内子分类映射
     if (category === '校内' && subCategory) {
       const subMap = {
         '数学': 'xiuye',
         '语文': 'xiuye',
         '英语': 'xiuye',
-        '运动': 'tipuo',
-        '科学': 'xiuye'
+        '运动': 'tipuo'
       };
       dimKey = subMap[subCategory] || dimKey;
     }
     
-    if (dimKey) {
-      // 更新总积分和今日积分
-      setExpData(prev => {
-        const newTotal = { ...prev.total };
-        const newDaily = { ...prev.daily };
-        const today = new Date().toISOString().split('T')[0];
-        
-        // 更新总积分
-        newTotal[dimKey] = (newTotal[dimKey] || 0) + diff;
-        if (newTotal[dimKey] < 0) newTotal[dimKey] = 0;
-        
-        // 更新今日积分
-        if (!newDaily[today]) newDaily[today] = {};
-        newDaily[today][dimKey] = (newDaily[today][dimKey] || 0) + diff;
-        if (newDaily[today][dimKey] < 0) newDaily[today][dimKey] = 0;
-        
-        const newData = {
-          daily: newDaily,
-          total: newTotal
-        };
-        localStorage.setItem('exp_data_v2', JSON.stringify(newData));
-        console.log(`✅ 积分已调整: ${oldExpValue} → ${finalValue} (${diff > 0 ? '+' : ''}${diff})`);
-        console.log(`📊 ${dimKey} 总积分: ${newTotal[dimKey]}`);
-        return newData;
-      });
+    if (!dimKey) {
+      dimKey = 'xiuye';
     }
+    
+    setExpData(prev => {
+      const newTotal = { ...prev.total };
+      const newDaily = { ...prev.daily };
+      const today = selectedDate || new Date().toISOString().split('T')[0];
+      
+      newTotal[dimKey] = (newTotal[dimKey] || 0) + diff;
+      if (!newDaily[today]) newDaily[today] = {};
+      newDaily[today][dimKey] = (newDaily[today][dimKey] || 0) + diff;
+      
+      const newData = {
+        daily: newDaily,
+        total: newTotal
+      };
+      localStorage.setItem('exp_data_v2', JSON.stringify(newData));
+      console.log(`✅ ${dimKey}: ${oldExpValue} → ${finalValue} (${diff > 0 ? '+' : ''}${diff})`);
+      return newData;
+    });
+  } else if (diff !== 0 && !isTaskDone) {
+    console.log('⏭️ 任务未完成，修改经验值不影响积分');
   }
   
-  // ========== 更新任务的 expValue ==========
+  // ========== 更新任务的 expValue（总是更新） ==========
   const updateTask = (t) => ({
     ...t,
     expValue: finalValue
   });
   
-  // 更新任务（支持本周任务、跨日期任务、普通任务）
   if (task.isWeekTask) {
     setTasksByDate(prev => {
       const newTasksByDate = { ...prev };
@@ -15232,32 +15218,27 @@ const toggleDone = (task, currentDateFromTask = null) => {
   
   // ========== 处理经验值 ==========
   // 在 toggleDone 中，处理经验值的部分
+// 在 toggleDone 中处理经验值的部分
 setTimeout(() => {
   try {
-    // ✅ 如果是多次任务，不在这里处理经验值
-    if (task.isCountTask === true) {
-      console.log('⏭️ 多次任务跳过 toggleDone 加分');
-      // 释放锁后直接返回
-      processingLocks.delete(lockKey);
-      console.log('✅ 锁已释放:', task.text);
-      return;
-    }
-    
     if (newDoneState === true) {
+      // ✅ 完成任务：直接加 rewards（可能是负数）
       const rewards = getTaskRewards(task);
       if (rewards && Object.keys(rewards).length > 0) {
         addExp(currentDate, rewards);
-        console.log('🎯 获得经验:', rewards);
+        console.log('🎯 完成任务加分:', rewards);
       }
     } else {
+      // ✅ 取消完成：减去 rewards（如果是负数，减负数 = 加回来）
       const rewards = getTaskRewards(task);
       if (rewards && Object.keys(rewards).length > 0) {
         const negativeRewards = {};
         Object.entries(rewards).forEach(([dim, value]) => {
-          negativeRewards[dim] = -value;
+          // 取反：如果 rewards 是 -1，取反后变成 +1（加回来）
+          negativeRewards[dim] = -Number(value);
         });
         addExp(currentDate, negativeRewards);
-        console.log('🎯 扣除经验:', negativeRewards);
+        console.log('🎯 取消完成扣分:', negativeRewards);
       }
     }
   } catch (error) {
