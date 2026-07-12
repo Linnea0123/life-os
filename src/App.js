@@ -12176,7 +12176,106 @@ const expDetailRef = useRef(null);
 
  const [forceUpdate, setForceUpdate] = useState(0);
 
+// 在 App 组件中，找到其他 useState 的位置（大约在 4800 行附近），添加：
 
+// ===== 今日消费 =====
+const [todayExpense, setTodayExpense] = useState(() => {
+  const saved = localStorage.getItem('today_expense');
+  const date = localStorage.getItem('expense_date');
+  const today = new Date().toISOString().split('T')[0];
+  
+  // 如果日期变了，重置消费为 0
+  if (date !== today) {
+    localStorage.setItem('expense_date', today);
+    localStorage.setItem('today_expense', '0');
+    return 0;
+  }
+  return saved ? parseFloat(saved) : 0;
+});
+
+const [dailyBudget, setDailyBudget] = useState(() => {
+  const saved = localStorage.getItem('daily_budget');
+  return saved ? parseFloat(saved) : 100; // 默认每日预算 100 元
+});
+
+const [showExpenseModal, setShowExpenseModal] = useState(false);
+
+// ===== 本月消费计算 =====
+
+
+
+const [expenseInput, setExpenseInput] = useState('');
+const [expenseNote, setExpenseNote] = useState('');
+const [expenseRecords, setExpenseRecords] = useState(() => {
+  const saved = localStorage.getItem('expense_records');
+  return saved ? JSON.parse(saved) : [];
+});
+const monthExpense = useMemo(() => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  
+  return expenseRecords
+    .filter(record => {
+      const d = new Date(record.date);
+      return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+    })
+    .reduce((sum, record) => sum + record.amount, 0);
+}, [expenseRecords]);
+
+// ===== 本月剩余天数 =====
+const daysLeftInMonth = useMemo(() => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  return lastDay.getDate() - now.getDate();
+}, []);
+// 添加消费记录
+const addExpense = (amount, note = '') => {
+  const newTotal = todayExpense + amount;
+  setTodayExpense(newTotal);
+  localStorage.setItem('today_expense', String(newTotal));
+  
+  const newRecord = {
+    id: Date.now().toString(),
+    amount: amount,
+    note: note || '',
+    time: new Date().toISOString(),
+    date: new Date().toISOString().split('T')[0]
+  };
+  
+  const newRecords = [...expenseRecords, newRecord];
+  setExpenseRecords(newRecords);
+  localStorage.setItem('expense_records', JSON.stringify(newRecords));
+};
+
+// 删除消费记录
+const deleteExpenseRecord = (recordId) => {
+  const record = expenseRecords.find(r => r.id === recordId);
+  if (record) {
+    const newTotal = todayExpense - record.amount;
+    setTodayExpense(newTotal);
+    localStorage.setItem('today_expense', String(newTotal));
+  }
+  const newRecords = expenseRecords.filter(r => r.id !== recordId);
+  setExpenseRecords(newRecords);
+  localStorage.setItem('expense_records', JSON.stringify(newRecords));
+};
+
+// 重置今日消费
+const resetTodayExpense = () => {
+  if (window.confirm('确定要重置今日消费吗？')) {
+    setTodayExpense(0);
+    localStorage.setItem('today_expense', '0');
+    setExpenseRecords([]);
+    localStorage.setItem('expense_records', '[]');
+  }
+};
+
+// 获取今日消费明细
+const getTodayExpenseRecords = () => {
+  const today = new Date().toISOString().split('T')[0];
+  return expenseRecords.filter(r => r.date === today);
+};
 
  
   
@@ -14703,6 +14802,7 @@ const handleRenameCategory = (index, newName) => {
 
 
 // 跨日期任务模态框
+// 跨日期任务模态框
 const CrossDateModal = ({ task, onClose, onSave, selectedDate }) => {
   const [selectedDays, setSelectedDays] = useState([new Date(selectedDate).getDay()]);
   
@@ -14738,26 +14838,22 @@ const CrossDateModal = ({ task, onClose, onSave, selectedDate }) => {
     );
   };
 
-  // 保存函数 - 已移除多余的 {} 块
- const handleSave = () => {
-    if (!token.trim()) {
-      alert('请输入 GitHub Token');
+  // ✅ 修复：正确的跨日期保存函数
+  const handleSave = () => {
+    // 获取选中的日期
+    const targetDates = getDateOptions()
+      .filter(option => selectedDays.includes(option.day))
+      .map(option => option.value);
+    
+    if (targetDates.length === 0) {
+      alert('请至少选择一天！');
       return;
     }
     
-    const suffix = getTokenSuffix(token);
-    if (suffix !== expectedSuffix) {
-      alert(`Token 后四位是 "${suffix}"，不是 "${expectedSuffix}"！\n请检查 Token 是否正确。`);
-      return;
+    // 调用父组件传入的 onSave 函数
+    if (onSave) {
+      onSave(task, targetDates);
     }
-    
-    onSave({ token, autoSync, gistId });
-    
-    // ✅ 新增：保存后执行回调
-    if (onSyncComplete) {
-      onSyncComplete();
-    }
-    
     onClose();
   };
 
@@ -19233,6 +19329,8 @@ const getTasksForSkill = (skillName) => {
     </div>
   </div>
 </div>
+{/* ===== 💰 今日消费卡片 ===== */}
+
 
 {/* ===== CSS 动画定义 - 慢速 ===== */}
 <style>{`
@@ -19245,6 +19343,7 @@ const getTasksForSkill = (skillName) => {
     }
   }
 `}</style>
+
 
 
 
@@ -19346,65 +19445,47 @@ const getTasksForSkill = (skillName) => {
       </button>
     </div>
 
- <div style={{ 
-  display: "flex", 
-  alignItems: "center",
-  gap: "6px",
-  marginLeft: "auto"  // ← 关键：向右靠
+<div style={{
+  display: 'flex',
+  alignItems: 'center',
+  gap: '6px',           // ✅ 两个板块之间有缝
+  padding: '0 4px',
 }}>
-  <div style={{ 
-    color: "#61A2Da", 
-    fontWeight: "500",
-    padding: "2px 10px",
-    borderRadius: "16px",
-    backgroundColor: "#e8f0fe",
-    fontSize: "12px",
-    display: "flex",
-    alignItems: "center",
-    gap: "4px"
-  }}>
-    <span>本月剩余</span>
-    <span style={{ 
-      color: "#FF0000", 
-      fontWeight: "bold",
-      fontSize: "13px"
-    }}>
-      {
-        (() => {
-          const today = new Date();
-          const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-          const diffTime = lastDay - today;
-          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-          return diffDays > 0 ? diffDays : 0;
-        })()
-      }
-    </span>
-    <span>天</span>
-  </div>
   
-  <button
-    onClick={() => setShowMoreMenu(!showMoreMenu)}
+  {/* 左板块：本月剩余 */}
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    height: '32px',
+    padding: '0 10px',
+     fontWeight: 600,
+    fontSize: '12px',
+    color: '#61A2Da',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  }}>
+    本月剩余 <strong style={{ marginLeft: 3, color: '#61A2Da' }}>{daysLeftInMonth}</strong> 天
+  </div>
+
+  {/* 右板块：金额 */}
+  <div
+    onClick={() => setShowExpenseModal(true)}
     style={{
-      width: 28,
-      height: 28,
-      backgroundColor: "transparent",
-      border: "none",
-      cursor: "pointer",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 0,
-      borderRadius: "50%",
+      display: 'flex',
+      alignItems: 'center',
+      height: '32px',
+      padding: '0 8px',     // ✅ 左右更紧凑
+      
+      fontSize: '12px',     // ✅ 比之前小一号
+      fontWeight: 600,
+      color: '#f44336',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
       flexShrink: 0
     }}
-    title="更多功能"
   >
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="6" r="1.5" fill="#61A2Da"/>
-      <circle cx="12" cy="12" r="1.5" fill="#61A2Da"/>
-      <circle cx="12" cy="18" r="1.5" fill="#61A2Da"/>
-    </svg>
-  </button>
+    {todayExpense.toFixed(2)} 元
+  </div>
 </div>
 
   </div>
@@ -21928,7 +22009,298 @@ const getTasksForSkill = (skillName) => {
         onClose={() => setShowExpPopup(null)}
       />
     )}
-
+{/* ===== 💰 消费记录弹窗 ===== */}
+{showExpenseModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10000,
+    padding: '10px'
+  }} onClick={() => setShowExpenseModal(false)}>
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      width: '100%',
+      maxWidth: '400px',
+      maxHeight: '80vh',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column'
+    }} onClick={e => e.stopPropagation()}>
+      
+      {/* 标题栏 */}
+      <div style={{
+        padding: '16px 20px',
+        backgroundColor: '#61A2Da',
+        color: 'white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexShrink: 0
+      }}>
+        <span style={{ fontSize: '18px', fontWeight: 'bold' }}>
+          💰 今日消费
+        </span>
+        <div
+          onClick={() => setShowExpenseModal(false)}
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}
+        >
+          ×
+        </div>
+      </div>
+      
+      {/* 统计摘要 */}
+      <div style={{
+        padding: '16px 20px',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(3, 1fr)',
+        gap: '10px',
+        borderBottom: '1px solid #f0f0f0',
+        flexShrink: 0
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: '#999' }}>今日消费</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#f44336' }}>
+            ¥{todayExpense.toFixed(2)}
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: '#999' }}>日预算</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#61A2Da' }}>
+            ¥{dailyBudget.toFixed(0)}
+          </div>
+        </div>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '11px', color: '#999' }}>剩余</div>
+          <div style={{ 
+            fontSize: '18px', 
+            fontWeight: 'bold', 
+            color: dailyBudget - todayExpense >= 0 ? '#4caf50' : '#f44336'
+          }}>
+            ¥{(dailyBudget - todayExpense).toFixed(2)}
+          </div>
+        </div>
+      </div>
+      
+      {/* 添加消费表单 */}
+      <div style={{
+        padding: '14px 20px',
+        borderBottom: '1px solid #f0f0f0',
+        flexShrink: 0
+      }}>
+        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+          <input
+            type="number"
+            placeholder="金额"
+            value={expenseInput}
+            onChange={(e) => setExpenseInput(e.target.value)}
+            style={{
+              width: '80px',
+              padding: '6px 10px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '14px',
+              textAlign: 'center'
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                const amount = parseFloat(expenseInput);
+                if (!isNaN(amount) && amount > 0) {
+                  addExpense(amount, expenseNote);
+                  setExpenseInput('');
+                  setExpenseNote('');
+                }
+              }
+            }}
+          />
+          <input
+            type="text"
+            placeholder="备注（可选）"
+            value={expenseNote}
+            onChange={(e) => setExpenseNote(e.target.value)}
+            style={{
+              flex: 1,
+              padding: '6px 10px',
+              border: '1px solid #ddd',
+              borderRadius: '6px',
+              fontSize: '13px',
+              minWidth: '80px'
+            }}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                const amount = parseFloat(expenseInput);
+                if (!isNaN(amount) && amount > 0) {
+                  addExpense(amount, expenseNote);
+                  setExpenseInput('');
+                  setExpenseNote('');
+                }
+              }
+            }}
+          />
+          <div
+            onClick={() => {
+              const amount = parseFloat(expenseInput);
+              if (!isNaN(amount) && amount > 0) {
+                addExpense(amount, expenseNote);
+                setExpenseInput('');
+                setExpenseNote('');
+              } else {
+                alert('请输入有效金额');
+              }
+            }}
+            style={{
+              padding: '6px 14px',
+              backgroundColor: '#61A2Da',
+              color: 'white',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '13px',
+              fontWeight: 'bold',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            添加
+          </div>
+        </div>
+      </div>
+      
+      {/* 消费记录列表 */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        padding: '12px 20px'
+      }}>
+        {getTodayExpenseRecords().length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '30px 0',
+            color: '#999',
+            fontSize: '13px'
+          }}>
+            今日暂无消费记录
+          </div>
+        ) : (
+          getTodayExpenseRecords().map((record, idx) => (
+            <div
+              key={record.id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '8px 0',
+                borderBottom: idx < getTodayExpenseRecords().length - 1 ? '1px solid #f5f5f5' : 'none'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1 }}>
+                <span style={{
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: '#f44336',
+                  minWidth: '60px'
+                }}>
+                  -¥{record.amount.toFixed(2)}
+                </span>
+                {record.note && (
+                  <span style={{
+                    fontSize: '13px',
+                    color: '#666',
+                    flex: 1
+                  }}>
+                    {record.note}
+                  </span>
+                )}
+                <span style={{
+                  fontSize: '11px',
+                  color: '#999'
+                }}>
+                  {new Date(record.time).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
+              <div
+                onClick={() => deleteExpenseRecord(record.id)}
+                style={{
+                  cursor: 'pointer',
+                  color: '#ccc',
+                  fontSize: '14px',
+                  padding: '0 4px'
+                }}
+              >
+                ×
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+      
+      {/* 底部操作按钮 */}
+      <div style={{
+        padding: '12px 20px',
+        borderTop: '1px solid #f0f0f0',
+        display: 'flex',
+        gap: '10px',
+        flexShrink: 0
+      }}>
+        <div
+          onClick={() => {
+            const newBudget = window.prompt('设置每日预算（元）：', dailyBudget.toString());
+            if (newBudget !== null) {
+              const val = parseFloat(newBudget);
+              if (!isNaN(val) && val > 0) {
+                setDailyBudget(val);
+                localStorage.setItem('daily_budget', String(val));
+              }
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '8px',
+            backgroundColor: '#f5f5f5',
+            color: '#333',
+            borderRadius: '6px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            fontSize: '13px'
+          }}
+        >
+          设置预算
+        </div>
+        <div
+          onClick={resetTodayExpense}
+          style={{
+            flex: 1,
+            padding: '8px',
+            backgroundColor: '#f5f5f5',
+            color: '#f44336',
+            borderRadius: '6px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            fontSize: '13px'
+          }}
+        >
+          重置今日
+        </div>
+      </div>
+      
+    </div>
+  </div>
+)}
     {/* ===== 撒花动画 ===== */}
     {confettiParts.map(part => (
       <div
