@@ -13885,8 +13885,18 @@ const isAddingTask = useRef(false);
   }
   return {};
 });
-  const [dailyReflections, setDailyReflections] = useState({});
-  
+  const [dailyReflections, setDailyReflections] = useState(() => {
+  const saved = localStorage.getItem(`${STORAGE_KEY}_dailyReflections`);
+  if (saved) {
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error('解析复盘数据失败:', e);
+      return {};
+    }
+  }
+  return {};
+});
   const [showCrossDateModal, setShowCrossDateModal] = useState(null);
   const [repeatConfig, setRepeatConfig] = useState({
   frequency: "", // 改为空字符串，默认不重复
@@ -14113,19 +14123,18 @@ const getCurrentDailyReflection = () => {
 // 设置当前选中日期的复盘内容
 // 设置当前选中日期的复盘内容
 const setCurrentDailyReflection = (reflection) => {
-  // 1. 保存到 dailyReflections 状态
   setDailyReflections(prev => {
     const newReflections = {
       ...prev,
       [selectedDate]: reflection
     };
-    // 立即保存到 localStorage
+    // 👇 保存到 localStorage
     localStorage.setItem(`${STORAGE_KEY}_dailyReflections`, JSON.stringify(newReflections));
     console.log('💾 保存复盘:', selectedDate, reflection);
     return newReflections;
   });
   
-  // 2. 同时保存到 daily_ 文件（兼容旧格式）
+  // 同时保存到 daily_ 文件（兼容旧格式）
   const dailyData = {
     date: selectedDate,
     rating: dailyRatings[selectedDate] || 0,
@@ -14133,9 +14142,7 @@ const setCurrentDailyReflection = (reflection) => {
     updatedAt: new Date().toISOString()
   };
   localStorage.setItem(`${STORAGE_KEY}_daily_${selectedDate}`, JSON.stringify(dailyData));
-  console.log('💾 保存 daily_ 文件:', selectedDate);
 };
-
 
 // 保存每日数据（包括评分、复盘）
 const saveDailyData = useCallback(async (date = selectedDate) => {
@@ -16558,6 +16565,28 @@ useEffect(() => {
 
 // 加载任务数据
 const savedTasks = await loadDataWithFallback('tasks', {});
+
+  // 👇 在这里添加：加载每日复盘
+    const savedReflections = localStorage.getItem(`${STORAGE_KEY}_dailyReflections`);
+    if (savedReflections) {
+      try {
+        setDailyReflections(JSON.parse(savedReflections));
+        console.log('✅ 加载复盘数据成功');
+      } catch (e) {
+        console.error('加载复盘失败:', e);
+      }
+    }
+
+    // 👇 在这里添加：加载每日评分
+    const savedRatings = localStorage.getItem(`${STORAGE_KEY}_dailyRatings`);
+    if (savedRatings) {
+      try {
+        setDailyRatings(JSON.parse(savedRatings));
+        console.log('✅ 加载评分数据成功');
+      } catch (e) {
+        console.error('加载评分失败:', e);
+      }
+    }
 
 if (savedTasks) {
   setTasksByDate(savedTasks);
