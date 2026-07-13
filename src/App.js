@@ -12935,7 +12935,6 @@ const ExpPanel = ({
       tipuo: '健康',
       caiye: '财富',
       xiuye: '智慧',
-      
       shouhu: '家庭',
       xinshen: '心神',
       yiqu: '悦己'
@@ -12954,9 +12953,6 @@ const ExpPanel = ({
     };
     return emojis[key] || '📌';
   };
-
-  // ========== 获取任务列表 ==========
- 
 
   // ========== 获取今日技能 ==========
   const getTodaySkills = useCallback(() => {
@@ -13006,108 +13002,106 @@ const ExpPanel = ({
       marginBottom: '2px'
     }}>
       {/* ===== 顶部统计行 ===== */}
-      {/* ===== 顶部统计行 ===== */}
-<div style={{
-  display: 'flex',
-  flexDirection: 'column',
-  padding: '2px 0',
-  marginBottom: '4px',
-  backgroundColor: 'transparent',
-  border: 'none',
-  cursor: 'pointer'
-}}
-onClick={() => {
-  setShowSkills(!showSkills);
-  if (onToggle) onToggle(!showSkills);
-}}>
-  
-  {/* 第一行：今日 + 积分 + 打卡统计 */}
-  <div style={{ 
-    display: 'flex', 
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-    // ✅ 手机端和电脑端不同布局
-    flexDirection: isDesktop ? 'row' : 'row',  // 保持行
-    flexWrap: isDesktop ? 'nowrap' : 'wrap',   // 手机端允许换行
-    gap: isDesktop ? '0' : '4px'
-  }}>
-    {/* 左侧：今日 + 积分 */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-      <span style={{ fontSize: isDesktop ? '12px' : '12px', fontWeight: 'bold', color: '#333' }}>
-        今日
-      </span>
-      <span style={{ 
-        fontSize: isDesktop ? '14px' : '14px', 
-        fontWeight: 'bold', 
-        color: '#4caf50'
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '2px 0',
+        marginBottom: '4px',
+        backgroundColor: 'transparent',
+        border: 'none',
+        cursor: 'pointer'
+      }}
+      onClick={() => {
+        setShowSkills(!showSkills);
+        if (onToggle) onToggle(!showSkills);
       }}>
-        +{todayTotal}
-      </span>
-      <span style={{ fontSize: isDesktop ? '11px' : '11px', color: '#999' }}>
-        ({done}/{total})
-      </span>
-    </div>
-    
-    {/* 中间：打卡统计 - 仅手机端显示 */}
-    {!isDesktop && (
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <span style={{ 
-          fontSize: '9px', 
-          color: '#bbb'
+        
+        {/* 第一行：今日 + 积分 + 打卡统计 */}
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          width: '100%',
+          flexDirection: isDesktop ? 'row' : 'row',
+          flexWrap: isDesktop ? 'nowrap' : 'wrap',
+          gap: isDesktop ? '0' : '4px'
         }}>
-          已打卡 {
-            Object.keys(tasksByDate).filter(date => {
-              const tasks = tasksByDate[date] || [];
-              return tasks.some(t => t.done === true && t.abandoned !== true);
-            }).length
-          } 天 · 累计 {
-            Object.values(tasksByDate).reduce((sum, tasks) => 
-              sum + tasks.filter(t => t.done === true && t.abandoned !== true).length, 0
-            )
-          } 个
-        </span>
+          {/* 左侧：今日 + 积分 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: isDesktop ? '12px' : '12px', fontWeight: 'bold', color: '#333' }}>
+              今日
+            </span>
+            <span style={{ 
+              fontSize: isDesktop ? '14px' : '14px', 
+              fontWeight: 'bold', 
+              color: '#4caf50'
+            }}>
+              +{todayTotal}
+            </span>
+            <span style={{ fontSize: isDesktop ? '11px' : '11px', color: '#999' }}>
+              ({done}/{total})
+            </span>
+          </div>
+          
+          {/* 中间：打卡统计 - 仅手机端显示 */}
+          {!isDesktop && (
+            <div style={{ 
+              display: 'flex', 
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}>
+              <span style={{ 
+                fontSize: '9px', 
+                color: '#bbb'
+              }}>
+                已打卡 {
+                  Object.keys(tasksByDate).filter(date => {
+                    const tasks = tasksByDate[date] || [];
+                    return tasks.some(t => t.done === true && t.abandoned !== true);
+                  }).length
+                } 天 · 累计 {
+                  Object.values(tasksByDate).reduce((sum, tasks) => 
+                    sum + tasks.filter(t => t.done === true && t.abandoned !== true).length, 0
+                  )
+                } 个
+              </span>
+            </div>
+          )}
+          
+          {/* 右侧：总积分 + 等级 */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <span style={{ fontSize: isDesktop ? '10px' : '10px', color: '#999' }}>总积分</span>
+            <span style={{ 
+              fontSize: isDesktop ? '13px' : '13px', 
+              fontWeight: 'bold', 
+              color: '#1a73e8'
+            }}>
+              {grandTotal}
+            </span>
+            <span style={{ 
+              fontSize: isDesktop ? '9px' : '9px', 
+              color: '#61A2Da',
+              backgroundColor: '#e8f0fe',
+              padding: '1px 5px',
+              borderRadius: '10px'
+            }}>
+              Lv.{level}
+            </span>
+          </div>
+        </div>
       </div>
-    )}
-    
-    {/* 右侧：总积分 + 等级 */}
-    <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-      <span style={{ fontSize: isDesktop ? '10px' : '10px', color: '#999' }}>总积分</span>
-      <span style={{ 
-        fontSize: isDesktop ? '13px' : '13px', 
-        fontWeight: 'bold', 
-        color: '#1a73e8'
-      }}>
-        {grandTotal}
-      </span>
-      <span style={{ 
-        fontSize: isDesktop ? '9px' : '9px', 
-        color: '#61A2Da',
-        backgroundColor: '#e8f0fe',
-        padding: '1px 5px',
-        borderRadius: '10px'
-      }}>
-        Lv.{level}
-      </span>
-    </div>
-  </div>
-</div>
 
-      {/* ===== 6个属性卡片 ===== */}
+      {/* ===== 6个属性卡片 - 手机端一行6个 ===== */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: isDesktop ? '1fr' : '1fr 1fr 1fr',
-        gap: '4px'
+        gridTemplateColumns: isDesktop ? '1fr' : 'repeat(6, 1fr)',  // 👈 手机端6列
+        gap: isDesktop ? '8px' : '3px'  // 👈 手机端间距缩小
       }}>
         {Object.keys(DIMENSIONS).map((key) => {
           const dim = DIMENSIONS[key];
           const today = todayExp[key] || 0;
           const total = totalExp[key] || 0;
-          const hasExp = today > 0 || total > 0;
+          const hasExp = today > 0; 
           const progress = getProgress(total);
           const expInLevel = getExpInLevel(total);
           const dimLevel = Math.floor(total / EXP_PER_LEVEL) + 1;
@@ -13119,39 +13113,38 @@ onClick={() => {
 
           return (
             <div
-  key={key}
-  style={{
-    padding: isDesktop ? '4px 10px' : '2px 6px',
-    borderRadius: '6px',
-    backgroundColor: hasExp ? bgColor : 'transparent',
-    border: '1px solid #e8e8e8',
-    cursor: 'pointer',
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    MozUserSelect: 'none',
-    msUserSelect: 'none',
-    WebkitTapHighlightColor: 'transparent',
-  }}
-  onClick={(e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (onShowTaskDetail) {
-      onShowTaskDetail(key);
-    }
-  }}
-  onMouseDown={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }}
-  onTouchStart={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    // ✅ 添加这行！手机端触发展开
-    if (onShowTaskDetail) {
-      onShowTaskDetail(key);
-    }
-  }}
->
+              key={key}
+              style={{
+                padding: isDesktop ? '4px 10px' : '2px 3px',  // 👈 手机端内边距缩小
+                borderRadius: '6px',
+                backgroundColor: hasExp ? bgColor : 'transparent',
+                border: '1px solid #e8e8e8',
+                cursor: 'pointer',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                MozUserSelect: 'none',
+                msUserSelect: 'none',
+                WebkitTapHighlightColor: 'transparent',
+              }}
+              onClick={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                if (onShowTaskDetail) {
+                  onShowTaskDetail(key);
+                }
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (onShowTaskDetail) {
+                  onShowTaskDetail(key);
+                }
+              }}
+            >
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -13160,19 +13153,19 @@ onClick={() => {
                 <span style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: isDesktop ? '6px' : '3px',
-                  fontSize: isDesktop ? '13px' : '11px'
+                  gap: isDesktop ? '6px' : '2px',  // 👈 手机端间距缩小
+                  fontSize: isDesktop ? '13px' : '8px'  // 👈 手机端字体缩小
                 }}>
                   <span style={{
                     color: '#333',
-                    fontSize: isDesktop ? '13px' : '8px',
+                    fontSize: isDesktop ? '13px' : '8px',  // 👈 手机端字体缩小
                     fontWeight: isDesktop ? '500' : '500'
                   }}>
                     {dimName}
                   </span>
                   {taskCount > 0 && (
                     <span style={{
-                      fontSize: isDesktop ? '10px' : '6px',
+                      fontSize: isDesktop ? '10px' : '6px',  // 👈 手机端字体缩小
                       color: '#4caf50',
                       backgroundColor: '#e8f5e9',
                       padding: isDesktop ? '1px 6px' : '1px 3px',
@@ -13184,7 +13177,7 @@ onClick={() => {
                   )}
                 </span>
                 <span style={{
-                  fontSize: isDesktop ? '12px' : '9px',
+                  fontSize: isDesktop ? '12px' : '8px',  // 👈 手机端字体缩小
                   fontWeight: 'bold',
                   color: today > 0 ? '#4caf50' : '#999'
                 }}>
@@ -13192,8 +13185,9 @@ onClick={() => {
                 </span>
               </div>
 
+              {/* 进度条 */}
               <div style={{
-                height: isDesktop ? '3px' : '2px',
+                height: isDesktop ? '3px' : '2px',  // 👈 手机端更细
                 backgroundColor: '#eee',
                 borderRadius: '2px',
                 marginTop: isDesktop ? '3px' : '2px',
@@ -13207,10 +13201,11 @@ onClick={() => {
                 }} />
               </div>
 
+              {/* 底部等级信息 */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
-                fontSize: isDesktop ? '9px' : '6px',
+                fontSize: isDesktop ? '9px' : '6px',  // 👈 手机端字体缩小
                 color: '#999',
                 marginTop: isDesktop ? '2px' : '1px'
               }}>
@@ -13222,7 +13217,7 @@ onClick={() => {
         })}
       </div>
 
-      {/* ===== 技能卡片区域 ===== */}
+      {/* ===== 技能卡片区域（保持原样） ===== */}
       <div style={{ marginTop: '6px' }}>
         <div
           onClick={() => setShowSkills(!showSkills)}
@@ -13246,7 +13241,7 @@ onClick={() => {
         {showSkills && (
           <div style={{
             display: 'grid',
-            gridTemplateColumns: isDesktop ? '1fr' : '1fr 1fr 1fr',
+            gridTemplateColumns: isDesktop ? '1fr' : 'repeat(3, 1fr)',
             gap: '4px'
           }}>
             {skillKeys.length === 0 ? (
@@ -13296,13 +13291,12 @@ onClick={() => {
                       e.stopPropagation();
                     }}
                     onTouchStart={(e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  // ✅ 手机端触发展开
-  if (onShowSkillDetail) {
-    onShowSkillDetail(skill);
-  }
-}}
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (onShowSkillDetail) {
+                        onShowSkillDetail(skill);
+                      }
+                    }}
                   >
                     <div style={{
                       display: 'flex',
@@ -19386,242 +19380,302 @@ const getTasksForSkill = (skillName) => {
     </div>
   )}
 
-  {/* ===== 本周切换（电脑端和手机端都显示） ===== */}
-  <div style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 6,
-    padding: "0 4px"
-  }}>
-    <div style={{ display: "flex", alignItems: "center" }}>
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          prevWeek();
-        }}
-        style={{
-          backgroundColor: "transparent",
-          border: "none",
-          cursor: "pointer",
-          padding: "0",
-          margin: "0",
-          fontSize: "14px",
-          width: "28px",
-          height: "28px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          color: "#61A2Da"
-        }}
-        title="上一周"
-      >
-        ◀
-      </button>
-      
-      <span 
-        onClick={() => setShowDatePickerModal(true)}
-        style={{
-          fontWeight: "bold",
-          margin: "0 4px",
-          fontSize: "13px",
-          cursor: "pointer",
-          padding: "4px 8px",
-          borderRadius: "6px",
-          display: "inline-block",
-          lineHeight: "16px",
-          verticalAlign: "middle",
-          color: "#61A2Da",
-          whiteSpace: "nowrap"
-        }}
-        title="点击选择日期"
-      >
-        {currentMonday.getFullYear()}年 第{getWeekNumber(currentMonday)}周
-      </span>
-      
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          nextWeek();
-        }}
-        style={{
-          backgroundColor: "transparent",
-          border: "none",
-          cursor: "pointer",
-          padding: "0",
-          margin: "0",
-          fontSize: "14px",
-          width: "28px",
-          height: "28px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          color: "#61A2Da"
-        }}
-        title="下一周"
-      >
-        ▶
-      </button>
-    </div>
-
+{/* ===== 本周切换 + 本月剩余 + 消费 + 三点按钮 ===== */}
 <div style={{
-  display: 'flex',
-  alignItems: 'center',
-  gap: '6px',           // ✅ 两个板块之间有缝
-  padding: '0 4px',
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginTop: 6,
+  padding: "0 4px",
+  gap: "8px",
+  flexWrap: "nowrap",
+  width: '100%',
+  boxSizing: 'border-box',
+  overflow: 'hidden'
 }}>
   
-  {/* 左板块：本月剩余 */}
-  <div style={{
-    display: 'flex',
-    alignItems: 'center',
-    height: '32px',
-    padding: '0 10px',
-     fontWeight: 600,
-    fontSize: '12px',
-    color: '#61A2Da',
-    whiteSpace: 'nowrap',
-    flexShrink: 0,
+  {/* 左侧：上一周 + 日期 + 下一周 */}
+  <div style={{ 
+    display: "flex", 
+    alignItems: "center",
+    flexShrink: 0
   }}>
-    本月剩余 <strong style={{ marginLeft: 3, color: '#61A2Da' }}>{daysLeftInMonth}</strong> 天
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        prevWeek();
+      }}
+      style={{
+        backgroundColor: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: "0",
+        margin: "0",
+        fontSize: "14px",
+        width: "28px",
+        height: "28px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: "#61A2Da"
+      }}
+      title="上一周"
+    >
+      ◀
+    </button>
+    
+    <span 
+      onClick={() => setShowDatePickerModal(true)}
+      style={{
+        fontWeight: "bold",
+        margin: "0 4px",
+        fontSize: "13px",
+        cursor: "pointer",
+        padding: "4px 8px",
+        borderRadius: "6px",
+        display: "inline-block",
+        lineHeight: "16px",
+        verticalAlign: "middle",
+        color: "#61A2Da",
+        whiteSpace: "nowrap"
+      }}
+      title="点击选择日期"
+    >
+      {currentMonday.getFullYear()}年 第{getWeekNumber(currentMonday)}周
+    </span>
+    
+    <button
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        nextWeek();
+      }}
+      style={{
+        backgroundColor: "transparent",
+        border: "none",
+        cursor: "pointer",
+        padding: "0",
+        margin: "0",
+        fontSize: "14px",
+        width: "28px",
+        height: "28px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        color: "#61A2Da"
+      }}
+      title="下一周"
+    >
+      ▶
+    </button>
   </div>
 
-  {/* 右板块：金额 */}
-  <div
-    onClick={() => setShowExpenseModal(true)}
-    style={{
+  {/* 右侧：本月剩余 + 消费金额 + 三点按钮 */}
+  <div style={{
+    display: "flex",
+    alignItems: "center",
+    gap: "4px",
+    flexShrink: 1,  // 👈 允许收缩
+    minWidth: 0,    // 👈 允许缩小到0
+    overflow: 'hidden'
+  }}>
+    {/* 本月剩余 - 手机端自动缩短 */}
+    <div style={{
       display: 'flex',
       alignItems: 'center',
-      height: '32px',
-      padding: '0 8px',     // ✅ 左右更紧凑
-      
-      fontSize: '12px',     // ✅ 比之前小一号
+      height: '28px',
+      padding: '0 4px',
       fontWeight: 600,
-      color: '#f44336',
-      cursor: 'pointer',
+      fontSize: '11px',
+      color: '#61A2Da',
       whiteSpace: 'nowrap',
-      flexShrink: 0
-    }}
-  >
-    {todayExpense.toFixed(2)} 元
+      flexShrink: 1,  // 👈 允许收缩
+      minWidth: 0,    // 👈 允许缩小到0
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }}>
+      <span style={{ display: 'inline' }}>本月剩余</span>
+      <strong style={{ marginLeft: 2, color: '#61A2Da', flexShrink: 0 }}>{daysLeftInMonth}</strong>
+      <span style={{ display: 'inline', flexShrink: 0 }}>天</span>
+    </div>
+
+    {/* 消费金额 - 手机端自动缩短 */}
+    <div
+      onClick={() => setShowExpenseModal(true)}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        height: '28px',
+        padding: '0 4px',
+        fontSize: '11px',
+        fontWeight: 600,
+        color: '#f44336',
+        cursor: 'pointer',
+        whiteSpace: 'nowrap',
+        flexShrink: 1,  // 👈 允许收缩
+        minWidth: 0,    // 👈 允许缩小到0
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }}
+    >
+      <span style={{ display: 'inline' }}>{todayExpense.toFixed(2)}</span>
+      <span style={{ display: 'inline', flexShrink: 0 }}>元</span>
+    </div>
+
+    {/* 三点按钮 - 固定不收缩 */}
+   <div
+  onClick={(e) => {
+    e.stopPropagation();
+    setShowMoreMenu(!showMoreMenu);
+  }}
+  style={{
+    padding: "2px 4px",
+    backgroundColor: "transparent",
+    border: "none",
+    cursor: "pointer",
+    fontSize: "16px",
+    textAlign: "center",
+    height: "28px",  // 👈 改成和金额一样高
+    lineHeight: "28px",  // 👈 和高度一致
+    display: "flex",  // 👈 改为 flex
+    alignItems: "center",  // 👈 垂直居中
+    justifyContent: "center",
+    whiteSpace: 'nowrap',
+    minWidth: "20px",
+    flexShrink: 0,
+    userSelect: 'none',
+    transition: 'none',
+    transform: 'none',
+    color: "#61A2Da",
+    outline: 'none',
+    boxSizing: 'border-box',
+    marginTop: "-2px" 
+  }}
+>
+  ⋮
+</div>
   </div>
 </div>
 
-  </div>
-
-
-  {/* ===== ⭐ 更多菜单 - 放在跑马灯下面 ===== */}
-  {showMoreMenu && (
-    <div style={{
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: "8px",
-      marginTop: 4,
-      marginBottom: 8,
-      padding: "6px 0",
-      backgroundColor: "#f0f4f8",
-      borderRadius: 12,
-      flexWrap: "wrap",
-      animation: "fadeIn 0.2s ease"
-    }}>
-      <div
-        onClick={() => {
-          setShowStats(true);
-          setShowMoreMenu(false);
-        }}
-        style={{
-          padding: "3px 10px",
-          backgroundColor: "#61A2Da",
-          color: "#fff",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "11px",
-          textAlign: "center"
-        }}
-      >
-        汇总
-      </div>
-      
-      <div
-        onClick={() => {
-          setShowSubjectTodoModal(true);
-          setShowMoreMenu(false);
-        }}
-        style={{
-          padding: "3px 10px",
-          backgroundColor: "#61A2Da",
-          color: "#fff",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "11px",
-          textAlign: "center"
-        }}
-      >
-        待办
-      </div>
-      
-      <div
-        onClick={() => {
-          setShowWeekTaskModal(true);
-          setShowMoreMenu(false);
-        }}
-        style={{
-          padding: "3px 10px",
-          backgroundColor: "#61A2Da",
-          color: "#fff",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "11px",
-          textAlign: "center"
-        }}
-      >
-        本周
-      </div>
-      
-      <div
-        onClick={() => {
-          setShowMonthTaskModal(true);
-          setShowMoreMenu(false);
-        }}
-        style={{
-          padding: "3px 10px",
-          backgroundColor: "#61A2Da",
-          color: "#fff",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "11px",
-          textAlign: "center"
-        }}
-      >
-        本月
-      </div>
-      
-      <div
-        onClick={() => {
-          setShowSearchModal(true);
-          setShowMoreMenu(false);
-        }}
-        style={{
-          padding: "3px 10px",
-          backgroundColor: "#61A2Da",
-          color: "#fff",
-          borderRadius: "4px",
-          cursor: "pointer",
-          fontSize: "11px",
-          textAlign: "center"
-        }}
-      >
-        搜索
-      </div>
-      
-     
+{/* ===== ⭐ 更多菜单 - 点击三点按钮展开/收起 ===== */}
+{/* ===== ⭐ 更多菜单 - 5个按钮居中排列 ===== */}
+{showMoreMenu && (
+  <div style={{
+    display: "flex",
+    justifyContent: "center",  // 👈 居中排列
+    alignItems: "center",
+    gap: "6px",  // 👈 按钮之间间距
+    marginTop: 4,
+    marginBottom: 8,
+    padding: "6px 8px",
+    backgroundColor: "#f0f4f8",
+    borderRadius: 8,
+    flexWrap: "wrap",
+    width: '100%',
+    boxSizing: 'border-box'
+  }}>
+    <div
+      onClick={() => {
+        setShowStats(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      汇总
     </div>
-  )}
+    
+    <div
+      onClick={() => {
+        setShowSubjectTodoModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      待办
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowWeekTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      本周
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowMonthTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      本月
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowSearchModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      搜索
+    </div>
+  </div>
+)}
+
+
+
 
   {/* ===== 日期行（电脑端和手机端都显示） ===== */}
   <div style={{
