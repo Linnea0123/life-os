@@ -8504,6 +8504,7 @@ const handleProgressAdjust = (increment) => {
 
   {/* ===== ✅ 在这里添加多次任务 + 按钮 ===== */}
 {/* ===== 多次任务 + 按钮 ===== */}
+{/* ===== 多次任务 + 按钮 ===== */}
 {task.isCountTask && (
   <span
     onClick={(e) => {
@@ -8514,13 +8515,13 @@ const handleProgressAdjust = (increment) => {
       display: 'inline-flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '0px',
+      gap: '2px',  // 👈 改成 gap: '2px'
       marginLeft: '6px',
       padding: '0 6px',
-      height: '18px',  // ✅ 改成18px，和标签一样高
+      height: '18px',
       backgroundColor: '#61A2Da',
       color: '#fff',
-      borderRadius: '10px',  // ✅ 改成10px，和标签弧度一样
+      borderRadius: '10px',
       fontSize: '11px',
       cursor: 'pointer',
       fontWeight: 'bold',
@@ -8532,7 +8533,7 @@ const handleProgressAdjust = (increment) => {
       paddingBottom: '0px' 
     }}
   >
-    +{task.count || 0}
+    + {task.count || 0} 
   </span>
 )}
   
