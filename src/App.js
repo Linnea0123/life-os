@@ -20216,10 +20216,10 @@ const getTasksForSkill = (skillName) => {
             if (!bulkText) {
               setBulkText(`健康
 运动30分钟 #健身
-
 手机时间＜6h
 饭后站立10分钟
-喝水2杯步数＞6000
+喝水2杯
+步数＞6000
 早睡22:30前
 
 智慧
