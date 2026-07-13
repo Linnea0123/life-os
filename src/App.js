@@ -12778,8 +12778,20 @@ const [expData, setExpData] = useState(() => {
 // ===== 获取任务奖励（支持校内子分类） =====
 // ===== 获取任务奖励 =====
 // ===== 获取任务奖励 =====
+// ===== 获取任务奖励（支持标签维度） =====
+// ===== 标签到基础属性的精确匹配 =====
+// ===== 标签到基础属性的精确匹配 =====
+const TAG_TO_DIMENSION = {
+  '健康': 'tipuo',
+  '智慧': 'xiuye',
+  '心神': 'xinshen',
+  '家庭': 'shouhu',
+  '财富': 'caiye',
+  '悦己': 'yiqu',
+};
+
+// ===== 获取任务奖励（支持多个维度） =====
 const getTaskRewards = useCallback((task) => {
-  // ✅ 安全检查
   if (!task) {
     console.warn('⚠️ getTaskRewards: task is undefined');
     return {};
@@ -12789,6 +12801,7 @@ const getTaskRewards = useCallback((task) => {
   const category = task.category;
   const subCategory = task.subCategory || '';
   const expValue = task.expValue || 2;
+  const tags = task.tags || [];
   
   // 维度映射
   const dimMap = {
@@ -12800,9 +12813,13 @@ const getTaskRewards = useCallback((task) => {
     '悦己': 'yiqu'
   };
   
-  let dimKey = dimMap[category];
+  // ✅ 用于去重（避免同一个维度加多次）
+  const addedDimensions = new Set();
   
-  // 校内分类特殊处理
+  // ✅ 1. 从分类获取维度
+  let dimKeyFromCategory = dimMap[category];
+  
+  // ✅ 2. 校内分类特殊处理
   if (category === '校内' && subCategory) {
     const subDimMap = {
       '数学': 'xiuye',
@@ -12810,17 +12827,33 @@ const getTaskRewards = useCallback((task) => {
       '英语': 'xiuye',
       '运动': 'tipuo'
     };
-    dimKey = subDimMap[subCategory] || dimKey;
+    dimKeyFromCategory = subDimMap[subCategory] || dimMap[category];
   }
   
-  // ✅ 如果找不到维度，默认到智慧
-  if (!dimKey) {
-    console.warn('⚠️ 未找到维度，使用默认:', category);
-    dimKey = 'xiuye';
+  // ✅ 3. 添加分类维度
+  if (dimKeyFromCategory) {
+    rewards[dimKeyFromCategory] = expValue;
+    addedDimensions.add(dimKeyFromCategory);
+    console.log(`📂 分类贡献: ${category} → ${dimKeyFromCategory} +${expValue}`);
   }
   
-  // ✅ 确保返回对象
-  rewards[dimKey] = expValue;
+  // ✅ 4. 从标签获取维度（每个标签单独加）
+  if (tags.length > 0) {
+    for (const tag of tags) {
+      const dimKeyFromTag = TAG_TO_DIMENSION[tag];
+      if (dimKeyFromTag && !addedDimensions.has(dimKeyFromTag)) {
+        // 如果这个维度还没有加过，就加上
+        rewards[dimKeyFromTag] = (rewards[dimKeyFromTag] || 0) + expValue;
+        addedDimensions.add(dimKeyFromTag);
+        console.log(`🏷️ 标签贡献: "${tag}" → ${dimKeyFromTag} +${expValue}`);
+      } else if (dimKeyFromTag && addedDimensions.has(dimKeyFromTag)) {
+        // 如果这个维度已经加过了，记录但不重复加
+        console.log(`⏭️ 标签 "${tag}" 的维度 ${dimKeyFromTag} 已添加过，跳过重复`);
+      }
+    }
+  }
+  
+  console.log(`✅ 任务 "${task.text}" 最终奖励:`, rewards);
   return rewards;
 }, []);
 
@@ -12935,6 +12968,7 @@ const ExpPanel = ({
   onShowTaskDetail,
   onShowSkillDetail,
    expenseRecords = [],
+   setShowExpenseModal, 
 }) => {
   const [showDetail, setShowDetail] = useState(isOpen);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
@@ -13076,41 +13110,63 @@ const getLevel = (exp) => {
   };
 
   // ========== 获取今日技能 ==========
-  const getTodaySkills = useCallback(() => {
-    const todayTasks = tasksByDate?.[selectedDate] || [];
-    const skillMap = {};
+ // ========== 获取今日技能（显示所有标签，排除基础属性名称） ==========
+// ========== 获取今日技能（支持任意标签） ==========
+const getTodaySkills = useCallback(() => {
+  const todayTasks = tasksByDate?.[selectedDate] || [];
+  const skillMap = {};
 
-    const skillConfigs = {
-      '健身': { icon: '💪', color: '#4CAF50' },
-      '阅读': { icon: '📖', color: '#2196F3' },
-      '英语': { icon: '🔤', color: '#E91E63' },
-      '冥想': { icon: '🧘', color: '#9C27B0' },
-      '理财': { icon: '💰', color: '#FFC107' },
-      '烹饪': { icon: '🍳', color: '#FF9800' },
-      '写作': { icon: '✍️', color: '#3F51B5' },
-      '运动': { icon: '🏃', color: '#4CAF50' },
-      '育儿': { icon: '👶', color: '#E91E63' },
-      '摄影': { icon: '📷', color: '#03A9F4' },
-      '音乐': { icon: '🎵', color: '#9C27B0' },
-      '设计': { icon: '🎨', color: '#E91E63' },
-      '编程': { icon: '💻', color: '#4CAF50' }
-    };
+  // ✅ 基础属性名称列表（这些标签不在技能块中显示）
+  const dimensionNames = ['健康', '智慧', '心神', '家庭', '财富', '悦己'];
 
-    todayTasks.forEach(task => {
-      if (task.done === true && task.abandoned !== true && task.tags) {
-        task.tags.forEach(tag => {
-          if (skillConfigs[tag]) {
-            if (!skillMap[tag]) {
-              skillMap[tag] = { count: 0, ...skillConfigs[tag] };
-            }
-            skillMap[tag].count += 1;
-          }
-        });
-      }
-    });
+  // ✅ 预设技能的颜色（给常用技能好看的颜色，可选）
+  const presetColors = {
+    '健身': '#4CAF50',
+    '阅读': '#2196F3',
+    '英语': '#E91E63',
+    '冥想': '#9C27B0',
+    '理财': '#FFC107',
+    '烹饪': '#FF9800',
+    '写作': '#3F51B5',
+    '运动': '#4CAF50',
+    '育儿': '#E91E63',
+    '摄影': '#03A9F4',
+    '音乐': '#9C27B0',
+    '设计': '#E91E63',
+    '编程': '#4CAF50',
+    // 👇 在这里添加新技能的颜色（可选，不添加也有默认颜色）
+    '日语': '#E91E63',
+    '法语': '#2196F3',
+    '德语': '#FF9800',
+  };
 
-    return skillMap;
-  }, [tasksByDate, selectedDate]);
+  todayTasks.forEach(task => {
+    if (task.done === true && task.abandoned !== true && task.tags) {
+      const tags = Array.isArray(task.tags) ? task.tags : [];
+      
+      tags.forEach(tag => {
+        // ✅ 如果标签名等于基础属性名称，跳过（已在基础属性中显示）
+        if (dimensionNames.includes(tag)) {
+          return;
+        }
+        
+        // ✅ 所有其他标签都显示在技能块中
+        if (!skillMap[tag]) {
+          skillMap[tag] = { 
+            count: 0, 
+            icon: '🏷️',  // 默认图标
+            color: presetColors[tag] || '#61A2Da',  // 有预设用预设，没有用默认蓝色
+            tasks: []
+          };
+        }
+        skillMap[tag].count += 1;
+        skillMap[tag].tasks.push(task.text);
+      });
+    }
+  });
+
+  return skillMap;
+}, [tasksByDate, selectedDate]);
 
   const todaySkills = getTodaySkills();
   const skillKeys = Object.keys(todaySkills);
@@ -19435,6 +19491,7 @@ const getTasksForSkill = (skillName) => {
         onShowTaskDetail={setExpTaskDetail}     // ✅ 新增
         onShowSkillDetail={setExpSkillDetail} 
         expenseRecords={expenseRecords}   // ✅ 新增
+        setShowExpenseModal={setShowExpenseModal} 
       />
     </div>
   </div>
@@ -19718,6 +19775,7 @@ const getTasksForSkill = (skillName) => {
         onShowTaskDetail={setExpTaskDetail}     // ✅ 必须有
       onShowSkillDetail={setExpSkillDetail}  
        expenseRecords={expenseRecords}  
+       setShowExpenseModal={setShowExpenseModal} 
       />
     </div>
   )}
