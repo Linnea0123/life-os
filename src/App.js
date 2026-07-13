@@ -9120,36 +9120,96 @@ const handleProgressAdjust = (increment) => {
         <strong>{task.text}</strong>
       </p>
       
-      <div style={{ marginBottom: '16px' }}>
+<div style={{ marginBottom: '16px' }}>
   <label style={{
     display: 'block',
     fontSize: '13px',
     color: '#333',
     marginBottom: '6px'
   }}>
-    
+    经验值
   </label>
-  <input
-  type="number"
-  step="1"
-  value={expInputValue}
-  onChange={(e) => {
-    const val = parseInt(e.target.value) || 0;
-    setExpInputValue(val);  // ✅ 直接设置，不限制
-  }}
-  style={{
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ddd',
-    borderRadius: '8px',
-    fontSize: '16px',
-    textAlign: 'center',
-    boxSizing: 'border-box'
-  }}
-  autoFocus
-  onFocus={(e) => e.target.select()}
-/>
- 
+  
+  {/* 输入区域：- 按钮 + 输入框 + + 按钮 */}
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    justifyContent: 'center'
+  }}>
+    {/* - 按钮 */}
+    <div
+      onClick={() => {
+        const current = parseInt(expInputValue) || 0;
+        setExpInputValue(current - 1);
+      }}
+      style={{
+        width: '40px',
+        height: '40px',
+        borderRadius: '8px',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: '#f44336',
+        border: '1px solid #e0e0e0'
+      }}
+    >
+      −
+    </div>
+    
+    {/* 输入框 */}
+    <input
+      type="number"
+      step="1"
+      value={expInputValue}
+      onChange={(e) => {
+        const val = parseInt(e.target.value) || 0;
+        setExpInputValue(val);
+      }}
+      style={{
+        width: '80px',
+        padding: '10px',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        fontSize: '18px',
+        textAlign: 'center',
+        boxSizing: 'border-box',
+        fontWeight: 'bold'
+      }}
+      autoFocus
+      onFocus={(e) => e.target.select()}
+    />
+    
+    {/* + 按钮 */}
+    <div
+      onClick={() => {
+        const current = parseInt(expInputValue) || 0;
+        setExpInputValue(current + 1);
+      }}
+      style={{
+        width: '40px',
+        height: '40px',
+        borderRadius: '8px',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '20px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: '#4caf50',
+        border: '1px solid #e0e0e0'
+      }}
+    >
+      +
+    </div>
+  </div>
 </div>
       
       <div style={{
@@ -12092,7 +12152,7 @@ const encouragementMessages = [
               fontWeight: '500',
               color: '#333'
             }}>
-              总经验 +{earnedExp}
+              总经验 {earnedExp > 0 ? `+${earnedExp}` : earnedExp}
             </span>
             <span style={{
               fontSize: '11px',
@@ -12215,6 +12275,7 @@ const encouragementMessages = [
 };
 
 function App() {
+  const [showOnlyCompleted, setShowOnlyCompleted] = useState(false);
 const [isCountTask, setIsCountTask] = useState(false);
 const [expTaskDetail, setExpTaskDetail] = useState(null);  // 维度详情
 const [expSkillDetail, setExpSkillDetail] = useState(null);  // 技能详情
@@ -12254,9 +12315,9 @@ const [todayExpense, setTodayExpense] = useState(() => {
   return saved ? parseFloat(saved) : 0;
 });
 
-const [dailyBudget, setDailyBudget] = useState(() => {
-  const saved = localStorage.getItem('daily_budget');
-  return saved ? parseFloat(saved) : 100; // 默认每日预算 100 元
+const [monthlyBudget, setMonthlyBudget] = useState(() => {
+  const saved = localStorage.getItem('monthly_budget');
+  return saved ? parseFloat(saved) : 3000; // 默认每月预算 3000 元
 });
 
 const [showExpenseModal, setShowExpenseModal] = useState(false);
@@ -12826,6 +12887,7 @@ const ExpPanel = ({
   isDesktop = false,
   onShowTaskDetail,
   onShowSkillDetail,
+   expenseRecords = [],
 }) => {
   const [showDetail, setShowDetail] = useState(isOpen);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
@@ -12876,8 +12938,7 @@ const ExpPanel = ({
   const todayExp = expData.daily[selectedDate] || {};
   const totalExp = expData.total || {};
   const todayTotal = Object.values(todayExp)
-    .filter(val => val > 0)
-    .reduce((sum, val) => sum + val, 0);
+  .reduce((sum, val) => sum + val, 0);  // 👈 包含正数和负数
 
   const grandTotal = useMemo(() => {
     const dimensions = ['tipuo', 'xiuye', 'xinshen', 'shouhu', 'caiye', 'yiqu'];
@@ -12895,11 +12956,14 @@ const ExpPanel = ({
   let done = 0;
   let total = 0;
   todayTasks.forEach(task => {
-    if (task.category !== "本周任务" && task.category !== "常规任务") {
-      total++;
-      if (task.done && !task.abandoned) done++;
-    }
-  });
+  if (task.category !== "本周任务" && task.category !== "常规任务") {
+    // 👇 如果任务经验值为负数，不计入统计
+    if (task.expValue && task.expValue < 0) return;
+    
+    total++;
+    if (task.done && !task.abandoned) done++;
+  }
+});
 
   // ========== 辅助函数 ==========
   const getExpColor = (exp) => {
@@ -12911,8 +12975,9 @@ const ExpPanel = ({
   };
 
   const getProgress = (exp) => {
-    return Math.min((exp / MAX_EXP) * 100, 100);
-  };
+  const percent = (exp / MAX_EXP) * 100;
+  return Math.min(Math.max(percent, 0), 100);  // 👈 限制在 0-100 之间
+};
 
   const getExpInLevel = (exp) => {
     return exp % EXP_PER_LEVEL;
@@ -13032,12 +13097,12 @@ const ExpPanel = ({
               今日
             </span>
             <span style={{ 
-              fontSize: isDesktop ? '14px' : '14px', 
-              fontWeight: 'bold', 
-              color: '#4caf50'
-            }}>
-              +{todayTotal}
-            </span>
+  fontSize: isDesktop ? '14px' : '14px', 
+  fontWeight: 'bold', 
+  color: todayTotal > 0 ? '#4caf50' : (todayTotal < 0 ? '#f44336' : '#999')
+}}>
+  {todayTotal > 0 ? `+${todayTotal}` : todayTotal}
+</span>
             <span style={{ fontSize: isDesktop ? '11px' : '11px', color: '#999' }}>
               ({done}/{total})
             </span>
@@ -13112,39 +13177,39 @@ const ExpPanel = ({
           const taskCount = tasksForDim.length;
 
           return (
-            <div
-              key={key}
-              style={{
-                padding: isDesktop ? '4px 10px' : '2px 3px',  // 👈 手机端内边距缩小
-                borderRadius: '6px',
-                backgroundColor: hasExp ? bgColor : 'transparent',
-                border: '1px solid #e8e8e8',
-                cursor: 'pointer',
-                userSelect: 'none',
-                WebkitUserSelect: 'none',
-                MozUserSelect: 'none',
-                msUserSelect: 'none',
-                WebkitTapHighlightColor: 'transparent',
-              }}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                if (onShowTaskDetail) {
-                  onShowTaskDetail(key);
-                }
-              }}
-              onMouseDown={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              onTouchStart={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (onShowTaskDetail) {
-                  onShowTaskDetail(key);
-                }
-              }}
-            >
+           <div
+  key={key}
+  style={{
+    padding: isDesktop ? '4px 10px' : '2px 3px',
+    borderRadius: '6px',
+    backgroundColor: today > 0 ? bgColor : 'transparent',  // 👈 只有今天有加分才显示背景
+    border: total < 0 ? '1px solid #f44336' : '1px solid #e8e8e8',  // 👈 负分红色边框
+    cursor: 'pointer',
+    userSelect: 'none',
+    WebkitUserSelect: 'none',
+    MozUserSelect: 'none',
+    msUserSelect: 'none',
+    WebkitTapHighlightColor: 'transparent',
+  }}
+  onClick={(e) => {
+    e.stopPropagation();
+    e.preventDefault();
+    if (onShowTaskDetail) {
+      onShowTaskDetail(key);
+    }
+  }}
+  onMouseDown={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }}
+  onTouchStart={(e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onShowTaskDetail) {
+      onShowTaskDetail(key);
+    }
+  }}
+>
               <div style={{
                 display: 'flex',
                 justifyContent: 'space-between',
@@ -13177,12 +13242,12 @@ const ExpPanel = ({
                   )}
                 </span>
                 <span style={{
-                  fontSize: isDesktop ? '12px' : '8px',  // 👈 手机端字体缩小
-                  fontWeight: 'bold',
-                  color: today > 0 ? '#4caf50' : '#999'
-                }}>
-                  {today > 0 ? `+${today}` : ''}
-                </span>
+  fontSize: isDesktop ? '12px' : '8px',
+  fontWeight: 'bold',
+  color: today > 0 ? '#4caf50' : (today < 0 ? '#f44336' : '#999')
+}}>
+  {today > 0 ? `+${today}` : (today < 0 ? today : '')}
+</span>
               </div>
 
               {/* 进度条 */}
@@ -13218,156 +13283,225 @@ const ExpPanel = ({
       </div>
 
       {/* ===== 技能卡片区域（保持原样） ===== */}
-      <div style={{ marginTop: '6px' }}>
+      {/* ===== 技能卡片区域 - 有技能才显示 ===== */}
+{/* ===== 技能卡片区域 - 有技能直接展开 ===== */}
+{skillKeys.length > 0 && (
+  <div style={{
+    display: 'grid',
+    gridTemplateColumns: isDesktop ? '1fr' : 'repeat(3, 1fr)',
+    gap: '4px',
+    marginTop: '6px'
+  }}>
+    {skillKeys.map((skill) => {
+      const data = todaySkills[skill];
+      const skillExp = data.count * 2;
+      const progress = Math.min((skillExp / EXP_PER_LEVEL) * 100, 100);
+      const expInLevel = skillExp % EXP_PER_LEVEL;
+      const skillLevel = Math.floor(skillExp / EXP_PER_LEVEL) + 1;
+      const color = data.color || '#999';
+      const bgColor = color + '15';
+
+      return (
         <div
-          onClick={() => setShowSkills(!showSkills)}
+          key={skill}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '4px 0',
+            padding: isDesktop ? '4px 10px' : '2px 6px',
+            borderRadius: '6px',
+            backgroundColor: bgColor,
+            border: `1px solid ${color}30`,
             cursor: 'pointer',
-            marginTop: '4px'
+            userSelect: 'none',
+            WebkitUserSelect: 'none',
+            MozUserSelect: 'none',
+            msUserSelect: 'none',
+            WebkitTapHighlightColor: 'transparent',
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (onShowSkillDetail) {
+              onShowSkillDetail(skill);
+            }
+          }}
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (onShowSkillDetail) {
+              onShowSkillDetail(skill);
+            }
           }}
         >
-          <span style={{ fontSize: '11px', color: '#666', fontWeight: '500' }}>
-            今日技能 {skillKeys.length > 0 && `(${skillKeys.length})`}
-          </span>
-          <span style={{ fontSize: '10px', color: '#999' }}>
-            {showSkills ? '▲' : '▼'}
-          </span>
-        </div>
-
-        {showSkills && (
           <div style={{
-            display: 'grid',
-            gridTemplateColumns: isDesktop ? '1fr' : 'repeat(3, 1fr)',
-            gap: '4px'
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            {skillKeys.length === 0 ? (
-              <div style={{
-                gridColumn: isDesktop ? 'auto' : '1 / -1',
-                textAlign: 'center',
-                padding: '12px 0',
-                fontSize: '11px',
-                color: '#999'
+            <span style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: isDesktop ? '6px' : '3px',
+              fontSize: isDesktop ? '13px' : '11px'
+            }}>
+              <span style={{
+                color: '#333',
+                fontSize: isDesktop ? '13px' : '8px',
+                fontWeight: isDesktop ? '500' : '500'
               }}>
-                今日暂无技能记录
-              </div>
-            ) : (
-              skillKeys.map((skill) => {
-                const data = todaySkills[skill];
-                const skillExp = data.count * 2;
-                const progress = Math.min((skillExp / EXP_PER_LEVEL) * 100, 100);
-                const expInLevel = skillExp % EXP_PER_LEVEL;
-                const skillLevel = Math.floor(skillExp / EXP_PER_LEVEL) + 1;
-                const color = data.color || '#999';
-                const bgColor = color + '15';
-
-                return (
-                  <div
-                    key={skill}
-                    style={{
-                      padding: isDesktop ? '4px 10px' : '2px 6px',
-                      borderRadius: '6px',
-                      backgroundColor: bgColor,
-                      border: `1px solid ${color}30`,
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      WebkitUserSelect: 'none',
-                      MozUserSelect: 'none',
-                      msUserSelect: 'none',
-                      WebkitTapHighlightColor: 'transparent',
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      if (onShowSkillDetail) {
-                        onShowSkillDetail(skill);
-                      }
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                    }}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      if (onShowSkillDetail) {
-                        onShowSkillDetail(skill);
-                      }
-                    }}
-                  >
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
-                    }}>
-                      <span style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: isDesktop ? '6px' : '3px',
-                        fontSize: isDesktop ? '13px' : '11px'
-                      }}>
-                        <span style={{
-                          color: '#333',
-                          fontSize: isDesktop ? '13px' : '8px',
-                          fontWeight: isDesktop ? '500' : '500'
-                        }}>
-                          {skill}
-                        </span>
-                        <span style={{
-                          fontSize: isDesktop ? '10px' : '6px',
-                          color: '#4caf50',
-                          backgroundColor: '#e8f5e9',
-                          padding: isDesktop ? '1px 6px' : '1px 3px',
-                          borderRadius: '8px',
-                          marginLeft: '2px'
-                        }}>
-                          {data.count}
-                        </span>
-                      </span>
-                      <span style={{
-                        fontSize: isDesktop ? '12px' : '9px',
-                        fontWeight: 'bold',
-                        color: skillExp > 0 ? '#4caf50' : '#999'
-                      }}>
-                        {skillExp > 0 ? `+${skillExp}` : ''}
-                      </span>
-                    </div>
-
-                    <div style={{
-                      height: isDesktop ? '3px' : '2px',
-                      backgroundColor: '#eee',
-                      borderRadius: '2px',
-                      marginTop: isDesktop ? '3px' : '2px',
-                      overflow: 'hidden'
-                    }}>
-                      <div style={{
-                        height: '100%',
-                        width: `${progress}%`,
-                        backgroundColor: color,
-                        borderRadius: '2px'
-                      }} />
-                    </div>
-
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      fontSize: isDesktop ? '9px' : '6px',
-                      color: '#999',
-                      marginTop: isDesktop ? '2px' : '1px'
-                    }}>
-                      <span>{expInLevel}/{EXP_PER_LEVEL}</span>
-                      <span>Lv.{skillLevel}</span>
-                    </div>
-                  </div>
-                );
-              })
-            )}
+                {skill}
+              </span>
+              <span style={{
+                fontSize: isDesktop ? '10px' : '6px',
+                color: '#4caf50',
+                backgroundColor: '#e8f5e9',
+                padding: isDesktop ? '1px 6px' : '1px 3px',
+                borderRadius: '8px',
+                marginLeft: '2px'
+              }}>
+                {data.count}
+              </span>
+            </span>
+            <span style={{
+              fontSize: isDesktop ? '12px' : '9px',
+              fontWeight: 'bold',
+              color: skillExp > 0 ? '#4caf50' : '#999'
+            }}>
+              {skillExp > 0 ? `+${skillExp}` : ''}
+            </span>
           </div>
-        )}
+
+          <div style={{
+            height: isDesktop ? '3px' : '2px',
+            backgroundColor: '#eee',
+            borderRadius: '2px',
+            marginTop: isDesktop ? '3px' : '2px',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              height: '100%',
+              width: `${progress}%`,
+              backgroundColor: color,
+              borderRadius: '2px'
+            }} />
+          </div>
+
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            fontSize: isDesktop ? '9px' : '6px',
+            color: '#999',
+            marginTop: isDesktop ? '2px' : '1px'
+          }}>
+            <span>{expInLevel}/{EXP_PER_LEVEL}</span>
+            <span>Lv.{skillLevel}</span>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+)}
+
+{/* ===== 消费统计卡片（仅手机端显示） ===== */}
+{!isDesktop && (
+  <div style={{ marginTop: '6px' }}>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(3, 1fr)',
+      gap: '4px'
+    }}>
+      {/* 今日消费 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '4px 6px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px'
+        }}
+      >
+        <span style={{ fontSize: '8px', color: '#999' }}>今日消费</span>
+        <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#f44336' }}>
+          ¥{todayExpense.toFixed(1)}
+        </span>
       </div>
+
+      {/* 本月消费 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '4px 6px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px'
+        }}
+      >
+        <span style={{ fontSize: '8px', color: '#999' }}>本月消费</span>
+        <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#f44336' }}>
+          ¥{monthExpense.toFixed(1)}
+        </span>
+      </div>
+
+      {/* 本月剩余 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '4px 6px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
+          MozUserSelect: 'none',
+          msUserSelect: 'none',
+          WebkitTapHighlightColor: 'transparent',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '4px'
+        }}
+      >
+        <span style={{ fontSize: '8px', color: '#999' }}>本月剩余</span>
+        <span style={{
+          fontSize: '11px',
+          fontWeight: 'bold',
+          color: (monthlyBudget - monthExpense) >= 0 ? '#4caf50' : '#f44336'
+        }}>
+          ¥{(monthlyBudget - monthExpense).toFixed(1)}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
+
+
+
     </div>
   );
 };
@@ -13617,27 +13751,43 @@ const [categories, setCategories] = useState(() => {
   }));
 });
 const categoryTabs = useMemo(() => {
-  const cats = ['全部'];
+  const allTabs = [];
   
-  const allCats = categories
+  // "全部"标签
+  let allTasks = todayTasks.filter(t => 
+    t.category !== "本周任务" && 
+    !t.isRegularTask
+  );
+  if (showOnlyCompleted) {
+    allTasks = allTasks.filter(t => t.done === true && t.abandoned !== true);
+  }
+  allTabs.push({
+    name: '全部',
+    label: `全部 ${allTasks.length}`,
+    count: allTasks.length
+  });
+  
+  // 各分类标签
+  const categoryTabs = categories
     .filter(c => c.name !== "常规任务" && c.name !== "本周任务")
     .map(c => {
-      const count = todayTasks.filter(t => 
+      let tasks = todayTasks.filter(t => 
         t.category === c.name && 
         t.category !== "本周任务" && 
         !t.isRegularTask
-      ).length;
-      
-      // ✅ 显示完整名称 + 数量
+      );
+      if (showOnlyCompleted) {
+        tasks = tasks.filter(t => t.done === true && t.abandoned !== true);
+      }
       return {
         name: c.name,
-        label: `${c.name} ${count}`,  // 例如："体魄 3"
-        count: count
+        label: `${c.name} ${tasks.length}`,
+        count: tasks.length
       };
     });
   
-  return [...cats, ...allCats];
-}, [categories, todayTasks]);
+  return [...allTabs, ...categoryTabs];
+}, [categories, todayTasks, showOnlyCompleted]);
 
 // 添加这个状态 - 用于控制各个分类的折叠/展开
 const [collapsedCategories, setCollapsedCategories] = useState({
@@ -14082,11 +14232,11 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
       console.log('✅ 恢复今日消费:', backupData.todayExpense);
     }
     
-    if (backupData.dailyBudget) {
-      setDailyBudget(backupData.dailyBudget);
-      localStorage.setItem('daily_budget', String(backupData.dailyBudget));
-      console.log('✅ 恢复每日预算:', backupData.dailyBudget);
-    }
+    if (backupData.monthlyBudget) {
+  setMonthlyBudget(backupData.monthlyBudget);
+  localStorage.setItem('monthly_budget', String(backupData.monthlyBudget));
+  console.log('✅ 恢复每月预算:', backupData.monthlyBudget);
+}
     
     if (backupData.expenseDate) {
       localStorage.setItem('expense_date', backupData.expenseDate);
@@ -14114,7 +14264,7 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
   setDailyTaskTemplates,
   setExpenseRecords,
   setTodayExpense,
-  setDailyBudget,
+  setMonthlyBudget,
   saveMainData
 ]);
 
@@ -18750,13 +18900,25 @@ const getTasksBySubCategory = (catName) => {
 
 const getCategoryTasks = useCallback((catName) => {
   const dateTasks = tasksByDate[selectedDate] || [];
-  const result = dateTasks.filter(t => 
-    t.category === catName && 
-    t.pinned !== true
-    // ✅ 不过滤放弃的任务，保留它们计入总数
+  
+  // 如果是"全部"，先获取所有任务
+  let result = dateTasks.filter(t => 
+    t.category !== "本周任务" && 
+    !t.isRegularTask
   );
+  
+  // 如果不是"全部"，再按分类筛选
+  if (catName !== '全部') {
+    result = result.filter(t => t.category === catName);
+  }
+  
+  // 👇 如果开启了"只显示已完成"
+  if (showOnlyCompleted && selectedCategoryTab === catName) {
+    result = result.filter(t => t.done === true && t.abandoned !== true);
+  }
+  
   return result;
-}, [tasksByDate, selectedDate]);
+}, [tasksByDate, selectedDate, showOnlyCompleted, selectedCategoryTab]);
   // 计算分类总时间
   const totalTime = (catName) =>
     getCategoryTasks(catName).reduce((sum, t) => sum + (t.timeSpent || 0), 0);
@@ -18829,8 +18991,8 @@ const clearAllData = async () => {
     setMonthTasks([]);
      setTodayExpense(0);
     setExpenseRecords([]);
-    setDailyBudget(100); // 重置为默认预算
-    localStorage.removeItem('today_expense');
+   setMonthlyBudget(3000);
+localStorage.removeItem('monthly_budget');
     localStorage.removeItem('expense_date');
     localStorage.removeItem('expense_records');
     localStorage.removeItem('daily_budget');
@@ -19175,7 +19337,8 @@ const getTasksForSkill = (skillName) => {
         onToggle={(isOpen) => setShowExpDetail(isOpen)}
         isDesktop={isDesktop}
         onShowTaskDetail={setExpTaskDetail}     // ✅ 新增
-        onShowSkillDetail={setExpSkillDetail}   // ✅ 新增
+        onShowSkillDetail={setExpSkillDetail} 
+        expenseRecords={expenseRecords}   // ✅ 新增
       />
     </div>
   </div>
@@ -19348,7 +19511,89 @@ const getTasksForSkill = (skillName) => {
 </div>
 {/* ===== 💰 今日消费卡片 ===== */}
 
+{/* ===== 💰 消费统计卡片（电脑端） ===== */}
+{isDesktop && (
+  <div style={{ marginBottom: 10 }}>
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr 1fr',
+      gap: '8px'
+    }}>
+      {/* 今日消费 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '6px 12px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+      >
+        <span style={{ fontSize: '11px', color: '#999' }}>今日消费</span>
+        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#f44336' }}>
+          ¥{todayExpense.toFixed(1)}
+        </span>
+      </div>
 
+      {/* 本月消费 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '6px 12px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+      >
+        <span style={{ fontSize: '11px', color: '#999' }}>本月消费</span>
+        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#f44336' }}>
+          ¥{monthExpense.toFixed(1)}
+        </span>
+      </div>
+
+      {/* 本月剩余 */}
+      <div
+        onClick={() => setShowExpenseModal(true)}
+        style={{
+          padding: '6px 12px',
+          borderRadius: '6px',
+          backgroundColor: '#f8f9fa',
+          border: '1px solid #e8e8e8',
+          cursor: 'pointer',
+          textAlign: 'center',
+          userSelect: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px'
+        }}
+      >
+        <span style={{ fontSize: '11px', color: '#999' }}>本月剩余</span>
+        <span style={{
+          fontSize: '15px',
+          fontWeight: 'bold',
+          color: (monthlyBudget - monthExpense) >= 0 ? '#4caf50' : '#f44336'
+        }}>
+          ¥{(monthlyBudget - monthExpense).toFixed(1)}
+        </span>
+      </div>
+    </div>
+  </div>
+)}
 {/* ===== CSS 动画定义 - 慢速 ===== */}
 <style>{`
   @keyframes marquee-slow {
@@ -19376,6 +19621,7 @@ const getTasksForSkill = (skillName) => {
         onToggle={(isOpen) => setShowExpDetail(isOpen)}
         onShowTaskDetail={setExpTaskDetail}     // ✅ 必须有
       onShowSkillDetail={setExpSkillDetail}  
+       expenseRecords={expenseRecords}  
       />
     </div>
   )}
@@ -19502,28 +19748,7 @@ const getTasksForSkill = (skillName) => {
       <span style={{ display: 'inline', flexShrink: 0 }}>天</span>
     </div>
 
-    {/* 消费金额 - 手机端自动缩短 */}
-    <div
-      onClick={() => setShowExpenseModal(true)}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        height: '28px',
-        padding: '0 4px',
-        fontSize: '11px',
-        fontWeight: 600,
-        color: '#f44336',
-        cursor: 'pointer',
-        whiteSpace: 'nowrap',
-        flexShrink: 1,  // 👈 允许收缩
-        minWidth: 0,    // 👈 允许缩小到0
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }}
-    >
-      <span style={{ display: 'inline' }}>{todayExpense.toFixed(2)}</span>
-      <span style={{ display: 'inline', flexShrink: 0 }}>元</span>
-    </div>
+    
 
     {/* 三点按钮 - 固定不收缩 */}
    <div
@@ -19851,45 +20076,59 @@ const getTasksForSkill = (skillName) => {
         {categoryTabs.map(tab => {
           if (tab === '全部') {
             return (
-              <div
-                key={tab}
-                onClick={() => setSelectedCategoryTab(tab)}
-                style={{
-                  padding: '4px 10px',
-                  borderRadius: '16px',
-                  backgroundColor: selectedCategoryTab === tab ? '#61A2Da' : '#f0f0f0',
-                  color: selectedCategoryTab === tab ? '#fff' : '#666',
-                  fontSize: '10px',
-                  cursor: 'pointer',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  fontWeight: selectedCategoryTab === tab ? 'bold' : 'normal',
-                  userSelect: 'none'
-                }}
-              >
-                全部
-              </div>
+<div
+  key={tab}
+  onClick={() => {
+    if (selectedCategoryTab === tab) {
+      setShowOnlyCompleted(!showOnlyCompleted);
+    } else {
+      setSelectedCategoryTab(tab);
+      setShowOnlyCompleted(false);
+    }
+  }}
+  style={{
+    padding: '4px 10px',
+    borderRadius: '16px',
+    backgroundColor: selectedCategoryTab === tab ? '#61A2Da' : '#f0f0f0',
+    color: selectedCategoryTab === tab ? '#fff' : '#666',
+    fontSize: '10px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    fontWeight: selectedCategoryTab === tab ? 'bold' : 'normal',
+    userSelect: 'none'
+  }}
+>
+  全部
+</div>
             );
           }
           return (
-            <div
-              key={tab.name}
-              onClick={() => setSelectedCategoryTab(tab.name)}
-              style={{
-                padding: '4px 10px',
-                borderRadius: '16px',
-                backgroundColor: selectedCategoryTab === tab.name ? '#61A2Da' : '#f0f0f0',
-                color: selectedCategoryTab === tab.name ? '#fff' : '#666',
-                fontSize: '11px',
-                cursor: 'pointer',
-                whiteSpace: 'nowrap',
-                flexShrink: 0,
-                fontWeight: selectedCategoryTab === tab.name ? 'bold' : 'normal',
-                userSelect: 'none'
-              }}
-            >
-              {tab.label}
-            </div>
+<div
+  key={tab.name}
+  onClick={() => {
+    if (selectedCategoryTab === tab.name) {
+      setShowOnlyCompleted(!showOnlyCompleted);
+    } else {
+      setSelectedCategoryTab(tab.name);
+      setShowOnlyCompleted(false);
+    }
+  }}
+  style={{
+    padding: '4px 10px',
+    borderRadius: '16px',
+    backgroundColor: selectedCategoryTab === tab.name ? '#61A2Da' : '#f0f0f0',
+    color: selectedCategoryTab === tab.name ? '#fff' : '#666',
+    fontSize: '11px',
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+    fontWeight: selectedCategoryTab === tab.name ? 'bold' : 'normal',
+    userSelect: 'none'
+  }}
+>
+  {tab.label}
+</div>
           );
         })}
       </div>
@@ -20091,163 +20330,175 @@ const getTasksForSkill = (skillName) => {
 
   {/* ===== 6大分类 ===== */}
   {displayCategories.map((c) => {
-    if (selectedCategoryTab !== '全部' && selectedCategoryTab !== c.name) {
-      return null;
-    }
-    const catTasks = getCategoryTasks(c.name);
-    if (catTasks.length === 0 && selectedCategoryTab !== '全部') return null;
-    
-    const isComplete = catTasks.length > 0 && catTasks.every(task => task.done === true && task.abandoned !== true);
-    const isCollapsed = collapsedCategories[c.name];
-    const isSortingMode = sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory;
-    
-    return (
+  // 如果选了具体分类，只显示该分类
+  if (selectedCategoryTab !== '全部' && selectedCategoryTab !== c.name) {
+    return null;
+  }
+  
+  // 获取该分类的任务
+  let catTasks = todayTasks.filter(t => 
+    t.category === c.name && 
+    t.category !== "本周任务" && 
+    !t.isRegularTask
+  );
+  
+  // 如果开启了"只显示已完成"
+  if (showOnlyCompleted) {
+    catTasks = catTasks.filter(t => t.done === true && t.abandoned !== true);
+  }
+  
+  // 如果是"全部"分类，但选了具体分类，上面已经过滤了
+  if (catTasks.length === 0 && selectedCategoryTab !== '全部') return null;
+  
+  const isComplete = catTasks.length > 0 && catTasks.every(task => task.done === true && task.abandoned !== true);
+  const isCollapsed = collapsedCategories[c.name];
+  const isSortingMode = sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory;
+  
+  return (
+    <div
+      key={c.name}
+      style={{
+        marginBottom: 8,
+        borderRadius: 10,
+        overflow: "hidden",
+        border: `2px solid ${categoryColors[c.name] || '#f0f0f0'}`,
+      }}
+    >
       <div
-        key={c.name}
+        onClick={() => setCollapsedCategories(prev => ({ ...prev, [c.name]: !prev[c.name] }))}
         style={{
-          marginBottom: 8,
-          borderRadius: 10,
-          overflow: "hidden",
-          border: `2px solid ${categoryColors[c.name] || '#f0f0f0'}`,
+          backgroundColor: categoryColors[c.name] || '#f0f0f0',
+          color: isComplete ? "#bbb" : "#333",
+          fontFamily: 'Calibri, "微软雅黑", sans-serif',
+          padding: "3px 12px",
+          fontWeight: "bold",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          cursor: "pointer",
+          fontSize: "11px",
+          minHeight: "24px"
         }}
       >
-        <div
-          onClick={() => setCollapsedCategories(prev => ({ ...prev, [c.name]: !prev[c.name] }))}
-          style={{
-            backgroundColor: categoryColors[c.name] || '#f0f0f0',
-            color: isComplete ? "#bbb" : "#333",
-            fontFamily: 'Calibri, "微软雅黑", sans-serif',
-            padding: "3px 12px",
-            fontWeight: "bold",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            cursor: "pointer",
-            fontSize: "11px",
-            minHeight: "24px"
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-              {c.name} ({catTasks.filter(t => t.done === true && t.abandoned !== true).length}/{catTasks.length})
-              {isComplete && <SquareCheckMark show={true} size={12} color="#bbb" />}
-            </span>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div
-              onClick={(e) => {
-                e.stopPropagation();
-                if (sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory) {
-                  setSortingSubCategory(null);
-                } else {
-                  setSortingSubCategory({ category: c.name, subCategory: null });
-                }
-              }}
-              style={{
-                borderRadius: 4,
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: "18px",
-                height: "18px",
-                marginRight: "8px",
-                userSelect: "none"
-              }}
-            >
-              {sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory ? (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <path d="M20 6L9 17L4 12" stroke="#999" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
-                </svg>
-              ) : (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                  <line x1="4" y1="6" x2="20" y2="6" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
-                  <line x1="4" y1="12" x2="20" y2="12" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
-                  <line x1="4" y1="18" x2="20" y2="18" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
-                </svg>
-              )}
-            </div>
-            
-            <span
-              onClick={(e) => {
-                e.stopPropagation();
-                const catTasks = getCategoryTasks(c.name);
-                if (catTasks.length === 0) {
-                  alert(`${c.name} 类别暂无任务`);
-                  return;
-                }
-                setShowCategoryDetailModal({
-                  category: c.name,
-                  tasks: catTasks,
-                  totalTime: totalTime(c.name)
-                });
-              }}
-              style={{
-                fontSize: '11px',
-                color: '#333',
-                fontFamily: 'Calibri, "微软雅黑", sans-serif',
-                cursor: "pointer",
-                minWidth: "32px",
-                width: "32px",
-                textAlign: "right",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                flexShrink: 0,
-                background: "transparent",
-                border: "none",
-                marginRight: "5px",
-                marginLeft: "-18px", 
-                fontWeight: "normal",
-                display: "inline-block"
-              }}
-              title="点击查看详细时间"
-            >
-              {formatCategoryTime(totalTime(c.name))}
-            </span>
-          </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+            {c.name} ({catTasks.filter(t => t.done === true && t.abandoned !== true).length}/{catTasks.length})
+            {isComplete && <SquareCheckMark show={true} size={12} color="#bbb" />}
+          </span>
         </div>
 
-        {!collapsedCategories[c.name] && (
-          <div style={{ padding: 8 }}>
-            <SortableTaskList
-              tasks={catTasks}
-              category={c.name}
-              subCategory={null}
-              selectedDate={selectedDate}
-              tasksByDate={tasksByDate} 
-              isSortingMode={isSortingMode}
-              onSortingEnd={(newOrder) => {
-                const orderKey = `tasks_order_${c.name}`;
-                localStorage.setItem(orderKey, JSON.stringify(newOrder));
-                setTasksByDate(prev => ({ ...prev }));
-              }}
-              onDeleteTask={deleteTask}
-              onEditTime={editTaskTime}
-              onDeleteImage={handleDeleteImage}
-              onEditNote={editTaskNote}
-              onEditReflection={editTaskReflection}
-              onOpenEditModal={openTaskEditModal}
-              onShowImageModal={setShowImageModal}
-              toggleDone={toggleDone}
-              formatTimeNoSeconds={formatTimeNoSeconds}
-              formatTimeWithSeconds={formatTimeWithSeconds}
-              onMoveTask={moveTask}
-              categories={categories}
-               onIncrementCount={handleIncrementCount} 
-              setShowMoveModal={setShowMoveModal}
-              onUpdateProgress={handleUpdateProgress}
-              onEditSubTask={editSubTask}
-              onToggleSubTask={toggleSubTask}
-              onUpdateExpValue={updateTaskExpValue} 
-            />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div
+            onClick={(e) => {
+              e.stopPropagation();
+              if (sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory) {
+                setSortingSubCategory(null);
+              } else {
+                setSortingSubCategory({ category: c.name, subCategory: null });
+              }
+            }}
+            style={{
+              borderRadius: 4,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: "18px",
+              height: "18px",
+              marginRight: "8px",
+              userSelect: "none"
+            }}
+          >
+            {sortingSubCategory?.category === c.name && !sortingSubCategory?.subCategory ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M20 6L9 17L4 12" stroke="#999" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <line x1="4" y1="6" x2="20" y2="6" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="4" y1="12" x2="20" y2="12" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
+                <line x1="4" y1="18" x2="20" y2="18" stroke="#999" strokeWidth="2.5" strokeLinecap="round"/>
+              </svg>
+            )}
           </div>
-        )}
+          
+          <span
+            onClick={(e) => {
+              e.stopPropagation();
+              if (catTasks.length === 0) {
+                alert(`${c.name} 类别暂无任务`);
+                return;
+              }
+              setShowCategoryDetailModal({
+                category: c.name,
+                tasks: catTasks,
+                totalTime: catTasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0)
+              });
+            }}
+            style={{
+              fontSize: '11px',
+              color: '#333',
+              fontFamily: 'Calibri, "微软雅黑", sans-serif',
+              cursor: "pointer",
+              minWidth: "32px",
+              width: "32px",
+              textAlign: "right",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flexShrink: 0,
+              background: "transparent",
+              border: "none",
+              marginRight: "5px",
+              marginLeft: "-18px", 
+              fontWeight: "normal",
+              display: "inline-block"
+            }}
+            title="点击查看详细时间"
+          >
+            {formatCategoryTime(catTasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0))}
+          </span>
+        </div>
       </div>
-    );
-  })}
 
+      {!collapsedCategories[c.name] && (
+        <div style={{ padding: 8 }}>
+          <SortableTaskList
+            tasks={catTasks}
+            category={c.name}
+            subCategory={null}
+            selectedDate={selectedDate}
+            tasksByDate={tasksByDate} 
+            isSortingMode={isSortingMode}
+            onSortingEnd={(newOrder) => {
+              const orderKey = `tasks_order_${c.name}`;
+              localStorage.setItem(orderKey, JSON.stringify(newOrder));
+              setTasksByDate(prev => ({ ...prev }));
+            }}
+            onDeleteTask={deleteTask}
+            onEditTime={editTaskTime}
+            onDeleteImage={handleDeleteImage}
+            onEditNote={editTaskNote}
+            onEditReflection={editTaskReflection}
+            onOpenEditModal={openTaskEditModal}
+            onShowImageModal={setShowImageModal}
+            toggleDone={toggleDone}
+            formatTimeNoSeconds={formatTimeNoSeconds}
+            formatTimeWithSeconds={formatTimeWithSeconds}
+            onMoveTask={moveTask}
+            categories={categories}
+            onIncrementCount={handleIncrementCount} 
+            setShowMoveModal={setShowMoveModal}
+            onUpdateProgress={handleUpdateProgress}
+            onEditSubTask={editSubTask}
+            onToggleSubTask={toggleSubTask}
+            onUpdateExpValue={updateTaskExpValue} 
+          />
+        </div>
+      )}
+    </div>
+  );
+})}
   {/* ===== 复盘区域 ===== */}
   <div style={{ marginBottom: 8 }}>
     <div style={{
@@ -21410,26 +21661,100 @@ const getTasksForSkill = (skillName) => {
       </div>
 
           
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 12, color: '#666', marginBottom: 5, display: 'block' }}>
-              分值
-            </div>
-            <input
-              type="number"
-              min="0"
-              max="100"
-              value={newTaskExpValue}
-              onChange={(e) => setNewTaskExpValue(parseInt(e.target.value) || 0)}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                border: '1px solid #ccc',
-                borderRadius: 8,
-                fontSize: 14,
-                boxSizing: 'border-box'
-              }}
-            />
-          </div>
+         <div style={{ 
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+  marginBottom: 10,
+  padding: '4px 8px',
+  backgroundColor: '#f8f9fa',
+  borderRadius: 6
+}}>
+  <span style={{
+    fontSize: '12px',
+    color: '#666',
+    fontWeight: '500'
+  }}>
+    分值
+  </span>
+  
+  <div style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px'
+  }}>
+    {/* - 按钮 */}
+    <div
+      onClick={() => {
+        const current = parseInt(newTaskExpValue) || 0;
+        setNewTaskExpValue(current - 1);
+      }}
+      style={{
+        width: '26px',
+        height: '26px',
+        borderRadius: '4px',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: '#f44336',
+        border: '1px solid #e0e0e0'
+      }}
+    >
+      −
+    </div>
+    
+    {/* 输入框 */}
+    <input
+      type="number"
+      step="1"
+      value={newTaskExpValue}
+      onChange={(e) => {
+        const val = parseInt(e.target.value) || 0;
+        setNewTaskExpValue(val);
+      }}
+      style={{
+        width: '50px',
+        padding: '4px 2px',
+        border: '1px solid #ddd',
+        borderRadius: '4px',
+        fontSize: '14px',
+        textAlign: 'center',
+        boxSizing: 'border-box',
+        fontWeight: 'bold'
+      }}
+    />
+    
+    {/* + 按钮 */}
+    <div
+      onClick={() => {
+        const current = parseInt(newTaskExpValue) || 0;
+        setNewTaskExpValue(current + 1);
+      }}
+      style={{
+        width: '26px',
+        height: '26px',
+        borderRadius: '4px',
+        backgroundColor: '#f0f0f0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '14px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        userSelect: 'none',
+        color: '#4caf50',
+        border: '1px solid #e0e0e0'
+      }}
+    >
+      +
+    </div>
+  </div>
+</div>
           
           <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
             <div
@@ -22203,21 +22528,21 @@ const getTasksForSkill = (skillName) => {
           </div>
         </div>
         <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: '#999' }}>日预算</div>
-          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#61A2Da' }}>
-            ¥{dailyBudget.toFixed(0)}
-          </div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '11px', color: '#999' }}>剩余</div>
-          <div style={{ 
-            fontSize: '18px', 
-            fontWeight: 'bold', 
-            color: dailyBudget - todayExpense >= 0 ? '#4caf50' : '#f44336'
-          }}>
-            ¥{(dailyBudget - todayExpense).toFixed(2)}
-          </div>
-        </div>
+  <div style={{ fontSize: '11px', color: '#999' }}>月预算</div>
+  <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#61A2Da' }}>
+    ¥{monthlyBudget.toFixed(0)}
+  </div>
+</div>
+<div style={{ textAlign: 'center' }}>
+  <div style={{ fontSize: '11px', color: '#999' }}>本月剩余</div>
+  <div style={{ 
+    fontSize: '18px', 
+    fontWeight: 'bold', 
+    color: (monthlyBudget - monthExpense) >= 0 ? '#4caf50' : '#f44336'
+  }}>
+    ¥{(monthlyBudget - monthExpense).toFixed(2)}
+  </div>
+</div>
       </div>
       
       {/* 添加消费表单 */}
@@ -22379,29 +22704,29 @@ const getTasksForSkill = (skillName) => {
         flexShrink: 0
       }}>
         <div
-          onClick={() => {
-            const newBudget = window.prompt('设置每日预算（元）：', dailyBudget.toString());
-            if (newBudget !== null) {
-              const val = parseFloat(newBudget);
-              if (!isNaN(val) && val > 0) {
-                setDailyBudget(val);
-                localStorage.setItem('daily_budget', String(val));
-              }
-            }
-          }}
-          style={{
-            flex: 1,
-            padding: '8px',
-            backgroundColor: '#f5f5f5',
-            color: '#333',
-            borderRadius: '6px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            fontSize: '13px'
-          }}
-        >
-          设置预算
-        </div>
+  onClick={() => {
+    const newBudget = window.prompt('设置每月预算（元）：', monthlyBudget.toString());
+    if (newBudget !== null) {
+      const val = parseFloat(newBudget);
+      if (!isNaN(val) && val > 0) {
+        setMonthlyBudget(val);
+        localStorage.setItem('monthly_budget', String(val));
+      }
+    }
+  }}
+  style={{
+    flex: 1,
+    padding: '8px',
+    backgroundColor: '#f5f5f5',
+    color: '#333',
+    borderRadius: '6px',
+    textAlign: 'center',
+    cursor: 'pointer',
+    fontSize: '13px'
+  }}
+>
+  设置预算
+</div>
         <div
           onClick={resetTodayExpense}
           style={{
