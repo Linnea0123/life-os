@@ -7102,7 +7102,7 @@ const [abandonReason, setAbandonReason] = useState('');
 const [abandonNote, setAbandonNote] = useState('');
 
 const abandonReasons = [
-  { value: '太难了', label: '太难了', color: '#f44336' },
+  { value: '不愿做', label: '不愿做', color: '#f44336' },
   { value: '没时间', label: '没时间', color: '#ff9800' },
   { value: '不重要', label: '不重要', color: '#9e9e9e' },
   { value: '等待资料', label: '等待资料', color: '#ffc107' },
@@ -7247,8 +7247,39 @@ const abandonReasons = [
     flexWrap: "nowrap",
     marginLeft: "auto"
   }}>
-    
-    {/* 1. 放弃按钮 */}
+    {/* ===== 如果任务已放弃，显示取消放弃按钮 ===== */}
+    {/* ===== 根据任务状态显示不同按钮 ===== */}
+  {task.abandoned ? (
+    // 已放弃 → 显示"取消放弃"（红色叉）
+    <button
+      onClick={() => {
+        if (window.confirm('确定要取消放弃这个任务吗？\n\n取消后任务将恢复为未完成状态，并加回经验值。')) {
+          onCancelAbandoned(task);
+          onClose();
+        }
+      }}
+      style={{
+        width: '28px',
+        height: '28px',
+        padding: 0,
+        backgroundColor: 'transparent',
+        border: "none",
+        borderRadius: 6,
+        cursor: "pointer",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }}
+      title="取消放弃"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <line x1="4" y1="4" x2="20" y2="20" stroke="#f44336" strokeWidth="3" strokeLinecap="round"/>
+        <line x1="20" y1="4" x2="4" y2="20" stroke="#f44336" strokeWidth="3" strokeLinecap="round"/>
+      </svg>
+    </button>
+  ) : (
+    // 未放弃 → 显示"放弃"（圆圈叉）
     <button
       onClick={() => {
         setShowAbandonReason(true);
@@ -7273,6 +7304,7 @@ const abandonReasons = [
         <line x1="6" y1="6" x2="18" y2="18" stroke="#61A2Da" strokeWidth="2" strokeLinecap="round"/>
       </svg>
     </button>
+  )}
 
     {/* 2. 跨日期按钮 */}
     <button
@@ -8109,58 +8141,67 @@ const abandonReasons = [
               />
               
               <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  onClick={() => {
-                    setShowAbandonReason(false);
-                    setAbandonReason('');
-                    setAbandonNote('');
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    backgroundColor: '#f0f0f0',
-                    color: '#333',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '13px'
-                  }}
-                >
-                  取消
-                </button>
-                <button
-                  onClick={() => {
-                    if (!abandonReason.trim()) {
-                      alert('请选择或输入放弃原因');
-                      return;
-                    }
-                    const abandonInfo = {
-                      reason: abandonReason.trim(),
-                      note: abandonNote,
-                      timestamp: new Date().toISOString()
-                    };
-                    if (onMarkAbandoned) {
-                      onMarkAbandoned(task, abandonInfo);
-                    }
-                    setShowAbandonReason(false);
-                    setAbandonReason('');
-                    setAbandonNote('');
-                    onClose();
-                  }}
-                  style={{
-                    flex: 1,
-                    padding: '8px',
-                    backgroundColor: '#f44336',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    cursor: 'pointer',
-                    fontSize: '13px',
-                    fontWeight: 'bold'
-                  }}
-                >
-                  确认放弃
-                </button>
+               {/* 取消按钮 - 使用 div */}
+<div
+  onClick={() => {
+    setShowAbandonReason(false);
+    setAbandonReason('');
+    setAbandonNote('');
+  }}
+  style={{
+    flex: 1,
+    padding: '8px',
+    backgroundColor: '#f0f0f0',
+    color: '#333',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    textAlign: 'center',
+    userSelect: 'none',
+    transition: 'none',
+    transform: 'none'
+  }}
+>
+  取消
+</div>
+
+{/* 确认放弃按钮 - 使用 div */}
+<div
+  onClick={() => {
+    if (!abandonReason.trim()) {
+      alert('请选择或输入放弃原因');
+      return;
+    }
+    const abandonInfo = {
+      reason: abandonReason.trim(),
+      note: abandonNote,
+      timestamp: new Date().toISOString()
+    };
+    if (onMarkAbandoned) {
+      onMarkAbandoned(task, abandonInfo);
+    }
+    setShowAbandonReason(false);
+    setAbandonReason('');
+    setAbandonNote('');
+    onClose();
+  }}
+  style={{
+    flex: 1,
+    padding: '8px',
+    backgroundColor: '#f44336',
+    color: '#fff',
+    borderRadius: '8px',
+    cursor: 'pointer',
+    fontSize: '13px',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    userSelect: 'none',
+    transition: 'none',
+    transform: 'none'
+  }}
+>
+  确认放弃
+</div>
               </div>
             </div>
           </div>
@@ -8315,8 +8356,9 @@ const handleProgressAdjust = (increment) => {
 
 
 {/* 复选框 - 放弃的任务显示叉号，跨日期任务正常显示 */}
+{/* 复选框 */}
 {task.abandoned ? (
-  // 放弃的任务：显示带叉的复选框，不可点击
+  // 放弃的任务：显示红色叉
   <span
     style={{
       display: "inline-flex",
@@ -8326,15 +8368,15 @@ const handleProgressAdjust = (increment) => {
       height: "14px",
       margin: 0,
       flexShrink: 0,
-      border: "1px solid #999",
+      border: "1.5px solid #f44336",
       borderRadius: "2px",
-      backgroundColor: "#f5f5f5",
+      backgroundColor: "#fff5f5",
       cursor: "default"
     }}
   >
     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <line x1="5" y1="5" x2="19" y2="19" stroke="#999" strokeWidth="3" strokeLinecap="round"/>
-      <line x1="19" y1="5" x2="5" y2="19" stroke="#999" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="4" y1="4" x2="20" y2="20" stroke="#f44336" strokeWidth="3" strokeLinecap="round"/>
+      <line x1="20" y1="4" x2="4" y2="20" stroke="#f44336" strokeWidth="3" strokeLinecap="round"/>
     </svg>
   </span>
 ) : task.crossDateId ? (
@@ -8751,6 +8793,7 @@ const handleProgressAdjust = (increment) => {
 {/* 放弃信息显示 - 放在备注和感想之前 */}
 {/* 放弃信息显示 */}
 {/* 放弃信息显示 */}
+{/* 放弃信息显示 */}
 {task.abandoned && task.abandonInfo && (
   <div style={{ marginLeft: "20px", marginTop: -2, marginBottom: 4, position: "relative"}}>
     <div
@@ -8781,24 +8824,7 @@ const handleProgressAdjust = (increment) => {
         gap: "6px"
       }}
     >
-      {/* 红色圆圈叉号 SVG */}
-      <svg 
-        width="14" 
-        height="14" 
-        viewBox="0 0 24 24" 
-        fill="none" 
-        xmlns="http://www.w3.org/2000/svg"
-        style={{
-          display: "block",
-          flexShrink: 0
-        }}
-      >
-        <circle cx="12" cy="12" r="10" stroke="#f44336" strokeWidth="2" fill="none"/>
-        <line x1="8" y1="8" x2="16" y2="16" stroke="#f44336" strokeWidth="2" strokeLinecap="round"/>
-        <line x1="16" y1="8" x2="8" y2="16" stroke="#f44336" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-      
-      {/* 放弃原因文字 */}
+      {/* 👇 删除红色圆圈叉号 SVG，只保留文字 */}
       <span>{task.abandonInfo.reason}</span>
       
       {/* 备注（如果有） */}
@@ -12559,11 +12585,21 @@ const endSortingSubCategory = (subCategory, orderedTasks) => {
 
 // 取消放弃任务
 const cancelAbandoned = (task) => {
+  console.log('✅ 取消放弃任务:', task.text);
+  
+  // ========== 1. 取消放弃：加回经验值 ==========
+  const rewards = getTaskRewards(task);
+  if (rewards && Object.keys(rewards).length > 0) {
+    const currentDate = selectedDate || new Date().toISOString().split('T')[0];
+    addExp(currentDate, rewards);
+    console.log('🎯 取消放弃，加回经验值:', rewards);
+  }
+  
+  // ========== 2. 恢复任务 ==========
   setTasksByDate(prev => {
     const newTasksByDate = { ...prev };
     
     if (task.isWeekTask) {
-      // 本周任务需要更新所有日期
       Object.keys(newTasksByDate).forEach(date => {
         newTasksByDate[date] = newTasksByDate[date].map(t =>
           t.isWeekTask && t.text === task.text && t.weekStart === task.weekStart
@@ -12572,7 +12608,6 @@ const cancelAbandoned = (task) => {
         );
       });
     } else if (task.crossDateId) {
-      // 跨日期任务需要更新所有关联日期
       Object.keys(newTasksByDate).forEach(date => {
         newTasksByDate[date] = newTasksByDate[date].map(t =>
           t.crossDateId === task.crossDateId
@@ -12581,7 +12616,6 @@ const cancelAbandoned = (task) => {
         );
       });
     } else {
-      // 普通任务只更新当前日期
       newTasksByDate[selectedDate] = (newTasksByDate[selectedDate] || []).map(t =>
         t.id === task.id ? { ...t, abandoned: false, done: false } : t
       );
@@ -12596,11 +12630,26 @@ const cancelAbandoned = (task) => {
 const markTaskAsAbandoned = (task, abandonInfo = null) => {
   console.log('🚫 标记任务为放弃:', task.text, abandonInfo);
   
+  // ========== 1. 放弃未完成的任务：扣除经验值 ==========
+  // 不管任务是否完成，放弃时都扣分（表示计划失败）
+  const rewards = getTaskRewards(task);
+  if (rewards && Object.keys(rewards).length > 0) {
+    // 取反：变成负数扣除
+    const negativeRewards = {};
+    Object.entries(rewards).forEach(([dim, value]) => {
+      negativeRewards[dim] = -Number(value);
+    });
+    
+    const currentDate = selectedDate || new Date().toISOString().split('T')[0];
+    addExp(currentDate, negativeRewards);
+    console.log('🎯 放弃任务，扣除经验值:', negativeRewards);
+  }
+  
+  // ========== 2. 标记任务为放弃 ==========
   setTasksByDate(prev => {
     const newTasksByDate = { ...prev };
     
     if (task.isWeekTask) {
-      // 本周任务：更新所有日期
       Object.keys(newTasksByDate).forEach(date => {
         newTasksByDate[date] = newTasksByDate[date].map(t =>
           t.isWeekTask && t.text === task.text && t.weekStart === task.weekStart
@@ -12609,17 +12658,14 @@ const markTaskAsAbandoned = (task, abandonInfo = null) => {
         );
       });
     } else if (task.crossDateId) {
-      // 跨日期任务：只更新当前日期的这个任务实例
       const currentDate = selectedDate;
       newTasksByDate[currentDate] = (newTasksByDate[currentDate] || []).map(t => {
         if (t.id === task.id || (t.crossDateId === task.crossDateId && t.id === task.id)) {
-          console.log(`  ✅ 放弃跨日期任务实例: ${currentDate}`);
           return { ...t, abandoned: true, done: false, abandonInfo: abandonInfo };
         }
         return t;
       });
     } else {
-      // 普通任务
       newTasksByDate[selectedDate] = (newTasksByDate[selectedDate] || []).map(t =>
         t.id === task.id ? { ...t, abandoned: true, done: false, abandonInfo: abandonInfo } : t
       );
@@ -13241,7 +13287,7 @@ const ExpPanel = ({
                     </span>
                   )}
                 </span>
-                <span style={{
+<span style={{
   fontSize: isDesktop ? '12px' : '8px',
   fontWeight: 'bold',
   color: today > 0 ? '#4caf50' : (today < 0 ? '#f44336' : '#999')
@@ -19244,9 +19290,9 @@ const getTasksForDimension = (dimKey) => {
   const dimName = getDimName(dimKey);
   const todayTasks = tasksByDate[selectedDate] || [];
 
-  const completedTasks = todayTasks.filter(task =>
-    task.done === true &&
-    task.abandoned !== true &&
+  // ✅ 包含已完成和放弃的任务
+  const result = todayTasks.filter(task =>
+    (task.done === true || task.abandoned === true) &&
     task.category !== "本周任务" &&
     task.category !== "常规任务"
   );
@@ -19259,7 +19305,7 @@ const getTasksForDimension = (dimKey) => {
     '运动': '运动'
   };
 
-  const matchingTasks = completedTasks.filter(task => {
+  const matchingTasks = result.filter(task => {
     if (task.category === dimName) return true;
 
     if (task.category === '校内' && task.subCategory) {
@@ -20867,9 +20913,18 @@ const getTasksForSkill = (skillName) => {
                   return names[expTaskDetail] || expTaskDetail;
                 })()}
               </span>
-              <span style={{ fontSize: '13px', color: '#999', marginLeft: '8px' }}>
-                +{(expData.daily[selectedDate] || {})[expTaskDetail] || 0} 分
-              </span>
+              {(() => {
+  const todayExpValue = (expData.daily[selectedDate] || {})[expTaskDetail] || 0;
+  return (
+    <span style={{ 
+      fontSize: '13px', 
+      color: todayExpValue > 0 ? '#4caf50' : (todayExpValue < 0 ? '#f44336' : '#999'),
+      marginLeft: '8px'
+    }}>
+      {todayExpValue > 0 ? `+${todayExpValue}` : (todayExpValue < 0 ? todayExpValue : '')} 分
+    </span>
+  );
+})()}
             </div>
             <div
               onClick={() => setExpTaskDetail(null)}
@@ -20905,10 +20960,11 @@ const getTasksForSkill = (skillName) => {
             </div>
           ) : (
             <div>
-            {getTasksForDimension(expTaskDetail).map((task, idx) => {
+{getTasksForDimension(expTaskDetail).map((task, idx) => {
   const minutes = Math.floor((task.timeSpent || 0) / 60);
   const expValue = task.expValue || 2;
-
+  const isAbandoned = task.abandoned === true;
+  
   return (
     <div
       key={task.id}
@@ -20918,21 +20974,31 @@ const getTasksForSkill = (skillName) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        backgroundColor: idx % 2 === 0 ? '#fafafa' : 'transparent',
+        backgroundColor: isAbandoned ? '#fff5f5' : (idx % 2 === 0 ? '#fafafa' : 'transparent'),
         borderRadius: '6px'
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: 0 }}>
+        {/* 状态图标 */}
         <span style={{ flexShrink: 0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-            <path d="M20 6L9 17L4 12" stroke="#4caf50" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
-          </svg>
+          {isAbandoned ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="#f44336" strokeWidth="2" fill="none"/>
+              <line x1="8" y1="8" x2="16" y2="16" stroke="#f44336" strokeWidth="2" strokeLinecap="round"/>
+              <line x1="16" y1="8" x2="8" y2="16" stroke="#f44336" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M20 6L9 17L4 12" stroke="#4caf50" strokeWidth="3" strokeLinecap="square" strokeLinejoin="miter" fill="none"/>
+            </svg>
+          )}
         </span>
         <span style={{
           fontSize: '13px',
-          color: '#333',
+          color: isAbandoned ? '#999' : '#333',
           wordBreak: 'break-word',
-          flex: 1
+          flex: 1,
+          textDecoration: isAbandoned ? 'line-through' : 'none'
         }}>
           {task.text}
         </span>
@@ -20945,23 +21011,21 @@ const getTasksForSkill = (skillName) => {
         flexShrink: 0,
         marginLeft: '8px'
       }}>
-        {/* ✅ 在这里添加：如果是多次任务，显示次数 */}
-        {task.isCountTask && task.count > 0 && (
+        {isAbandoned && (
           <span style={{
-            fontSize: '11px',
-            color: '#61A2Da',
-            backgroundColor: '#e8f0fe',
-            padding: '1px 8px',
-            borderRadius: '10px',
-            fontWeight: 'bold'
+            fontSize: '10px',
+            color: '#f44336',
+            backgroundColor: '#ffebee',
+            padding: '1px 6px',
+            borderRadius: '10px'
           }}>
-            ×{task.count}
+            已放弃
           </span>
         )}
         <span style={{
           fontSize: '11px',
           fontWeight: 'bold',
-          color: '#FF9800',
+          color: isAbandoned ? '#999' : '#FF9800',
           padding: '1px 8px',
           borderRadius: '10px',
           minWidth: '20px',
