@@ -12996,7 +12996,8 @@ const ExpPanel = ({
     return total;
   }, [totalExp]);
 
-  const level = Math.floor(grandTotal / EXP_PER_LEVEL) + 1;
+  // 总积分等级：0-50 是 Lv.1，51-100 是 Lv.2
+const level = grandTotal <= 50 ? 1 : Math.floor((grandTotal - 1) / EXP_PER_LEVEL) + 1;
 
   // ========== 今日任务统计 ==========
   const todayTasks = tasksByDate[selectedDate] || [];
@@ -13021,14 +13022,22 @@ const ExpPanel = ({
     return '#10b981';
   };
 
-  const getProgress = (exp) => {
-  const percent = (exp / MAX_EXP) * 100;
-  return Math.min(Math.max(percent, 0), 100);  // 👈 限制在 0-100 之间
+ // 1. 修改 getExpInLevel - 返回当前等级内的进度 (0-50)
+const getExpInLevel = (exp) => {
+  return exp % EXP_PER_LEVEL;
 };
 
-  const getExpInLevel = (exp) => {
-    return exp % EXP_PER_LEVEL;
-  };
+// 2. 修改 getProgress - 当前等级内进度百分比
+const getProgress = (exp) => {
+  const expInLevel = exp % EXP_PER_LEVEL;
+  return (expInLevel / EXP_PER_LEVEL) * 100;
+};
+
+// 3. 修改等级计算 - 0-50 是 Lv.1，51-100 是 Lv.2
+const getLevel = (exp) => {
+  if (exp <= 50) return 1;
+  return Math.floor((exp - 1) / EXP_PER_LEVEL) + 1;
+};
 
   const getDimColor = (key, opacity = 0.35) => {
     const colors = {
@@ -13210,123 +13219,134 @@ const ExpPanel = ({
         gap: isDesktop ? '8px' : '3px'  // 👈 手机端间距缩小
       }}>
         {Object.keys(DIMENSIONS).map((key) => {
-          const dim = DIMENSIONS[key];
-          const today = todayExp[key] || 0;
-          const total = totalExp[key] || 0;
-          const hasExp = today > 0; 
-          const progress = getProgress(total);
-          const expInLevel = getExpInLevel(total);
-          const dimLevel = Math.floor(total / EXP_PER_LEVEL) + 1;
-          const color = getExpColor(total);
-          const bgColor = getDimColor(key, 0.3);
-          const dimName = dim.name;
-          const tasksForDim = getTasksForDimension(key);
-          const taskCount = tasksForDim.length;
+  const dim = DIMENSIONS[key];
+  const today = todayExp[key] || 0;
+  const total = totalExp[key] || 0;
+  
+  // ===== ✅ 修复：等级计算（0-50是Lv.1，51-100是Lv.2） =====
+  const dimLevel = total <= 50 ? 1 : Math.floor((total - 1) / EXP_PER_LEVEL) + 1;
+  
+  // ===== ✅ 修复：当前等级内进度（0-50显示total/50，51-100显示(total-50)/50） =====
+  const expInLevel = total <= 50 ? total : total % EXP_PER_LEVEL;
+  
+  // ===== ✅ 修复：进度条百分比 =====
+  const progress = (expInLevel / 50) * 100;
+  
+  // 等级上限（用于显示左下角）
+  const maxExpForLevel = dimLevel * EXP_PER_LEVEL;
+  
+  const hasExp = today > 0; 
+  
+  const bgColor = getDimColor(key, 0.3);
+  const dimName = dim.name;
+  const color = categoryColors[dimName] || '#10b981';
+  const tasksForDim = getTasksForDimension(key);
+  const taskCount = tasksForDim.length;
 
-          return (
-           <div
-  key={key}
-  style={{
-    padding: isDesktop ? '4px 10px' : '2px 3px',
-    borderRadius: '6px',
-    backgroundColor: today > 0 ? bgColor : 'transparent',  // 👈 只有今天有加分才显示背景
-    border: total < 0 ? '1px solid #f44336' : '1px solid #e8e8e8',  // 👈 负分红色边框
-    cursor: 'pointer',
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    MozUserSelect: 'none',
-    msUserSelect: 'none',
-    WebkitTapHighlightColor: 'transparent',
-  }}
-  onClick={(e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (onShowTaskDetail) {
-      onShowTaskDetail(key);
-    }
-  }}
-  onMouseDown={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  }}
-  onTouchStart={(e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (onShowTaskDetail) {
-      onShowTaskDetail(key);
-    }
-  }}
->
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }}>
-                <span style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: isDesktop ? '6px' : '2px',  // 👈 手机端间距缩小
-                  fontSize: isDesktop ? '13px' : '8px'  // 👈 手机端字体缩小
-                }}>
-                  <span style={{
-                    color: '#333',
-                    fontSize: isDesktop ? '13px' : '8px',  // 👈 手机端字体缩小
-                    fontWeight: isDesktop ? '500' : '500'
-                  }}>
-                    {dimName}
-                  </span>
-                  {taskCount > 0 && (
-                    <span style={{
-                      fontSize: isDesktop ? '10px' : '6px',  // 👈 手机端字体缩小
-                      color: '#4caf50',
-                      backgroundColor: '#e8f5e9',
-                      padding: isDesktop ? '1px 6px' : '1px 3px',
-                      borderRadius: '8px',
-                      marginLeft: '2px'
-                    }}>
-                      {taskCount}
-                    </span>
-                  )}
-                </span>
-<span style={{
-  fontSize: isDesktop ? '12px' : '8px',
-  fontWeight: 'bold',
-  color: today > 0 ? '#4caf50' : (today < 0 ? '#f44336' : '#999')
-}}>
-  {today > 0 ? `+${today}` : (today < 0 ? today : '')}
-</span>
-              </div>
+  return (
+    <div
+      key={key}
+      style={{
+        padding: isDesktop ? '4px 10px' : '2px 3px',
+        borderRadius: '6px',
+        backgroundColor: today > 0 ? bgColor : 'transparent',
+        border: total < 0 ? '1px solid #f44336' : '1px solid #e8e8e8',
+        cursor: 'pointer',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        MozUserSelect: 'none',
+        msUserSelect: 'none',
+        WebkitTapHighlightColor: 'transparent',
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (onShowTaskDetail) {
+          onShowTaskDetail(key);
+        }
+      }}
+      onMouseDown={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+      onTouchStart={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onShowTaskDetail) {
+          onShowTaskDetail(key);
+        }
+      }}
+    >
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: isDesktop ? '6px' : '2px',
+          fontSize: isDesktop ? '13px' : '8px'
+        }}>
+          <span style={{
+            color: '#333',
+            fontSize: isDesktop ? '13px' : '8px',
+            fontWeight: isDesktop ? '500' : '500'
+          }}>
+            {dimName}
+          </span>
+          {taskCount > 0 && (
+            <span style={{
+              fontSize: isDesktop ? '10px' : '6px',
+              color: '#4caf50',
+              backgroundColor: '#e8f5e9',
+              padding: isDesktop ? '1px 6px' : '1px 3px',
+              borderRadius: '8px',
+              marginLeft: '2px'
+            }}>
+              {taskCount}
+            </span>
+          )}
+        </span>
+        <span style={{
+          fontSize: isDesktop ? '12px' : '8px',
+          fontWeight: 'bold',
+          color: today > 0 ? '#4caf50' : (today < 0 ? '#f44336' : '#999')
+        }}>
+          {today > 0 ? `+${today}` : (today < 0 ? today : '')}
+        </span>
+      </div>
 
-              {/* 进度条 */}
-              <div style={{
-                height: isDesktop ? '3px' : '2px',  // 👈 手机端更细
-                backgroundColor: '#eee',
-                borderRadius: '2px',
-                marginTop: isDesktop ? '3px' : '2px',
-                overflow: 'hidden'
-              }}>
-                <div style={{
-                  height: '100%',
-                  width: `${progress}%`,
-                  backgroundColor: color,
-                  borderRadius: '2px'
-                }} />
-              </div>
+      {/* ===== ✅ 进度条：使用修复后的 progress ===== */}
+      <div style={{
+        height: isDesktop ? '3px' : '2px',
+        backgroundColor: '#eee',
+        borderRadius: '2px',
+        marginTop: isDesktop ? '3px' : '2px',
+        overflow: 'hidden'
+      }}>
+        <div style={{
+          height: '100%',
+          width: `${progress}%`,
+          backgroundColor: color,
+          borderRadius: '2px'
+        }} />
+      </div>
 
-              {/* 底部等级信息 */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                fontSize: isDesktop ? '9px' : '6px',  // 👈 手机端字体缩小
-                color: '#999',
-                marginTop: isDesktop ? '2px' : '1px'
-              }}>
-                <span>{expInLevel}/{EXP_PER_LEVEL}</span>
-                <span>Lv.{dimLevel}</span>
-              </div>
-            </div>
-          );
-        })}
+      {/* ===== ✅ 底部：显示 total/等级上限，Lv.等级 ===== */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: isDesktop ? '9px' : '6px',
+        color: '#999',
+        marginTop: isDesktop ? '2px' : '1px'
+      }}>
+        <span>{total}/{maxExpForLevel}</span>
+        <span>Lv.{dimLevel}</span>
+      </div>
+    </div>
+  );
+})}
       </div>
 
       {/* ===== 技能卡片区域（保持原样） ===== */}
@@ -20441,13 +20461,13 @@ const getTasksForSkill = (skillName) => {
         marginBottom: 8,
         borderRadius: 10,
         overflow: "hidden",
-        border: `2px solid ${categoryColors[c.name] || '#f0f0f0'}`,
+         border: `2px solid ${categoryColors[c.name] ? `${categoryColors[c.name]}70` : '#e0e0e0'}`,
       }}
     >
       <div
         onClick={() => setCollapsedCategories(prev => ({ ...prev, [c.name]: !prev[c.name] }))}
         style={{
-          backgroundColor: categoryColors[c.name] || '#f0f0f0',
+          backgroundColor: categoryColors[c.name] ? `${categoryColors[c.name]}70` : '#f0f0f0',
           color: isComplete ? "#bbb" : "#333",
           fontFamily: 'Calibri, "微软雅黑", sans-serif',
           padding: "3px 12px",
