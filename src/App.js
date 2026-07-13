@@ -19955,143 +19955,147 @@ const getTasksForSkill = (skillName) => {
     marginBottom: 16,
     gap: "2px"
   }}>
-    {weekDates.map((d) => {
-      const dateStr = d.date;
-      const isSelected = dateStr === selectedDate;
-      const dayTasks = tasksByDate[dateStr] || [];
-      const hasCrossDateTask = dayTasks.some(task => task.crossDateId || task.dateRange);
-      const dailyRating = dailyRatings[dateStr] || 0;
-      
-      const getRatingColor = (rating) => {
-        switch(rating) {
-          case 5: return '#4CAF50';
-          case 4: return '#8BC34A';
-          case 3: return '#FFC107';
-          case 2: return '#FF9800';
-          case 1: return '#F44336';
-          default: return 'transparent';
-        }
-      };
-      
-      const learningTasks = dayTasks.filter(task => {
-        if (task.category === "本周任务") return false;
-        if (task.isRegularTask && !task.done) return false;
-        return true;
-      });
+{weekDates.map((d) => {
+  const dateStr = d.date;
+  const isSelected = dateStr === selectedDate;
+  const isToday = dateStr === new Date().toISOString().split('T')[0];
+  const dayTasks = tasksByDate[dateStr] || [];
+  const hasCrossDateTask = dayTasks.some(task => task.crossDateId || task.dateRange);
+  const dailyRating = dailyRatings[dateStr] || 0;
+  
+  const getRatingColor = (rating) => {
+    switch(rating) {
+      case 5: return '#4CAF50';
+      case 4: return '#8BC34A';
+      case 3: return '#FFC107';
+      case 2: return '#FF9800';
+      case 1: return '#F44336';
+      default: return 'transparent';
+    }
+  };
+  
+  const learningTasks = dayTasks.filter(task => {
+    if (task.category === "本周任务") return false;
+    if (task.isRegularTask && !task.done) return false;
+    return true;
+  });
 
-      let totalCount = 0;
-      let completedCount = 0;
-      let abandonedCount = 0;
+  let totalCount = 0;
+  let completedCount = 0;
+  let abandonedCount = 0;
 
-      learningTasks.forEach(task => {
-        const hasSubTasks = task.subTasks && Array.isArray(task.subTasks) && task.subTasks.length > 0;
-        
-        if (hasSubTasks) {
-          task.subTasks.forEach(subTask => {
-            totalCount++;
-            if (subTask.done) {
-              completedCount++;
-            }
-          });
-        } else {
-          totalCount++;
-          if (task.done === true && task.abandoned !== true) {
-            completedCount++;
-          }
-          if (task.abandoned) {
-            abandonedCount++;
-          }
+  learningTasks.forEach(task => {
+    const hasSubTasks = task.subTasks && Array.isArray(task.subTasks) && task.subTasks.length > 0;
+    
+    if (hasSubTasks) {
+      task.subTasks.forEach(subTask => {
+        totalCount++;
+        if (subTask.done) {
+          completedCount++;
         }
       });
-
-      const incompleteCount = totalCount - completedCount - abandonedCount;
-
-      let numberColor = "#666";
-      let dotColor = "#666";
-
-      if (totalCount === 0) {
-        numberColor = "transparent";
-        dotColor = "transparent";
-      } else if (incompleteCount > 0) {
-        numberColor = "#f44336";
-        dotColor = "#f44336";
-      } else if (completedCount === totalCount) {
-        numberColor = "#4caf50";
-        dotColor = "#4caf50";
-      } else {
-        numberColor = "#999";
-        dotColor = "#999";
+    } else {
+      totalCount++;
+      if (task.done === true && task.abandoned !== true) {
+        completedCount++;
       }
+      if (task.abandoned) {
+        abandonedCount++;
+      }
+    }
+  });
+
+  const incompleteCount = totalCount - completedCount - abandonedCount;
+
+  let numberColor = "#666";
+  let dotColor = "#666";
+
+  if (totalCount === 0) {
+    numberColor = "transparent";
+    dotColor = "transparent";
+  } else if (incompleteCount > 0) {
+    numberColor = "#f44336";
+    dotColor = "#f44336";
+  } else if (completedCount === totalCount) {
+    numberColor = "#4caf50";
+    dotColor = "#4caf50";
+  } else {
+    numberColor = "#999";
+    dotColor = "#999";
+  }
+  
+  return (
+    <div
+      key={dateStr}
+      onClick={() => setSelectedDate(dateStr)}
+      style={{
+        padding: "2px 4px",
+        textAlign: "center",
+        flex: 1,
+        minWidth: 0,
+        margin: "0 1px",
+        fontSize: 11,
+        cursor: "pointer",
+        backgroundColor: isSelected ? "#fff9c4" : (isToday ? "#e8f0fe" : "transparent"),
+        color: isToday ? "#61A2Da" : "#000",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        minHeight: "16px",
+        background: dailyRating > 0 
+          ? `linear-gradient(to bottom, ${isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent')} 0%, ${isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent')} 50%, ${getRatingColor(dailyRating)}20 100%)`
+          : isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent'),
+        position: "relative",
+        borderRadius: isToday ? "4px" : "0px",
+        border: isToday ? "1px solid #61A2Da" : "none"
+      }}
+    >
+      <div style={{ 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center",
+        fontSize: 10,
+        fontWeight: isSelected ? "bold" : (isToday ? "bold" : "normal"),
+        width: "100%",
+        position: "relative"
+      }}>
+        <span>{d.label}</span>
+        
+        {completedCount > 0 && (
+          <span style={{
+            position: "absolute",
+            right: "2px",
+            fontSize: "8px",
+            color: "#4caf50",
+            fontWeight: "bold"
+          }}>
+            {completedCount}
+          </span>
+        )}
+        
+        {hasCrossDateTask && (
+          <span style={{
+            position: "absolute",
+            right: completedCount > 0 ? "22px" : "2px",
+            fontSize: "6px",
+            color: "#f44336"
+          }}>
+            休
+          </span>
+        )}
+      </div>
       
-      return (
-        <div
-          key={dateStr}
-          onClick={() => setSelectedDate(dateStr)}
-          style={{
-            padding: "2px 4px",
-            textAlign: "center",
-            flex: 1,
-            minWidth: 0,
-            margin: "0 1px",
-            fontSize: 11,
-            cursor: "pointer",
-            backgroundColor: isSelected ? "#fff9c4" : "transparent",
-            color: isSelected ? "#000" : "#000",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            minHeight: "16px",
-            background: dailyRating > 0 
-              ? `linear-gradient(to bottom, ${isSelected ? '#fff9c4' : 'transparent'} 0%, ${isSelected ? '#fff9c4' : 'transparent'} 50%, ${getRatingColor(dailyRating)}20 100%)`
-              : isSelected ? '#fff9c4' : 'transparent',
-            position: "relative"
-          }}
-        >
-          <div style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center",
-            fontSize: 10,
-            fontWeight: isSelected ? "bold" : "normal",
-            width: "100%",
-            position: "relative"
-          }}>
-            <span>{d.label}</span>
-            
-            {completedCount > 0 && (
-              <span style={{
-                position: "absolute",
-                right: "2px",
-                fontSize: "8px",
-                color: "#4caf50",
-                fontWeight: "bold"
-              }}>
-                {completedCount}
-              </span>
-            )}
-            
-            {hasCrossDateTask && (
-              <span style={{
-                position: "absolute",
-                right: completedCount > 0 ? "22px" : "2px",
-                fontSize: "6px",
-                color: "#f44336"
-              }}>
-                休
-              </span>
-            )}
-          </div>
-          
-          <div style={{ 
-            fontSize: 9,
-            fontFamily: "sans-serif",
-            fontWeight: isSelected ? "bold" : "normal"
-          }}>
-            {d.date.slice(5)}
-          </div>
-        </div>
-      );
-    })}
+      <div style={{ 
+        fontSize: 9,
+        fontFamily: "sans-serif",
+        fontWeight: isSelected ? "bold" : (isToday ? "bold" : "normal"),
+        color: isToday ? "#61A2Da" : "#666"
+      }}>
+        {d.date.slice(5)}
+      </div>
+    </div>
+  );
+})}
   </div>
 
   {/* ===== 分类标签 ===== */}
