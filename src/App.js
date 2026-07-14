@@ -13911,7 +13911,7 @@ const getTodaySkills = useCallback(() => {
             <span style={{
               fontSize: isDesktop ? '10px' : '6px',
               color: '#4caf50',
-              backgroundColor: '#e8f5e9',
+              
               padding: isDesktop ? '1px 6px' : '1px 3px',
               borderRadius: '8px',
               marginLeft: '2px'
@@ -14225,13 +14225,28 @@ const [categoryColors, setCategoryColors] = useState(() => {
   const saved = localStorage.getItem('category_colors');
   if (saved) {
     try {
-      return JSON.parse(saved);
+      const parsed = JSON.parse(saved);
+      // 如果有数据且不是空对象，直接返回
+      if (Object.keys(parsed).length > 0) {
+        return parsed;
+      }
     } catch (e) {
       console.error('解析 categoryColors 失败:', e);
     }
   }
-  // 没有保存的数据，返回空对象
-  return {};
+  
+  // 没有有效数据，设置默认颜色
+  const defaultColors = {
+    '健康': '#9ADBC5',
+    '财富': '#FCC351',
+    '智慧': '#FD8D6E',
+    '家庭': '#FA86A9',
+    '心神': '#A1DEE0',
+    '悦己': '#DFDE6C'
+  };
+  localStorage.setItem('category_colors', JSON.stringify(defaultColors));
+  console.log('✅ 初始化分类颜色:', defaultColors);
+  return defaultColors;
 });
 
 // ✅ 添加这个 - 恢复 subCategoryColors（空对象，因为已经没有校内了）
