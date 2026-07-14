@@ -14791,6 +14791,28 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
       console.log('⚠️ 只支持覆盖模式，自动切换为覆盖模式');
     }
     
+
+
+
+// ✅ 恢复科目待办
+if (backupData.subjectTodoEntries) {
+  localStorage.setItem('subject_todo_entries_v2', JSON.stringify(backupData.subjectTodoEntries));
+  console.log('✅ 恢复科目待办');
+}
+
+// ✅ 恢复分类颜色
+if (backupData.categoryColors) {
+  localStorage.setItem('category_colors', JSON.stringify(backupData.categoryColors));
+  console.log('✅ 恢复分类颜色');
+}
+
+// ✅ 恢复月预算
+if (backupData.monthlyBudget !== undefined) {
+  setMonthlyBudget(backupData.monthlyBudget);
+  localStorage.setItem('monthly_budget', String(backupData.monthlyBudget));
+  console.log('✅ 恢复月预算:', backupData.monthlyBudget);
+}
+
     // 1. 恢复任务数据
     if (backupData.tasksByDate) {
       setTasksByDate(backupData.tasksByDate);
@@ -14978,6 +15000,14 @@ const getDataHash = useCallback(() => {
 
 
 const syncToGitHub = useCallback(async (silent = false) => {
+
+// 在 syncToGitHub 函数中，获取数据的地方添加
+const dailyTaskTemplates = JSON.parse(localStorage.getItem('daily_task_templates') || '[]');
+const subjectTodoEntries = JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}');
+const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
+const monthlyBudget = parseFloat(localStorage.getItem('monthly_budget') || '3000');
+
+
   const token = localStorage.getItem('github_token');
   if (!token) {
     if (!silent) {
@@ -15054,7 +15084,7 @@ const syncToGitHub = useCallback(async (silent = false) => {
     });
     
     // 压缩数据
-    const compressedTasks = {};
+ const compressedTasks = {};
 Object.entries(tasksByDate).forEach(([date, tasks]) => {
   compressedTasks[date] = tasks.map(task => ({
     id: task.id,
@@ -15084,14 +15114,16 @@ Object.entries(tasksByDate).forEach(([date, tasks]) => {
     targetSubCategory: task.targetSubCategory,
     abandoned: task.abandoned,
     abandonInfo: task.abandonInfo,
-    // ✅ 添加多次任务字段
+    // ✅ 新增：任务积分
+    expValue: task.expValue || 2,
+    // ✅ 新增：多次任务
     isCountTask: task.isCountTask || false,
     count: task.count || 0,
     countRecords: task.countRecords || []
   }));
 });
     
-   const syncData = {
+const syncData = {
   tasksByDate: compressedTasks,
   dailyRatings: allDailyRatings,
   dailyReflections: allDailyReflections,
@@ -15108,14 +15140,20 @@ Object.entries(tasksByDate).forEach(([date, tasks]) => {
   categories,
   reminderText,
   semesterEndDate,
-  expData: expData,  // ✅ 添加这一行：同步经验数据
+  expData: expData,
   taskOrders: allTaskOrders,
   subCategoryOrders: allSubCategoryOrders,
+  // ✅ 新增：日常任务模板
+  dailyTaskTemplates: dailyTaskTemplates,
+  // ✅ 新增：科目待办
+  subjectTodoEntries: subjectTodoEntries,
+  // ✅ 新增：分类颜色
+  categoryColors: categoryColors,
   syncTime: new Date().toISOString(),
-  version: '2.4',
-   expenseRecords: expenseRecords,
+  version: '2.5',
+  expenseRecords: expenseRecords,
   todayExpense: todayExpense,
-  
+  monthlyBudget: monthlyBudget,
   expenseDate: new Date().toISOString().split('T')[0],
   lastSelectedDate: selectedDate,
   lastCurrentMonday: currentMonday.toISOString()
