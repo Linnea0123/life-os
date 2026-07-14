@@ -12,7 +12,7 @@ import './App.css';
 
 
 // 搜索任务模态框组件
-const SearchTaskModal = ({ tasksByDate, onClose }) => {
+const SearchTaskModal = ({ tasksByDate, onClose, categoryColors }) => {
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -104,17 +104,9 @@ const performSearch = useCallback(() => {
   };
   
   // 获取分类颜色
-  const getCategoryColor = (category) => {
-    const colors = {
-      '语文': '#FFFCE8',
-      '数学': '#E8F5E9',
-      '英语': '#FCE4EC',
-      '通识': '#E1F5FE',
-      '运动': '#E3F2FD',
-      '校内': '#61A2Da'
-    };
-    return colors[category] || '#f0f0f0';
-  };
+ const getCategoryColor = (category) => {
+  return categoryColors?.[category] || '#f0f0f0';
+};
   
   return (
     <div style={{
@@ -340,7 +332,7 @@ const performSearch = useCallback(() => {
                         padding: '2px 6px',
                         borderRadius: '10px',
                         backgroundColor: getCategoryColor(task.category),
-                        color: task.category === '校内' ? '#fff' : '#333'
+                         color: '#333' 
                       }}>
                         {task.category}{task.subCategory ? ` / ${task.subCategory}` : ''}
                       </span>
@@ -9882,8 +9874,7 @@ const getSubjectPieChartData = useCallback(() => {
   // 按科目统计时间（合并校内子分类和大类别）
   const subjectTimeMap = new Map();
   
-  // 科目列表
-  const subjects = ['数学', '语文', '英语', '运动'];
+  const subjects = ['健康', '财富', '智慧', '家庭', '心神', '悦己'];
   
   learningTasks.forEach(task => {
     const timeMinutes = Math.floor((task.timeSpent || 0) / 60);
@@ -9997,29 +9988,9 @@ const getSubjectTotalTime = useCallback(() => {
 const subjectTotalTime = getSubjectTotalTime();
 
   // 获取饼图颜色
-  const getPieColor = (name, type) => {
-    if (type === 'school_sub') {
-      const subCategoryColors = {
-        '数学': '#E8F5E9',
-        '语文': 'FFF9C4',
-        '英语': '#FCE4EC',
-        '运动': '#E3F2FD',
-        '未分类': '#F5F5F5'
-      };
-      const subCatName = name.replace('校内-', '');
-      return subCategoryColors[subCatName] || '#E8F0FE';
-    } else {
-      const categoryColors = {
-        '语文': '#FFFCE8',
-        '数学': '#E8F5E9',
-        '英语': '#FCE4EC',
-        '通识': '#E1F5FE',
-        '运动': '#E3F2FD',
-        '校内': '#61A2Da'
-      };
-      return categoryColors[name] || '#f0f0f0';
-    }
-  };
+  const getPieColor = (name) => {
+  return categoryColors?.[name] || '#f0f0f0';
+};
 
   // 检查时间是否 >= 21:00
   const isLateEndTime = (timeStr) => {
@@ -10230,34 +10201,17 @@ const SimplePieChart = ({ data, total, completionStatus = {} }) => {
   }
   
   // 获取饼图颜色
-  const getPieColor = (name, type) => {
-    if (type === 'school_sub') {
-      const subCatName = name.replace('校内-', '');
-      // 如果该子分类全部完成，返回灰色
-      if (completionStatus[subCatName]?.isComplete) {
-        return '#d0d0d0';
-      }
-      
-      const subCategoryColors = {
-        '数学': '#E8F5E9',
-        '语文': '#FFFCE8',
-        '英语': '#FCE4EC',
-        '运动': '#E3F2FD',
-        '未分类': '#F5F5F5'
-      };
-      return subCategoryColors[subCatName] || '#E8F0FE';
-    } else {
-      const categoryColors = {
-        '语文': '#FFFCE8',
-        '数学': '#E8F5E9',
-        '英语': '#FCE4EC',
-        '通识': '#E1F5FE',
-        '运动': '#E3F2FD',
-        '校内': '#61A2Da'
-      };
-      return categoryColors[name] || '#f0f0f0';
-    }
+  const getPieColor = (name) => {
+  const colors = {
+    '健康': '#9ADBC5',
+    '财富': '#FCC351',
+    '智慧': '#FD8D6E',
+    '家庭': '#FA86A9',
+    '心神': '#A1DEE0',
+    '悦己': '#DFDE6C'
   };
+  return colors[name] || '#f0f0f0';
+};
   
   let currentAngle = 0;
   const slices = [];
@@ -10475,10 +10429,12 @@ const SimplePieChart = ({ data, total, completionStatus = {} }) => {
 // 科目颜色映射
 const getSubjectColor = (subject) => {
   const colors = {
-    '数学': '#E8F5E9',
-    '语文': '#FFFCE8',
-    '英语': '#FCE4EC',
-    '运动': '#E3F2FD'
+    '健康': '#9ADBC5',
+    '财富': '#FCC351',
+    '智慧': '#FD8D6E',
+    '家庭': '#FA86A9',
+    '心神': '#A1DEE0',
+    '悦己': '#DFDE6C'
   };
   return colors[subject] || '#f0f0f0';
 };
@@ -11113,7 +11069,7 @@ const AttributeDetailPage = ({
   selectedDate,
   categories,
   categoryColors,
-  subCategoryColors,
+  
   expData,
   formatTimeNoSeconds
 }) => {
@@ -11162,8 +11118,8 @@ const AttributeDetailPage = ({
     const allTasks = getAllTasks();
     
     const subMap = {
-      '健康': ['运动'],
-      '智慧': ['数学', '语文', '英语'],
+      '健康': [],
+      '智慧': [],
       '心神': [],
       '家庭': [],
       '财富': [],
@@ -11343,157 +11299,109 @@ const filterTasks = useCallback((tasks) => {
  // 渲染任务项 - 无删除线，无关闭按钮
 const renderTaskItem = (task, index) => {
   const minutes = Math.floor((task.timeSpent || 0) / 60);
+  const isCompleted = task.done === true && task.abandoned !== true;
   const isAbandoned = task.abandoned === true;
-  const expValue = task.expValue || 0;
+  
+  // ✅ 修复：移除 subCategory 参数，只使用 category
+  const getCategoryBg = (category) => {
+    return categoryColors?.[category] || '#f0f0f0';
+  };
+  
+  // 显示所有标签
+  const tags = task.tags || [];
   
   return (
     <div
       key={task.id || index}
       style={{
         padding: '6px 10px',
-        marginBottom: '3px',
+        marginBottom: '4px',
         backgroundColor: isAbandoned ? '#f5f5f5' : (index % 2 === 0 ? '#fafafa' : '#fff'),
-        borderRadius: '3px',
+        borderRadius: '4px',
         border: '0.5px solid #e8e8e8',
-        fontSize: '12px',
-        minHeight: '32px'
+        fontSize: '13px'
       }}
     >
-      <div style={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        gap: '8px'
-      }}>
-        {/* 左侧：状态 + 任务文本 */}
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          gap: '6px',
-          flex: 1,
-          minWidth: 0
-        }}>
-          <span style={{ flexShrink: 0, display: 'inline-flex', alignItems: 'center' }}>
-            <svg 
-              width="14" 
-              height="14" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              xmlns="http://www.w3.org/2000/svg"
-              style={{ display: 'block' }}
-            >
-              <path 
-                d="M4 12 L10 18 L20 6" 
-                stroke={isAbandoned ? '#ccc' : '#bbb'} 
-                strokeWidth="3" 
-                strokeLinecap="square"
-                strokeLinejoin="miter"
-                fill="none"
-              />
-            </svg>
-          </span>
-          <span style={{
-            color: isAbandoned ? '#999' : '#333',
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px' }}>
+        <span style={{ flexShrink: 0, fontSize: '12px' }}>
+          {isAbandoned ? '✕' : (isCompleted ? '✓' : '○')}
+        </span>
+        
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{
+            color: isAbandoned ? '#999' : (isCompleted ? '#666' : '#333'),
+            textDecoration: isAbandoned ? 'line-through' : (isCompleted ? 'line-through' : 'none'),
             wordBreak: 'break-word',
-            lineHeight: '1.5',
-            fontSize: '12px',
-            flex: 1
+            lineHeight: '1.4',
+            fontSize: '13px'
           }}>
             {task.text}
-            {isAbandoned && (
+          </div>
+          
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '4px',
+            marginTop: '2px',
+            fontSize: '10px',
+            color: '#999',
+            alignItems: 'center'
+          }}>
+            <span>{task.date.slice(5)}</span>
+            {/* ✅ 修复：只传 category */}
+            <span style={{
+              padding: '0 6px',
+              borderRadius: '8px',
+              backgroundColor: getCategoryBg(task.category),
+              color: '#333'
+            }}>
+              {task.subCategory || task.category}
+            </span>
+            {minutes > 0 && <span>{minutes}m</span>}
+            {task.expValue !== undefined && (
               <span style={{
-                fontSize: '10px',
-                color: '#ccc',
-                marginLeft: '6px'
+                backgroundColor: '#fff3e0',
+                padding: '0 6px',
+                borderRadius: '8px',
+                color: '#FF9800'
               }}>
-                (已放弃)
+                {task.expValue}
               </span>
             )}
-          </span>
-        </div>
-        
-        {/* 右侧：标签 + 积分 + 时间 */}
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '5px',
-          flexShrink: 0,
-          fontSize: '10px',
-          color: '#999'
-        }}>
-          {task.tags && task.tags.length > 0 && (
-            <span style={{ 
-              color: '#999', 
-              fontSize: '10px',
-              maxWidth: '100px', 
-              overflow: 'hidden', 
-              textOverflow: 'ellipsis', 
-              whiteSpace: 'nowrap' 
-            }}>
-              {task.tags.join(', ')}
-            </span>
-          )}
-          <span style={{
-            backgroundColor: isAbandoned ? '#f5f5f5' : '#fff3e0',
-            padding: '1px 6px',
-            borderRadius: '8px',
-            color: isAbandoned ? '#ccc' : (expValue < 0 ? '#f44336' : '#FF9800'),
-            fontWeight: 'bold',
-            fontSize: '10px',
-            border: isAbandoned ? '1px solid #e8e8e8' : 'none'
-          }}>
-            {expValue}
-          </span>
-          {minutes > 0 && <span style={{ fontSize: '10px' }}>{minutes}m</span>}
-        </div>
-      </div>
-      
-      {/* 放弃原因 */}
-      {isAbandoned && task.abandonInfo && (
-        <div style={{ marginTop: '3px', paddingLeft: '22px' }}>
-          <span style={{
-            padding: '1px 6px',
-            backgroundColor: '#ffebee',
-            borderRadius: '2px',
-            fontSize: '11px',
-            color: '#c62828'
-          }}>
-            放弃原因: {task.abandonInfo.reason || '未说明'}
-            {task.abandonInfo.note && ` (${task.abandonInfo.note})`}
-          </span>
-        </div>
-      )}
-      
-      {/* 备注和感想 */}
-      {(task.note || task.reflection) && !isAbandoned && (
-        <div style={{ marginTop: '3px', paddingLeft: '22px' }}>
+            {tags.length > 0 && (
+              <span style={{ color: '#999' }}>
+                {tags.join(', ')}
+              </span>
+            )}
+          </div>
+          
           {task.note && (
-            <span style={{
-              padding: '1px 6px',
+            <div style={{
+              marginTop: '2px',
+              padding: '2px 6px',
               backgroundColor: '#f5f5f5',
               borderRadius: '2px',
               fontSize: '11px',
-              color: '#666',
-              display: 'inline-block',
-              marginRight: '4px'
+              color: '#666'
             }}>
               {task.note}
-            </span>
+            </div>
           )}
+          
           {task.reflection && (
-            <span style={{
-              padding: '1px 6px',
+            <div style={{
+              marginTop: '2px',
+              padding: '2px 6px',
               backgroundColor: '#fff9c4',
               borderRadius: '2px',
               fontSize: '11px',
-              color: '#333',
-              display: 'inline-block'
+              color: '#333'
             }}>
               {task.reflection}
-            </span>
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
@@ -11845,10 +11753,9 @@ const CategoryManagerModal = ({
   categories, 
   onSave, 
   onClose, 
-  subCategoryColors = {},
+  
   categoryColors = {},
-  onSaveCategoryColor,
-  onSaveSubCategoryColor
+  onSaveCategoryColor
 }) => {
   const [localCategories, setLocalCategories] = useState([...categories]);
   const [editingSubCategory, setEditingSubCategory] = useState(null);
@@ -12221,116 +12128,7 @@ const CategoryManagerModal = ({
                   </div>
                 </div>
 
-                {/* 子类别区域 */}
-                {!isCollapsed && isSchool && (
-                  <div style={{ padding: '8px', backgroundColor: '#fafafa' }}>
-                    {/* 子类别列表 */}
-                    <div>
-                      {category.subCategories?.length > 0 ? (
-                        category.subCategories.map((subCat, subIndex) => {
-                          return (
-                            <div
-                              key={subIndex}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                padding: '4px 6px',
-                                borderBottom: subIndex < category.subCategories.length - 1 ? '1px solid #eee' : 'none',
-                                backgroundColor: '#fff'
-                              }}
-                            >
-                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                                {/* 子类别色块 - 可点击选择颜色 */}
-                                <input
-  type="color"
-  value={subCategoryColors[subCat] || '#f5f5f5'}
-  onChange={(e) => {
-    if (onSaveSubCategoryColor) {
-      onSaveSubCategoryColor(subCat, e.target.value);
-    }
-  }}
-  style={{
-    width: '28px',
-    height: '28px',
-    border: 'none',
-    borderRadius: 0,
-    cursor: 'pointer',
-    padding: 0,
-    background: subCategoryColors[subCat] || '#f5f5f5'
-  }}
-  onClick={(e) => e.stopPropagation()}
-/>
-                                
-                                {editingSubCategory && editingSubCategory[0] === catIndex && editingSubCategory[1] === subIndex ? (
-                                  <input
-                                    type="text"
-                                    defaultValue={subCat}
-                                    autoFocus
-                                    onBlur={(e) => {
-                                      handleEditSubCategory(catIndex, subIndex, e.target.value);
-                                    }}
-                                    onKeyPress={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleEditSubCategory(catIndex, subIndex, e.target.value);
-                                      }
-                                    }}
-                                    style={{
-                                      flex: 1,
-                                      padding: '2px 6px',
-                                      border: '1px solid #1a73e8',
-                                      borderRadius: 3,
-                                      fontSize: '12px',
-                                      height: '24px'
-                                    }}
-                                  />
-                                ) : (
-                                  <span
-                                    onClick={() => setEditingSubCategory([catIndex, subIndex])}
-                                    style={{
-                                      fontSize: '12px',
-                                      cursor: 'pointer',
-                                      padding: '2px 2px'
-                                    }}
-                                  >
-                                    {subCat}
-                                  </span>
-                                )}
-                              </div>
-                              
-                              <div
-                                onClick={() => handleDeleteSubCategory(catIndex, subIndex)}
-                                style={{
-                                  width: '22px',
-                                  height: '22px',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontSize: '14px',
-                                  cursor: 'pointer',
-                                  color: '#999'
-                                }}
-                              >
-                                ×
-                              </div>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <div style={{ 
-                          padding: '8px', 
-                          textAlign: 'center', 
-                          color: '#999',
-                          fontSize: '11px',
-                          backgroundColor: '#fff',
-                          borderRadius: 3
-                        }}>
-                          暂无子类别
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                
               </div>
             );
           })}
@@ -14437,6 +14235,11 @@ const [categoryColors, setCategoryColors] = useState(() => {
     '悦己': '#DFDE6C'
   };
 });
+
+// ✅ 添加这个 - 恢复 subCategoryColors（空对象，因为已经没有校内了）
+const [subCategoryColors, setSubCategoryColors] = useState({});
+
+
 // 保存大类别颜色的函数
 const saveCategoryColor = useCallback((catName, color) => {
   setCategoryColors(prev => {
@@ -14446,29 +14249,11 @@ const saveCategoryColor = useCallback((catName, color) => {
   });
 }, []);
 
-// 保存子类别颜色的函数
-const saveSubCategoryColor = useCallback((subCatName, color) => {
-  setSubCategoryColors(prev => {
-    const newColors = { ...prev, [subCatName]: color };
-    localStorage.setItem('subcategory_colors', JSON.stringify(newColors));
-    return newColors;
-  });
-}, []);
+
 
 
 // 👇 在这里添加
-const [subCategoryColors, setSubCategoryColors] = useState(() => {
-  const saved = localStorage.getItem('subcategory_colors');
-  if (saved) {
-    return JSON.parse(saved);
-  }
-  return {
-    '数学': '#E8F5E9',
-    '语文': '#FFFCE8',
-    '英语': '#FCE4EC',
-    '运动': '#E3F2FD'
-  };
-});
+
 
   const [currentMonday, setCurrentMonday] = useState(getMonday(new Date()));
  // ✅ 修改后
@@ -15270,37 +15055,41 @@ const syncToGitHub = useCallback(async (silent = false) => {
     
     // 压缩数据
     const compressedTasks = {};
-    Object.entries(tasksByDate).forEach(([date, tasks]) => {
-      compressedTasks[date] = tasks.map(task => ({
-        id: task.id,
-        text: task.text,
-        category: task.category,
-        subCategory: task.subCategory,
-        done: task.done,
-        timeSpent: task.timeSpent,
-        note: task.note,
-        reflection: task.reflection,
-        updatedAt: task.updatedAt,
-        createdAt: task.createdAt,
-        timeRecords: task.timeRecords?.slice(-5),
-        subTasks: task.subTasks?.length > 0 ? task.subTasks : undefined,
-        pinned: task.pinned,
-        tags: task.tags,
-        progress: task.progress,
-        scheduledTime: task.scheduledTime,
-        reminderTime: task.reminderTime,
-        crossDateId: task.crossDateId,
-        isCrossDate: task.isCrossDate,
-        crossDates: task.crossDates,
-        actualCompletedDate: task.actualCompletedDate,
-        isWeekTask: task.isWeekTask,
-        weekStart: task.weekStart,
-        targetCategory: task.targetCategory,
-        targetSubCategory: task.targetSubCategory,
-        abandoned: task.abandoned,
-        abandonInfo: task.abandonInfo
-      }));
-    });
+Object.entries(tasksByDate).forEach(([date, tasks]) => {
+  compressedTasks[date] = tasks.map(task => ({
+    id: task.id,
+    text: task.text,
+    category: task.category,
+    subCategory: task.subCategory,
+    done: task.done,
+    timeSpent: task.timeSpent,
+    note: task.note,
+    reflection: task.reflection,
+    updatedAt: task.updatedAt,
+    createdAt: task.createdAt,
+    timeRecords: task.timeRecords?.slice(-5),
+    subTasks: task.subTasks?.length > 0 ? task.subTasks : undefined,
+    pinned: task.pinned,
+    tags: task.tags,
+    progress: task.progress,
+    scheduledTime: task.scheduledTime,
+    reminderTime: task.reminderTime,
+    crossDateId: task.crossDateId,
+    isCrossDate: task.isCrossDate,
+    crossDates: task.crossDates,
+    actualCompletedDate: task.actualCompletedDate,
+    isWeekTask: task.isWeekTask,
+    weekStart: task.weekStart,
+    targetCategory: task.targetCategory,
+    targetSubCategory: task.targetSubCategory,
+    abandoned: task.abandoned,
+    abandonInfo: task.abandonInfo,
+    // ✅ 添加多次任务字段
+    isCountTask: task.isCountTask || false,
+    count: task.count || 0,
+    countRecords: task.countRecords || []
+  }));
+});
     
    const syncData = {
   tasksByDate: compressedTasks,
@@ -19959,7 +19748,7 @@ const clearAllData = async () => {
 localStorage.removeItem('monthly_budget');
     localStorage.removeItem('expense_date');
     localStorage.removeItem('expense_records');
-    localStorage.removeItem('daily_budget');
+    
     console.log('🗑️ 消费数据已清空');
 
       // ✅ 15. 清空处理锁（新增）
@@ -22320,10 +22109,10 @@ const getTasksForSkill = (skillName) => {
           setShowCategoryManager(false);
         }}
         onClose={() => setShowCategoryManager(false)}
-        subCategoryColors={subCategoryColors}
+        
         categoryColors={categoryColors}
         onSaveCategoryColor={saveCategoryColor}
-        onSaveSubCategoryColor={saveSubCategoryColor}
+        
       />
     )}
 
@@ -22953,124 +22742,111 @@ const getTasksForSkill = (skillName) => {
     )}
 
     {showCategoryDetailModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+    padding: '10px'
+  }} onClick={() => setShowCategoryDetailModal(null)}>
+    <div style={{
+      backgroundColor: 'white',
+      borderRadius: '16px',
+      width: '90%',
+      maxWidth: '350px',
+      maxHeight: '70vh',
+      overflow: 'auto',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+    }} onClick={e => e.stopPropagation()}>
+      
+      {/* 头部保持不变 */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
+        padding: '16px 20px',
+        backgroundColor: '#61A2Da',
+        color: 'white',
+        borderTopLeftRadius: '16px',
+        borderTopRightRadius: '16px',
         display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        zIndex: 2000,
-        padding: '10px'
-      }} onClick={() => setShowCategoryDetailModal(null)}>
+        justifyContent: 'space-between',
+        alignItems: 'center'
+      }}>
+        <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
+          {showCategoryDetailModal.category}
+        </span>
+        <div
+          onClick={() => setShowCategoryDetailModal(null)}
+          style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            backgroundColor: 'rgba(255,255,255,0.2)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '18px'
+          }}
+        >
+          ×
+        </div>
+      </div>
+      
+      {/* 统计卡片保持不变 */}
+      <div style={{
+        padding: '16px',
+        display: 'flex',
+        gap: '12px',
+        borderBottom: '1px solid #f0f0f0'
+      }}>
         <div style={{
-          backgroundColor: 'white',
-          borderRadius: '16px',
-          width: '90%',
-          maxWidth: '350px',
-          maxHeight: '70vh',
-          overflow: 'auto',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
-        }} onClick={e => e.stopPropagation()}>
-          
-          <div style={{
-            padding: '16px 20px',
-            backgroundColor: '#61A2Da',
-            color: 'white',
-            borderTopLeftRadius: '16px',
-            borderTopRightRadius: '16px',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>
-              {showCategoryDetailModal.category}
-            </span>
-            <div
-              onClick={() => setShowCategoryDetailModal(null)}
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: '50%',
-                backgroundColor: 'rgba(255,255,255,0.2)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '18px'
-              }}
-            >
-              ×
-            </div>
+          flex: 1,
+          textAlign: 'center',
+          padding: '8px',
+          backgroundColor: '#e8f0fe',
+          borderRadius: '10px'
+        }}>
+          <div style={{ fontSize: '11px', color: '#666' }}>总时长</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#61A2Da' }}>
+            {Math.floor(showCategoryDetailModal.totalTime / 60)}分钟
           </div>
-          
-          <div style={{
-            padding: '16px',
-            display: 'flex',
-            gap: '12px',
-            borderBottom: '1px solid #f0f0f0'
-          }}>
-            <div style={{
-              flex: 1,
-              textAlign: 'center',
-              padding: '8px',
-              backgroundColor: '#e8f0fe',
-              borderRadius: '10px'
-            }}>
-              <div style={{ fontSize: '11px', color: '#666' }}>总时长</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#61A2Da' }}>
-                {Math.floor(showCategoryDetailModal.totalTime / 60)}分钟
-              </div>
-            </div>
-            <div style={{
-              flex: 1,
-              textAlign: 'center',
-              padding: '8px',
-              backgroundColor: '#e8f5e9',
-              borderRadius: '10px'
-            }}>
-              <div style={{ fontSize: '11px', color: '#666' }}>任务进度</div>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#4caf50' }}>
-                {showCategoryDetailModal.tasks.filter(t => t.done === true && t.abandoned !== true).length}/{showCategoryDetailModal.tasks.length}
-              </div>
-            </div>
+        </div>
+        <div style={{
+          flex: 1,
+          textAlign: 'center',
+          padding: '8px',
+          backgroundColor: '#e8f5e9',
+          borderRadius: '10px'
+        }}>
+          <div style={{ fontSize: '11px', color: '#666' }}>任务进度</div>
+          <div style={{ fontSize: '18px', fontWeight: 'bold', color: '#4caf50' }}>
+            {showCategoryDetailModal.tasks.filter(t => t.done === true && t.abandoned !== true).length}/{showCategoryDetailModal.tasks.length}
           </div>
-          
-          <div style={{ padding: '12px' }}>
-            {(() => {
-              // 渲染任务项 - 过滤掉与当前选中属性名称相同的标签
+        </div>
+      </div>
+      
+      {/* ===== ✅ 修复：任务列表 - 移除 activeTab 和 selectedItem 引用 ===== */}
+      <div style={{ padding: '12px' }}>
+        {(() => {
+          // ✅ 修复后的 renderTaskItem - 不依赖 activeTab 和 selectedItem
+          // 在 AttributeDetailPage 组件中修改 renderTaskItem 函数
 const renderTaskItem = (task, index) => {
   const minutes = Math.floor((task.timeSpent || 0) / 60);
   const isCompleted = task.done === true && task.abandoned !== true;
   const isAbandoned = task.abandoned === true;
+  const isCountTask = task.isCountTask === true;
+  const count = task.count || 0;
   
-  const getCategoryBg = (category, subCategory) => {
-    if (category === '校内' && subCategory) {
-      return subCategoryColors?.[subCategory] || '#f0f0f0';
-    }
+  const getCategoryBg = (category) => {
     return categoryColors?.[category] || '#f0f0f0';
   };
   
-  // ✅ 获取当前选中的属性名称（仅基础属性页面需要过滤）
-  let currentDimName = '';
-  if (activeTab === 'dimensions' && selectedItem) {
-    currentDimName = DIMENSIONS[selectedItem]?.name || '';
-  }
-  
-  // ✅ 过滤标签：只排除与当前属性名称完全相同的标签
-  const getFilteredTags = (tags) => {
-    if (!tags || !Array.isArray(tags)) return [];
-    if (activeTab === 'dimensions' && currentDimName) {
-      // 只过滤掉与属性名称完全匹配的标签
-      return tags.filter(tag => tag !== currentDimName);
-    }
-    return tags;
-  };
-  
-  const filteredTags = getFilteredTags(task.tags);
+  const tags = task.tags || [];
   
   return (
     <div
@@ -23095,9 +22871,32 @@ const renderTaskItem = (task, index) => {
             textDecoration: isAbandoned ? 'line-through' : (isCompleted ? 'line-through' : 'none'),
             wordBreak: 'break-word',
             lineHeight: '1.4',
-            fontSize: '13px'
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            flexWrap: 'wrap'
           }}>
-            {task.text}
+            <span>{task.text}</span>
+            
+            {/* ✅ 新增：显示多次任务次数 */}
+            {isCountTask && count > 0 && (
+              <span style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 8px',
+                height: '18px',
+                backgroundColor: '#61A2Da',
+                color: '#fff',
+                borderRadius: '10px',
+                fontSize: '10px',
+                fontWeight: 'bold',
+                flexShrink: 0
+              }}>
+                ×{count}
+              </span>
+            )}
           </div>
           
           <div style={{
@@ -23113,8 +22912,8 @@ const renderTaskItem = (task, index) => {
             <span style={{
               padding: '0 6px',
               borderRadius: '8px',
-              backgroundColor: getCategoryBg(task.category, task.subCategory),
-              color: task.category === '校内' ? '#fff' : '#333'
+              backgroundColor: getCategoryBg(task.category),
+              color: '#333'
             }}>
               {task.subCategory || task.category}
             </span>
@@ -23129,10 +22928,9 @@ const renderTaskItem = (task, index) => {
                 {task.expValue}
               </span>
             )}
-            {/* ✅ 显示过滤后的标签 */}
-            {filteredTags.length > 0 && (
+            {tags.length > 0 && (
               <span style={{ color: '#999' }}>
-                {filteredTags.join(', ')}
+                {tags.join(', ')}
               </span>
             )}
           </div>
@@ -23167,78 +22965,79 @@ const renderTaskItem = (task, index) => {
     </div>
   );
 };
-              
-              const tasks = showCategoryDetailModal.tasks;
-              const tasksWithSubCategory = tasks.filter(t => t.subCategory);
-              const tasksWithoutSubCategory = tasks.filter(t => !t.subCategory);
-              
-              const groupedBySubCategory = {};
-              tasksWithSubCategory.forEach(task => {
-                const subCat = task.subCategory;
-                if (!groupedBySubCategory[subCat]) {
-                  groupedBySubCategory[subCat] = [];
-                }
-                groupedBySubCategory[subCat].push(task);
-              });
-              
-              return (
-                <div>
-                  {tasksWithoutSubCategory.length > 0 && (
-                    <div style={{ marginBottom: '16px' }}>
-                      <div style={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: '#61A2Da',
-                        marginBottom: '8px',
-                        paddingBottom: '4px',
-                        borderBottom: '1px solid #e0e0e0'
-                      }}>
-                        📋 全部
-                      </div>
-                      {tasksWithoutSubCategory.map((task, idx) => renderTaskItem(task, idx, tasksWithoutSubCategory.length))}
-                    </div>
-                  )}
-                  
-                  {Object.entries(groupedBySubCategory).map(([subCategory, subTasks]) => (
-                    <div key={subCategory} style={{ marginBottom: '16px' }}>
-                      <div style={{
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                        color: '#61A2Da',
-                        marginBottom: '8px',
-                        paddingBottom: '4px',
-                        borderBottom: '1px solid #e0e0e0'
-                      }}>
-                        {subCategory}
-                      </div>
-                      {subTasks.map((task, idx) => renderTaskItem(task, idx, subTasks.length))}
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
           
-          <div style={{ padding: '12px 16px', borderTop: '1px solid #f0f0f0' }}>
-            <div
-              onClick={() => setShowCategoryDetailModal(null)}
-              style={{
-                padding: '10px',
-                backgroundColor: '#61A2Da',
-                color: 'white',
-                borderRadius: '10px',
-                textAlign: 'center',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 'bold'
-              }}
-            >
-              关闭
+          const tasks = showCategoryDetailModal.tasks;
+          const tasksWithSubCategory = tasks.filter(t => t.subCategory);
+          const tasksWithoutSubCategory = tasks.filter(t => !t.subCategory);
+          
+          const groupedBySubCategory = {};
+          tasksWithSubCategory.forEach(task => {
+            const subCat = task.subCategory;
+            if (!groupedBySubCategory[subCat]) {
+              groupedBySubCategory[subCat] = [];
+            }
+            groupedBySubCategory[subCat].push(task);
+          });
+          
+          return (
+            <div>
+              {tasksWithoutSubCategory.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: '#61A2Da',
+                    marginBottom: '8px',
+                    paddingBottom: '4px',
+                    borderBottom: '1px solid #e0e0e0'
+                  }}>
+                    📋 全部
+                  </div>
+                  {tasksWithoutSubCategory.map((task, idx) => renderTaskItem(task, idx))}
+                </div>
+              )}
+              
+              {Object.entries(groupedBySubCategory).map(([subCategory, subTasks]) => (
+                <div key={subCategory} style={{ marginBottom: '16px' }}>
+                  <div style={{
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    color: '#61A2Da',
+                    marginBottom: '8px',
+                    paddingBottom: '4px',
+                    borderBottom: '1px solid #e0e0e0'
+                  }}>
+                    {subCategory}
+                  </div>
+                  {subTasks.map((task, idx) => renderTaskItem(task, idx))}
+                </div>
+              ))}
             </div>
-          </div>
+          );
+        })()}
+      </div>
+      
+      {/* 底部关闭按钮保持不变 */}
+      <div style={{ padding: '12px 16px', borderTop: '1px solid #f0f0f0' }}>
+        <div
+          onClick={() => setShowCategoryDetailModal(null)}
+          style={{
+            padding: '10px',
+            backgroundColor: '#61A2Da',
+            color: 'white',
+            borderRadius: '10px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold'
+          }}
+        >
+          关闭
         </div>
       </div>
-    )}
+    </div>
+  </div>
+)}
 
     {showSettingsMenu && (
       <div style={{
@@ -23830,7 +23629,7 @@ const renderTaskItem = (task, index) => {
     selectedDate={selectedDate}
     categories={categories}
     categoryColors={categoryColors}
-    subCategoryColors={subCategoryColors}
+    
     expData={expData}
     formatTimeNoSeconds={formatTimeNoSeconds}
   />
