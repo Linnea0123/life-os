@@ -16159,6 +16159,7 @@ const toggleDone = (task, currentDateFromTask = null) => {
   // ========== 处理经验值 ==========
   // 在 toggleDone 中，处理经验值的部分
 // 在 toggleDone 中处理经验值的部分
+// 在 toggleDone 函数中，处理经验值的部分
 setTimeout(() => {
   try {
     if (newDoneState === true) {
@@ -22393,83 +22394,184 @@ const getTasksForSkill = (skillName) => {
 
           
           {/* 技能标签选择 */}
-          <div style={{
-            marginBottom: 12,
-            padding: '8px 12px',
-            backgroundColor: '#f8f9fa',
-            borderRadius: 8
-          }}>
-            <div style={{
+       {/* 技能标签选择 - 支持自定义输入 */}
+<div style={{
+  marginBottom: 12,
+  padding: '8px 12px',
+  backgroundColor: '#f8f9fa',
+  borderRadius: 8
+}}>
+  <div style={{
+    fontSize: '12px',
+    color: '#666',
+    marginBottom: '6px',
+    fontWeight: '500'
+  }}>
+    技能标签
+  </div>
+  
+  {/* 自定义输入区域 */}
+  <div style={{
+    display: 'flex',
+    gap: '6px',
+    marginBottom: '8px'
+  }}>
+    <input
+      type="text"
+      value={bulkNewTagName || ''}
+      onChange={(e) => setBulkNewTagName(e.target.value)}
+      onKeyPress={(e) => {
+        if (e.key === 'Enter' && bulkNewTagName.trim()) {
+          const tag = bulkNewTagName.trim();
+          if (!selectedSkills.includes(tag)) {
+            setSelectedSkills([...selectedSkills, tag]);
+            setBulkNewTagName('');
+          }
+        }
+      }}
+      placeholder="输入自定义标签，按 Enter 添加"
+      style={{
+        flex: 1,
+        padding: '6px 10px',
+        border: '1px solid #ddd',
+        borderRadius: '6px',
+        fontSize: '12px',
+        outline: 'none'
+      }}
+    />
+    <div
+      onClick={() => {
+        if (bulkNewTagName.trim()) {
+          const tag = bulkNewTagName.trim();
+          if (!selectedSkills.includes(tag)) {
+            setSelectedSkills([...selectedSkills, tag]);
+            setBulkNewTagName('');
+          }
+        }
+      }}
+      style={{
+        padding: '6px 14px',
+        backgroundColor: '#61A2Da',
+        color: '#fff',
+        borderRadius: '6px',
+        cursor: 'pointer',
+        fontSize: '12px',
+        display: 'flex',
+        alignItems: 'center',
+        whiteSpace: 'nowrap'
+      }}
+    >
+      添加
+    </div>
+  </div>
+  
+  {/* 预设标签快速选择 */}
+  <div style={{
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '6px'
+  }}>
+    {[
+      '健身', '阅读', '英语', '冥想', '理财', 
+      '烹饪', '写作', '运动', '育儿', '摄影', 
+      '音乐', '设计'
+    ].map(skill => {
+      const isSelected = selectedSkills.includes(skill);
+      const skillColors = {
+        '运动': '#E8F5E9', '阅读': '#E3F2FD', '英语': '#FCE4EC',
+        '冥想': '#F3E5F5', '理财': '#FFF8E1', '烹饪': '#FFF3E0',
+        '写作': '#E8EAF6', '自媒体': '#E8F5E9', '育儿': '#FCE4EC',
+        '摄影': '#E1F5FE', '音乐': '#F3E5F5', '日语': '#FCE4EC'
+       
+      };
+      const color = skillColors[skill] || '#f0f0f0';
+      
+      return (
+        <span
+          key={skill}
+          onClick={() => {
+            if (isSelected) {
+              setSelectedSkills(selectedSkills.filter(s => s !== skill));
+            } else {
+              setSelectedSkills([...selectedSkills, skill]);
+            }
+          }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '4px 12px',
+            backgroundColor: isSelected ? color : '#f0f0f0',
+            color: isSelected ? '#333' : '#999',
+            borderRadius: '14px',
+            fontSize: '12px',
+            cursor: 'pointer',
+            border: isSelected ? '1.5px solid #61A2Da' : '1px solid #e0e0e0',
+            minWidth: '44px',
+            height: '28px',
+            transition: 'none',
+            fontWeight: isSelected ? '500' : 'normal'
+          }}
+        >
+          {skill}
+        </span>
+      );
+    })}
+  </div>
+  
+  {/* 已选标签展示 */}
+  {selectedSkills.length > 0 && (
+    <div style={{
+      display: 'flex',
+      flexWrap: 'wrap',
+      gap: '4px',
+      marginTop: '8px',
+      paddingTop: '8px',
+      borderTop: '1px dashed #e0e0e0'
+    }}>
+      {selectedSkills.map(tag => (
+        <span
+          key={tag}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            padding: '2px 10px',
+            backgroundColor: '#61A2Da',
+            color: '#fff',
+            borderRadius: '12px',
+            fontSize: '11px',
+            height: '24px'
+          }}
+        >
+          {tag}
+          <span
+            onClick={() => {
+              setSelectedSkills(selectedSkills.filter(s => s !== tag));
+            }}
+            style={{
+              cursor: 'pointer',
               fontSize: '12px',
-              color: '#666',
-              marginBottom: '6px',
-              fontWeight: '500'
-            }}>
-              技能标签
-            </div>
-            <div style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '6px'
-            }}>
-              {[
-                '健身', '阅读', '英语', '冥想', '理财', 
-                '烹饪', '写作', '运动', '育儿', '摄影', 
-                '音乐', '设计', '编程'
-              ].map(skill => {
-                const isSelected = selectedSkills.includes(skill);
-                const skillColors = {
-                  '健身': '#E8F5E9', '阅读': '#E3F2FD', '英语': '#FCE4EC',
-                  '冥想': '#F3E5F5', '理财': '#FFF8E1', '烹饪': '#FFF3E0',
-                  '写作': '#E8EAF6', '运动': '#E8F5E9', '育儿': '#FCE4EC',
-                  '摄影': '#E1F5FE', '音乐': '#F3E5F5', '设计': '#FCE4EC',
-                  '编程': '#E8F5E9'
-                };
-                const color = skillColors[skill] || '#f0f0f0';
-                
-                return (
-                  <span
-                    key={skill}
-                    onClick={() => {
-                      if (isSelected) {
-                        setSelectedSkills(selectedSkills.filter(s => s !== skill));
-                      } else {
-                        setSelectedSkills([...selectedSkills, skill]);
-                      }
-                    }}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '4px 12px',
-                      backgroundColor: isSelected ? color : '#f0f0f0',
-                      color: isSelected ? '#333' : '#999',
-                      borderRadius: '14px',
-                      fontSize: '12px',
-                      cursor: 'pointer',
-                      border: isSelected ? '1.5px solid #61A2Da' : '1px solid #e0e0e0',
-                      minWidth: '44px',
-                      height: '28px',
-                      transition: 'none',
-                      fontWeight: isSelected ? '500' : 'normal'
-                    }}
-                  >
-                    {skill}
-                  </span>
-                );
-              })}
-            </div>
-            {selectedSkills.length > 0 && (
-              <div style={{
-                fontSize: '10px',
-                color: '#999',
-                marginTop: '6px',
-                textAlign: 'right'
-              }}>
-                已选 {selectedSkills.length} 个
-              </div>
-            )}
-          </div>
+              opacity: 0.8,
+              marginLeft: '2px'
+            }}
+          >
+            ×
+          </span>
+        </span>
+      ))}
+      <span style={{
+        fontSize: '10px',
+        color: '#999',
+        display: 'flex',
+        alignItems: 'center',
+        paddingLeft: '4px'
+      }}>
+        共 {selectedSkills.length} 个标签
+      </span>
+    </div>
+  )}
+</div>
           
           <div style={{ marginBottom: 12 }}>
             <div style={{ fontSize: 12, color: '#666', marginBottom: 5 }}>分类：</div>
