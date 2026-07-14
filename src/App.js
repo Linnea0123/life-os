@@ -14224,23 +14224,20 @@ const prevCompletionState = useRef({});
 const [categoryColors, setCategoryColors] = useState(() => {
   const saved = localStorage.getItem('category_colors');
   if (saved) {
-    return JSON.parse(saved);
+    try {
+      return JSON.parse(saved);
+    } catch (e) {
+      console.error('解析 categoryColors 失败:', e);
+    }
   }
-  return {
-    '健康': '#9ADBC5',
-    '智慧': '#FD8D6E',
-    '心神': '#A1DEE0',
-    '家庭': '#FA86A9',
-    '财富': '#FCC351',
-    '悦己': '#DFDE6C'
-  };
+  // 没有保存的数据，返回空对象
+  return {};
 });
 
 // ✅ 添加这个 - 恢复 subCategoryColors（空对象，因为已经没有校内了）
 const [subCategoryColors, setSubCategoryColors] = useState({});
 
 
-// 保存大类别颜色的函数
 const saveCategoryColor = useCallback((catName, color) => {
   setCategoryColors(prev => {
     const newColors = { ...prev, [catName]: color };
@@ -14794,23 +14791,29 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
 
 
 
-// ✅ 恢复科目待办
+// ✅ 恢复分类颜色 - 直接覆盖
+if (backupData.categoryColors) {
+  setCategoryColors(backupData.categoryColors);
+  localStorage.setItem('category_colors', JSON.stringify(backupData.categoryColors));
+  console.log('✅ 恢复分类颜色 (覆盖):', Object.keys(backupData.categoryColors).length, '个分类');
+} else {
+  // 如果备份中没有，清空
+  setCategoryColors({});
+  localStorage.setItem('category_colors', JSON.stringify({}));
+  console.log('✅ 分类颜色已清空 (备份中无数据)');
+}
+
+// ✅ 恢复科目待办 - 直接覆盖
 if (backupData.subjectTodoEntries) {
   localStorage.setItem('subject_todo_entries_v2', JSON.stringify(backupData.subjectTodoEntries));
-  console.log('✅ 恢复科目待办');
+  console.log('✅ 恢复科目待办 (覆盖)');
 }
 
-// ✅ 恢复分类颜色
-if (backupData.categoryColors) {
-  localStorage.setItem('category_colors', JSON.stringify(backupData.categoryColors));
-  console.log('✅ 恢复分类颜色');
-}
-
-// ✅ 恢复月预算
+// ✅ 恢复月预算 - 直接覆盖
 if (backupData.monthlyBudget !== undefined) {
   setMonthlyBudget(backupData.monthlyBudget);
   localStorage.setItem('monthly_budget', String(backupData.monthlyBudget));
-  console.log('✅ 恢复月预算:', backupData.monthlyBudget);
+  console.log('✅ 恢复月预算 (覆盖):', backupData.monthlyBudget);
 }
 
     // 1. 恢复任务数据
@@ -15123,6 +15126,10 @@ Object.entries(tasksByDate).forEach(([date, tasks]) => {
   }));
 });
     
+// 在 syncToGitHub 函数中，获取数据的地方添加
+const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
+
+// 在 syncData 对象中 - 直接使用
 const syncData = {
   tasksByDate: compressedTasks,
   dailyRatings: allDailyRatings,
@@ -15143,17 +15150,14 @@ const syncData = {
   expData: expData,
   taskOrders: allTaskOrders,
   subCategoryOrders: allSubCategoryOrders,
-  // ✅ 新增：日常任务模板
-  dailyTaskTemplates: dailyTaskTemplates,
-  // ✅ 新增：科目待办
-  subjectTodoEntries: subjectTodoEntries,
-  // ✅ 新增：分类颜色
+  // ✅ 直接同步，不合并
   categoryColors: categoryColors,
+  subjectTodoEntries: JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}'),
+  monthlyBudget: parseFloat(localStorage.getItem('monthly_budget') || '3000'),
   syncTime: new Date().toISOString(),
   version: '2.5',
   expenseRecords: expenseRecords,
   todayExpense: todayExpense,
-  monthlyBudget: monthlyBudget,
   expenseDate: new Date().toISOString().split('T')[0],
   lastSelectedDate: selectedDate,
   lastCurrentMonday: currentMonday.toISOString()
