@@ -21165,26 +21165,33 @@ const getTasksForSkill = (skillName) => {
   )}
 
   {/* ===== 6大分类 ===== */}
-  {displayCategories.map((c) => {
+{displayCategories.map((c) => {
   // 如果选了具体分类，只显示该分类
   if (selectedCategoryTab !== '全部' && selectedCategoryTab !== c.name) {
     return null;
   }
   
-  // 获取该分类的任务
+  // 获取该分类的所有任务
   let catTasks = todayTasks.filter(t => 
     t.category === c.name && 
     t.category !== "本周任务" && 
     !t.isRegularTask
   );
   
-  // 如果开启了"只显示已完成"
+  // ✅ 关键修改：如果开启了"只显示已完成"模式
   if (showOnlyCompleted) {
+    // 只保留已完成的任务
     catTasks = catTasks.filter(t => t.done === true && t.abandoned !== true);
+    // ✅ 如果没有已完成的任务，直接不显示该分类
+    if (catTasks.length === 0) {
+      return null;
+    }
+  } else {
+    // 普通模式：如果没有任务，不显示
+    if (catTasks.length === 0) {
+      return null;
+    }
   }
-  
-  // 如果是"全部"分类，但选了具体分类，上面已经过滤了
-  if (catTasks.length === 0 && selectedCategoryTab !== '全部') return null;
   
   const isComplete = catTasks.length > 0 && catTasks.every(task => task.done === true && task.abandoned !== true);
   const isCollapsed = collapsedCategories[c.name];
@@ -21197,9 +21204,10 @@ const getTasksForSkill = (skillName) => {
         marginBottom: 8,
         borderRadius: 10,
         overflow: "hidden",
-         border: `2px solid ${categoryColors[c.name] ? `${categoryColors[c.name]}70` : '#e0e0e0'}`,
+        border: `2px solid ${categoryColors[c.name] ? `${categoryColors[c.name]}70` : '#e0e0e0'}`,
       }}
     >
+      {/* 分类标题栏 */}
       <div
         onClick={() => setCollapsedCategories(prev => ({ ...prev, [c.name]: !prev[c.name] }))}
         style={{
