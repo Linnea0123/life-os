@@ -20251,8 +20251,7 @@ const getTasksForSkill = (skillName) => {
   boxSizing: 'border-box',
   margin: isDesktop ? '0' : '0',  // ✅ 左对齐，不要 auto
   overflowX: 'hidden',
-  overflowY: 'visible',
-  minWidth: 0,
+  overflowY: 'visible'
 }}>
 
 {/* ===== 跑马灯 - 慢速双副本滚动 ===== */}
@@ -20960,92 +20959,84 @@ const getTasksForSkill = (skillName) => {
   }
   
   return (
-    <div
-      key={dateStr}
-      onClick={() => setSelectedDate(dateStr)}
-      style={{
-        padding: "2px 4px",
-        textAlign: "center",
-        flex: 1,
-        minWidth: 0,
-        margin: "0 1px",
-        fontSize: 11,
-        cursor: "pointer",
-        backgroundColor: isSelected ? "#fff9c4" : (isToday ? "#e8f0fe" : "transparent"),
-        color: isToday ? "#61A2Da" : "#000",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        minHeight: "16px",
-        background: dailyRating > 0 
-          ? `linear-gradient(to bottom, ${isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent')} 0%, ${isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent')} 50%, ${getRatingColor(dailyRating)}20 100%)`
-          : isSelected ? '#fff9c4' : (isToday ? '#e8f0fe' : 'transparent'),
-        position: "relative",
-        borderRadius: isToday ? "4px" : "0px",
-        border: isToday ? "1px solid #61A2Da" : "none"
-      }}
-    >
-      {/* 👇 修改：周几 + "今"字在左侧，绝对定位不占用空间 */}
-      <div style={{ 
-        display: "flex", 
-        alignItems: "center", 
-        justifyContent: "center",
-        fontSize: 10,
-        fontWeight: isSelected ? "bold" : (isToday ? "bold" : "normal"),
-        width: "100%",
-        position: "relative"
+    
+<div
+  key={dateStr}
+  onClick={() => setSelectedDate(dateStr)}
+  style={{
+    padding: "2px 4px",
+    textAlign: "center",
+    flex: 1,
+    minWidth: 0,
+    margin: "0 1px",
+    fontSize: 11,
+    cursor: "pointer",
+    // ✅ 只有选中的日期才有背景色
+    backgroundColor: isSelected ? "#fff9c4" : "transparent",
+    
+    color: "#000",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    minHeight: "16px",
+    background: isSelected ? "#fff9c4" : "transparent",
+    position: "relative",
+    borderRadius: isSelected ? "4px" : "0px",
+  }}
+>
+  <div style={{ 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center",
+    fontSize: 10,
+    // ✅ 今天的周几加粗
+    fontWeight: isToday ? "bold" : "normal",
+    width: "100%",
+    position: "relative",
+    // ✅ 今天的周几显示红色
+    color: isToday ? "#f44336" : "#000"
+  }}>
+    {/* ❌ 删除"今"字 */}
+    
+    <span>{d.label}</span>
+    
+    {completedCount > 0 && (
+      <span style={{
+        position: "absolute",
+        right: "2px",
+        fontSize: "8px",
+        color: "#4caf50",
+        fontWeight: "bold"
       }}>
-        {/* 👇 "今"字在左侧绝对定位，不影响周几居中 */}
-        {isToday && (
-          <span style={{
-            position: "absolute",
-            left: "1px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            fontSize: "8px",
-            fontWeight: "bold",
-            color: "#FF6B6B",
-            fontFamily: "sans-serif"
-          }}>
-            今
-          </span>
-        )}
-        
-        <span>{d.label}</span>
-        
-        {completedCount > 0 && (
-          <span style={{
-            position: "absolute",
-            right: "2px",
-            fontSize: "8px",
-            color: "#4caf50",
-            fontWeight: "bold"
-          }}>
-            {completedCount}
-          </span>
-        )}
-        
-        {hasCrossDateTask && (
-          <span style={{
-            position: "absolute",
-            right: completedCount > 0 ? "22px" : "2px",
-            fontSize: "6px",
-            color: "#f44336"
-          }}>
-            休
-          </span>
-        )}
-      </div>
-      
-      <div style={{ 
-        fontSize: 9,
-        fontFamily: "sans-serif",
-        fontWeight: isSelected ? "bold" : (isToday ? "bold" : "normal"),
-        color: isToday ? "#61A2Da" : "#666"
+        {completedCount}
+      </span>
+    )}
+    
+    {hasCrossDateTask && (
+      <span style={{
+        position: "absolute",
+        right: completedCount > 0 ? "22px" : "2px",
+        fontSize: "6px",
+        color: "#f44336"
       }}>
-        {d.date.slice(5)}
-      </div>
-    </div>
+        休
+      </span>
+    )}
+  </div>
+  
+  <div style={{ 
+    fontSize: 9,
+    fontFamily: "sans-serif",
+    // ✅ 今天的日期加粗
+    fontWeight: isToday ? "bold" : "normal",
+    // ✅ 今天的日期显示红色
+    color: isToday ? "#f44336" : "#000"
+  }}>
+    {d.date.slice(5)}
+  </div>
+</div>
+
+
   );
 })}
 </div>
