@@ -12499,9 +12499,7 @@ const EXP_PER_LEVEL = 50;
 const ExpPopup = ({ expData, onClose }) => {
   const [totalProgress, setTotalProgress] = useState(0);
   const [dimProgress, setDimProgress] = useState(0);
-  const [healthProgress, setHealthProgress] = useState(0);
-  const [isVisible, setIsVisible] = useState(true);
-  
+  const [skillProgresses, setSkillProgresses] = useState({});
   
   const earnedExp = expData.totalExp || 0;
   const grandTotal = expData.grandTotal || 0;
@@ -12526,12 +12524,22 @@ const ExpPopup = ({ expData, onClose }) => {
     return 0;
   };
   
- 
+  const getSkillTotalFromStorage = (skillName) => {
+    try {
+      const saved = localStorage.getItem('exp_data_v2');
+      if (saved) {
+        const data = JSON.parse(saved);
+        const skillExp = data.skillExp || {};
+        return skillExp[skillName] || 0;
+      }
+    } catch (e) {
+      console.error('读取技能经验失败:', e);
+    }
+    return 0;
+  };
   
   const dimGrandTotal = dimKey ? getDimTotalFromStorage(dimKey) : 0;
   const dimBeforeTotal = Math.max(0, dimGrandTotal - dimValue);
-  
-  
   
   const expPerLevel = EXP_PER_LEVEL;
   
@@ -12548,108 +12556,181 @@ const ExpPopup = ({ expData, onClose }) => {
   const dimExpInLevel = dimKey ? dimGrandTotal % expPerLevel : 0;
   
   const dimNames = {
-  tipuo: '健康',
-  xiuye: '智慧',
-  xinshen: '心神',
-  shouhu: '家庭',
-  caiye: '财富',
-  yiqu: '悦己'
-};
+    tipuo: '健康',
+    xiuye: '智慧',
+    xinshen: '心神',
+    shouhu: '家庭',
+    caiye: '财富',
+    yiqu: '悦己'
+  };
 
-   // ✅ 语库定义在组件内部
-const encouragementMessages = [
-  // 🏆 成就感
-  "🏆 又拿下一城！你太强了！",
-  "💎 每天进步1%，一年强大37倍！",
-  "🔥 这就是传说中的执行力吗？",
-  "⚡ 你的效率让任务瑟瑟发抖！",
-  "🚀 离梦想又近了一步！",
-  
-  // 😄 幽默风趣
-  "💪 任务：已阵亡，请补刀！",
-  "🎯 百发百中，你就是神射手！",
-  "😎 简单任务，轻松拿捏！",
-  "🐮 牛啊！今天状态拉满！",
-  "🏃 任务追不上你的速度！",
-  
-  // 🌱 成长型
-  "🌱 种子在发芽，你在成长！",
-  "📈 今天的积累，明天的爆发！",
-  "🧱 一块砖一块砖，大厦将成！",
-  "⏳ 时间会证明你的坚持！",
-  "💡 每一次完成都是智慧的闪光！",
-  
-  // 🎯 目标导向
-  "🎯 目标锁定，精准命中！",
-  "⛰️ 山再高，一步步也能登顶！",
-  "🏁 终点就在前方，继续冲！",
-  "🌟 你的光芒，谁也挡不住！",
-  "🎪 每天都是你的主场！",
-  
-  // 💪 动力型
-  "💪 你的潜力，超乎你想象！",
-  "🔥 燃烧吧，小宇宙！",
-  "⚡ 充能完毕，继续战斗！",
-  "🌟 你比自己想象的更优秀！",
-  "🏆 冠军的心态，冠军的表现！",
-  
-  // 🤗 温暖鼓励
-  "💖 今天也很努力呢！真棒！",
-  "🌈 你的坚持，终将美好！",
-  "☀️ 今天的阳光，因你而灿烂！",
-  "🌸 努力的人，运气都不会太差！",
-  "🌊 平静的力量，也能掀起巨浪！"
-];
+  const encouragementMessages = [
+    "🏆 又拿下一城！你太强了！",
+    "💎 每天进步1%，一年强大37倍！",
+    "🔥 这就是传说中的执行力吗？",
+    "⚡ 你的效率让任务瑟瑟发抖！",
+    "🚀 离梦想又近了一步！",
+    "💪 任务：已阵亡，请补刀！",
+    "🎯 百发百中，你就是神射手！",
+    "😎 简单任务，轻松拿捏！",
+    "🐮 牛啊！今天状态拉满！",
+    "🏃 任务追不上你的速度！",
+    "🌱 种子在发芽，你在成长！",
+    "📈 今天的积累，明天的爆发！",
+    "🧱 一块砖一块砖，大厦将成！",
+    "⏳ 时间会证明你的坚持！",
+    "💡 每一次完成都是智慧的闪光！",
+    "🎯 目标锁定，精准命中！",
+    "⛰️ 山再高，一步步也能登顶！",
+    "🏁 终点就在前方，继续冲！",
+    "🌟 你的光芒，谁也挡不住！",
+    "🎪 每天都是你的主场！",
+    "💪 你的潜力，超乎你想象！",
+    "🔥 燃烧吧，小宇宙！",
+    "⚡ 充能完毕，继续战斗！",
+    "🌟 你比自己想象的更优秀！",
+    "🏆 冠军的心态，冠军的表现！",
+    "💖 今天也很努力呢！真棒！",
+    "🌈 你的坚持，终将美好！",
+    "☀️ 今天的阳光，因你而灿烂！",
+    "🌸 努力的人，运气都不会太差！",
+    "🌊 平静的力量，也能掀起巨浪！"
+  ];
 
-  // ✅ 随机抽取一条（只抽一次，固定在弹窗中）
   const randomMessageRef = useRef(
     encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)]
   );
 
+  const hasSkills = expData.skills && expData.skills.length > 0;
+
+  const getSkillColor = (skill) => {
+    const colors = {
+      '健身': '#4CAF50',
+      '阅读': '#2196F3',
+      '英语': '#E91E63',
+      '冥想': '#9C27B0',
+      '理财': '#FFC107',
+      '烹饪': '#FF9800',
+      '写作': '#3F51B5',
+      '运动': '#4CAF50',
+      '育儿': '#E91E63',
+      '摄影': '#03A9F4',
+      '音乐': '#9C27B0',
+      '设计': '#E91E63',
+      '编程': '#4CAF50',
+    };
+    return colors[skill] || '#61A2Da';
+  };
+
+  // ========== ✅ 唯一的 useEffect - 初始化 + 动画 ==========
   useEffect(() => {
+    const skills = expData.skills || [];
+    
+    // 1. 初始化技能进度
+    const skillProg = {};
+    skills.forEach(skill => {
+      const skillTotal = expData.skillExp?.[skill] || 0;
+      const skillEarned = expData.skillExpEarned?.[skill] || 0;
+      const beforeSkillTotal = Math.max(0, skillTotal - skillEarned);
+      
+      const beforePercent = expPerLevel > 0 ? Math.min((beforeSkillTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+      const afterPercent = expPerLevel > 0 ? Math.min((skillTotal % expPerLevel) / expPerLevel * 100, 100) : 0;
+      
+      skillProg[skill] = {
+        before: beforePercent,
+        after: afterPercent,
+        total: skillTotal,
+        earned: skillEarned,
+        current: beforePercent
+      };
+    });
+    setSkillProgresses(skillProg);
+    
+    // 2. 检查变化
+    const totalDiff = afterTotalPercent - beforeTotalPercent;
+    const dimDiff = afterDimPercent - beforeDimPercent;
+    
+    let hasSkillChange = false;
+    const skillDiffs = {};
+    skills.forEach(skill => {
+      const prog = skillProg[skill];
+      if (prog) {
+        const diff = prog.after - prog.before;
+        skillDiffs[skill] = diff;
+        if (Math.abs(diff) > 0.001) {
+          hasSkillChange = true;
+        }
+      }
+    });
+    
+    // 3. 没有变化直接设置最终值
+    if (Math.abs(totalDiff) < 0.001 && Math.abs(dimDiff) < 0.001 && !hasSkillChange) {
+      setTotalProgress(afterTotalPercent);
+      setDimProgress(afterDimPercent);
+      setSkillProgresses(prev => {
+        const newProg = {};
+        Object.keys(prev).forEach(skill => {
+          newProg[skill] = { ...prev[skill], current: prev[skill].after };
+        });
+        return newProg;
+      });
+      return;
+    }
+    
+    // 4. 执行动画
     const duration = 1200;
     const interval = 16;
     const steps = duration / interval;
     let currentStep = 0;
     
-    const totalDiff = afterTotalPercent - beforeTotalPercent;
-    const dimDiff = afterDimPercent - beforeDimPercent;
-    
-    if (totalDiff === 0 && dimDiff === 0 && healthDiff === 0) {
-      setTotalProgress(afterTotalPercent);
-      setDimProgress(afterDimPercent);
-      
-      setTimeout(() => {
-        setIsVisible(false);
-        setTimeout(onClose, 400);
-      }, 1000);
-      return;
-    }
+    const startTotal = beforeTotalPercent;
+    const startDim = beforeDimPercent;
+    const startSkills = {};
+    Object.keys(skillProg).forEach(skill => {
+      startSkills[skill] = skillProg[skill].before;
+    });
     
     const timer = setInterval(() => {
       currentStep++;
-      const t = Math.min(currentStep / steps, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
+      const progress = Math.min(currentStep / steps, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
       
-      setTotalProgress(Math.min(beforeTotalPercent + totalDiff * eased, 100));
-      setDimProgress(Math.min(beforeDimPercent + dimDiff * eased, 100));
+      setTotalProgress(startTotal + (afterTotalPercent - startTotal) * eased);
+      setDimProgress(startDim + (afterDimPercent - startDim) * eased);
+      
+      setSkillProgresses(prev => {
+        const newProg = {};
+        Object.keys(prev).forEach(skill => {
+          const diff = skillDiffs[skill] || 0;
+          const start = startSkills[skill] || 0;
+          newProg[skill] = {
+            ...prev[skill],
+            current: start + diff * eased
+          };
+        });
+        return newProg;
+      });
       
       if (currentStep >= steps) {
         clearInterval(timer);
-        setTimeout(() => {
-          setIsVisible(false);
-          setTimeout(onClose, 400);
-        }, 1200);
+        setTotalProgress(afterTotalPercent);
+        setDimProgress(afterDimPercent);
+        setSkillProgresses(prev => {
+          const newProg = {};
+          Object.keys(prev).forEach(skill => {
+            newProg[skill] = {
+              ...prev[skill],
+              current: prev[skill].after
+            };
+          });
+          return newProg;
+        });
       }
     }, interval);
     
     return () => clearInterval(timer);
-  }, [beforeTotalPercent, afterTotalPercent, beforeDimPercent, afterDimPercent, onClose]);
-  
-  if (!isVisible) return null;
-  
-  const hasSkills = expData.skills && expData.skills.length > 0;
-  
+  }, [beforeTotalPercent, afterTotalPercent, beforeDimPercent, afterDimPercent, expData.skills, expData.skillExp, expData.skillExpEarned]);
+
   return (
     <div style={{
       position: 'fixed',
@@ -12663,7 +12744,9 @@ const encouragementMessages = [
       alignItems: 'center',
       zIndex: 9999,
       animation: 'fadeIn 0.2s ease'
-    }}>
+    }}
+    onClick={onClose}
+    >
       <style>{`
         @keyframes fadeIn {
           0% { opacity: 0; }
@@ -12685,23 +12768,24 @@ const encouragementMessages = [
         padding: '24px 28px 28px',
         minWidth: '280px',
         maxWidth: '340px',
+        maxHeight: '80vh',
+        overflow: 'auto',
         boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
         border: '1px solid #e8e8e8',
         animation: 'slideUp 0.3s ease'
-      }}>
-
-         <div style={{
+      }}
+      onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{
           textAlign: 'center',
           fontSize: '20px',
           fontWeight: 'bold',
           color: '#FF6B6B',
           marginBottom: '30px'
         }}>
-            {randomMessageRef.current}
+          {randomMessageRef.current}
         </div>
 
-    
-        
         {/* ========== 第1条：总经验 ========== */}
         <div style={{ marginBottom: '14px' }}>
           <div style={{
@@ -12744,7 +12828,7 @@ const encouragementMessages = [
           </div>
         </div>
         
-        {/* ========== 第2条：体魄 ========== */}
+        {/* ========== 第2条：维度 ========== */}
         {dimKey && (
           <div style={{ marginBottom: '14px' }}>
             <div style={{
@@ -12788,32 +12872,59 @@ const encouragementMessages = [
           </div>
         )}
         
-       
-        
-        {/* 技能标签 */}
+        {/* ========== 技能标签 ========== */}
         {hasSkills && (
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '6px',
-            justifyContent: 'center',
-            paddingTop: '8px'
-          }}>
-            {expData.skills.map((skill, idx) => (
-              <span
-                key={idx}
-                style={{
-                  fontSize: '11px',
-                  padding: '2px 12px',
-                  borderRadius: '12px',
-                  backgroundColor: '#f5f5f5',
-                  color: '#555',
-                  border: '1px solid #e8e8e8'
-                }}
-              >
-                {skill}
-              </span>
-            ))}
+          <div style={{ marginTop: '4px' }}>
+            {expData.skills.map((skill, idx) => {
+              const prog = skillProgresses[skill];
+              const current = prog?.current || 0;
+              const total = prog?.total || 0;
+              const earned = prog?.earned || 0;
+              const skillLevel = Math.floor(total / EXP_PER_LEVEL) + 1;
+              const expInLevel = total % EXP_PER_LEVEL;
+              const color = getSkillColor(skill);
+              
+              return (
+                <div key={idx} style={{ marginBottom: '14px' }}>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    marginBottom: '4px'
+                  }}>
+                    <span style={{
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      color: '#333'
+                    }}>
+                      {skill} {earned > 0 ? `+${earned}` : ''}
+                    </span>
+                    <span style={{
+                      fontSize: '11px',
+                      color: '#666'
+                    }}>
+                      Lv.{skillLevel}  {expInLevel}/{EXP_PER_LEVEL}
+                    </span>
+                  </div>
+                  
+                  <div style={{
+                    width: '100%',
+                    height: '6px',
+                    backgroundColor: '#f0f0f0',
+                    borderRadius: '3px',
+                    overflow: 'hidden'
+                  }}>
+                    <div style={{
+                      width: `${current}%`,
+                      height: '100%',
+                      borderRadius: '3px',
+                      backgroundColor: current >= 100 ? '#FFD700' : color,
+                      transition: 'width 0.02s linear'
+                    }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
         
@@ -12832,13 +12943,76 @@ const encouragementMessages = [
             Lv.{expData.levelUp} 达成！
           </div>
         )}
+
+        <div
+          onClick={onClose}
+          style={{
+            marginTop: '16px',
+            padding: '10px',
+            backgroundColor: '#61A2Da',
+            color: '#fff',
+            borderRadius: '8px',
+            textAlign: 'center',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+            userSelect: 'none'
+          }}
+        >
+          💪 加油！再接再厉
+        </div>
       </div>
     </div>
   );
 };
 
 function App() {
-// 总资产显示控制（默认隐藏）
+// 默认计划模板 - 存储在 localStorage 中
+// 默认计划模板 - 存储在 localStorage 中
+const [defaultPlanTemplate, setDefaultPlanTemplate] = useState(() => {
+  const saved = localStorage.getItem('default_plan_template');
+  if (saved) {
+    return saved;
+  }
+  // 默认的每日计划模板
+  return `健康
+运动30分钟 #健身
+手机时间＜6h
+饭后站立10分钟
+喝水2杯
+步数＞6000
+早睡22:30前
+
+智慧
+阅读30分钟 #阅读
+英语听力30分钟 #英语
+英语阅读30分钟 #英语
+增长新知识
+
+心神
+写日记
+冥想10分钟 #冥想
+
+家庭
+陪娃阅读30分钟
+陪娃学习
+陪娃玩
+
+财富
+记账 #理财
+学习理财知识30分钟 #理财
+定投/储蓄 #理财
+复盘本周开支 #理财
+
+悦己
+做一道新菜 #烹饪
+看一部新电影/纪录片
+听一首新歌`;
+});
+
+// 修改模板弹窗状态
+const [showEditTemplateModal, setShowEditTemplateModal] = useState(false);
+const [editTemplateText, setEditTemplateText] = useState('');
 const [showAssets, setShowAssets] = useState(false);
 const [totalAssets, setTotalAssets] = useState(() => {
   const saved = localStorage.getItem('total_assets');
@@ -13427,45 +13601,48 @@ const getTaskRewards = useCallback((task) => {
 // 在 App 组件顶部添加（useRef 附近）
 const addExpCache = new Map();
 
-const addExp = useCallback((date, rewards) => {
-  console.group('🔍 addExp 被调用');
-  console.log('日期:', date);
-  console.log('奖励:', rewards);
-  console.trace('📍 调用堆栈:');
-  console.groupEnd();
+// 修改 addExp 函数，增加 skills 参数
+// ✅ 正确的 addExp 函数结构
+// ===== 在 App 组件中，修复 addExp 函数 =====
+const addExp = useCallback((date, rewards, skills = []) => {
   if (!date || !rewards || Object.keys(rewards).length === 0) {
     return;
   }
   
-  // ✅ 防重复：同一任务同一秒内只执行一次
-  const cacheKey = `${date}_${JSON.stringify(rewards)}`;
-  const now = Date.now();
-  const lastCall = addExpCache.get(cacheKey) || 0;
-  
-  if (now - lastCall < 1000) {
-    console.warn('⏭️ addExp 重复调用被阻止 (1秒内)');
-    return;
-  }
-  addExpCache.set(cacheKey, now);
-  
-  console.log('📊 addExp 执行:', date, rewards);
-  
   setExpData(prev => {
-    const newDaily = { ...prev.daily };
-    const newTotal = { ...prev.total };
+    const newDaily = { ...(prev.daily || {}) };
+    const newTotal = { ...(prev.total || {}) };
+    // ✅ 确保 skillExp 存在
+    const newSkillExp = { ...(prev.skillExp || {}) };
     
     if (!newDaily[date]) newDaily[date] = {};
     
     Object.entries(rewards).forEach(([dim, value]) => {
-      // ✅ 改成 !== 0，允许负数
       if (value !== 0) {
         newDaily[date][dim] = (newDaily[date][dim] || 0) + value;
         newTotal[dim] = (newTotal[dim] || 0) + value;
-        console.log(`  📈 ${dim}: ${value > 0 ? '+' : ''}${value} (累计: ${newTotal[dim]})`);
       }
     });
     
-    const newData = { daily: newDaily, total: newTotal };
+    // ✅ 关键修复：记录技能经验
+    if (skills && skills.length > 0) {
+      // 使用第一个维度的经验值作为技能经验值
+      const firstDimValue = Object.values(rewards)[0] || 2;
+      skills.forEach(skill => {
+        const cleanSkill = String(skill).trim();
+        if (cleanSkill) {
+          // ✅ 累加技能经验
+          newSkillExp[cleanSkill] = (newSkillExp[cleanSkill] || 0) + firstDimValue;
+          console.log(`  🏷️ ${cleanSkill}: +${firstDimValue} (累计: ${newSkillExp[cleanSkill]})`);
+        }
+      });
+    }
+    
+    const newData = { 
+      daily: newDaily, 
+      total: newTotal,
+      skillExp: newSkillExp  // ✅ 保存技能经验
+    };
     localStorage.setItem('exp_data_v2', JSON.stringify(newData));
     return newData;
   });
@@ -14849,6 +15026,14 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
     if (mode !== 'overwrite') {
       console.log('⚠️ 只支持覆盖模式，自动切换为覆盖模式');
     }
+
+// ✅ 恢复默认每日计划模板
+if (backupData.defaultPlanTemplate !== undefined) {
+  setDefaultPlanTemplate(backupData.defaultPlanTemplate);
+  localStorage.setItem('default_plan_template', backupData.defaultPlanTemplate);
+  console.log('✅ 恢复默认每日计划模板');
+}
+
     
   // ✅ 恢复总资产
     if (backupData.totalAssets !== undefined) {
@@ -15233,6 +15418,7 @@ const syncData = {
   syncTime: new Date().toISOString(),
   version: '2.5',
   expenseRecords: expenseRecords,
+  defaultPlanTemplate: localStorage.getItem('default_plan_template') || '',
   todayExpense: todayExpense,
   expenseDate: new Date().toISOString().split('T')[0],
   lastSelectedDate: selectedDate,
@@ -16173,15 +16359,17 @@ const toggleDone = (task, currentDateFromTask = null) => {
     
     // 查找并更新任务
     let taskFound = false;
+    let updatedTask = null;
     newTasksByDate[dateToUpdate] = newTasksByDate[dateToUpdate].map(t => {
       if (t.id === task.id) {
         taskFound = true;
-        return {
+        updatedTask = {
           ...t,
           done: newDoneState,
           actualCompletedDate: newDoneState ? dateToUpdate : null,
           updatedAt: new Date().toISOString()
         };
+        return updatedTask;
       }
       return t;
     });
@@ -16193,12 +16381,13 @@ const toggleDone = (task, currentDateFromTask = null) => {
         newTasksByDate[date] = newTasksByDate[date].map(t => {
           if (t.id === task.id) {
             taskFound = true;
-            return {
+            updatedTask = {
               ...t,
               done: newDoneState,
               actualCompletedDate: newDoneState ? dateToUpdate : null,
               updatedAt: new Date().toISOString()
             };
+            return updatedTask;
           }
           return t;
         });
@@ -16207,50 +16396,120 @@ const toggleDone = (task, currentDateFromTask = null) => {
     
     if (!taskFound) {
       console.warn('⚠️ 任务未找到，添加到当前日期:', task.text);
-      newTasksByDate[dateToUpdate].push({
+      updatedTask = {
         ...task,
         done: newDoneState,
         actualCompletedDate: newDoneState ? dateToUpdate : null,
         updatedAt: new Date().toISOString()
-      });
+      };
+      newTasksByDate[dateToUpdate].push(updatedTask);
     }
     
     return newTasksByDate;
   });
   
   // ========== 处理经验值 ==========
-  // 在 toggleDone 中，处理经验值的部分
-// 在 toggleDone 中处理经验值的部分
-// 在 toggleDone 函数中，处理经验值的部分
-setTimeout(() => {
-  try {
-    if (newDoneState === true) {
-      // ✅ 完成任务：直接加 rewards（可能是负数）
-      const rewards = getTaskRewards(task);
-      if (rewards && Object.keys(rewards).length > 0) {
-        addExp(currentDate, rewards);
-        console.log('🎯 完成任务加分:', rewards);
-      }
-    } else {
-      // ✅ 取消完成：减去 rewards（如果是负数，减负数 = 加回来）
-      const rewards = getTaskRewards(task);
-      if (rewards && Object.keys(rewards).length > 0) {
-        const negativeRewards = {};
-        Object.entries(rewards).forEach(([dim, value]) => {
-          // 取反：如果 rewards 是 -1，取反后变成 +1（加回来）
-          negativeRewards[dim] = -Number(value);
+  setTimeout(() => {
+    try {
+      // ✅ 从 tasksByDate 重新获取最新的任务数据
+      const latestTasks = tasksByDate[currentDate] || [];
+      const latestTask = latestTasks.find(t => t.id === task.id);
+      
+      // 如果没找到，尝试在所有日期中查找
+      let finalTask = latestTask || task;
+      if (!latestTask) {
+        Object.keys(tasksByDate).forEach(date => {
+          if (finalTask) return;
+          const found = tasksByDate[date].find(t => t.id === task.id);
+          if (found) finalTask = found;
         });
-        addExp(currentDate, negativeRewards);
-        console.log('🎯 取消完成扣分:', negativeRewards);
       }
+      
+      console.log('📋 最新任务数据:', {
+        text: finalTask.text,
+        tags: finalTask.tags,
+        tagsLength: finalTask.tags?.length || 0
+      });
+      
+      if (newDoneState === true) {
+  const rewards = getTaskRewards(finalTask);
+  if (rewards && Object.keys(rewards).length > 0) {
+    let skills = finalTask.tags || [];
+    if (!Array.isArray(skills)) {
+      skills = typeof skills === 'string' ? [skills] : [];
     }
-  } catch (error) {
-    console.error('❌ 经验值处理失败:', error);
-  } finally {
-    processingLocks.delete(lockKey);
-    console.log('✅ 锁已释放:', task.text);
+    
+    console.log('✅ 最终技能标签:', skills);
+    addExp(currentDate, rewards, skills);
+    console.log('🎯 完成任务加分:', rewards, '技能:', skills);
+    
+    // ✅ 获取技能总经验
+    const expDataFromStorage = JSON.parse(localStorage.getItem('exp_data_v2') || '{"daily":{},"total":{},"skillExp":{}}');
+    const skillExpTotal = expDataFromStorage.skillExp || {};
+    
+    // 触发鼓励弹窗
+    const dimKey = Object.keys(rewards)[0];
+    const totalExp = expData.total || {};
+    const grandTotal = Object.values(totalExp).reduce((sum, val) => sum + val, 0);
+    const expPerLevel = 50;
+    const totalAdded = Object.values(rewards).reduce((s, v) => s + v, 0);
+    const oldLevel = Math.floor((grandTotal - totalAdded) / expPerLevel) + 1;
+    const newLevel = Math.floor(grandTotal / expPerLevel) + 1;
+    
+   // 在 toggleDone 中触发弹窗
+setShowExpPopup({
+  totalExp: totalAdded,
+  grandTotal: grandTotal,
+  exp: rewards,
+  skills: skills,
+  // ✅ 从 localStorage 读取当前技能总经验
+  skillExp: (() => {
+    const data = JSON.parse(localStorage.getItem('exp_data_v2') || '{"skillExp":{}}');
+    return data.skillExp || {};
+  })(),
+  // ✅ 新增：本次获得的技能经验（用于计算 before）
+  skillExpEarned: (() => {
+    const earned = {};
+    if (skills && skills.length > 0) {
+      const expValue = Object.values(rewards)[0] || 2;
+      skills.forEach(skill => {
+        earned[skill] = expValue;
+      });
+    }
+    return earned;
+  })(),
+  // ✅ 新增：维度总经验（用于维度进度计算）
+  dimTotal: (() => {
+    const data = JSON.parse(localStorage.getItem('exp_data_v2') || '{"total":{}}');
+    return data.total || {};
+  })(),
+  levelUp: newLevel > oldLevel ? newLevel : null
+});
   }
-}, 150);
+}
+      
+      else {
+        const rewards = getTaskRewards(finalTask);
+        if (rewards && Object.keys(rewards).length > 0) {
+          const negativeRewards = {};
+          Object.entries(rewards).forEach(([dim, value]) => {
+            negativeRewards[dim] = -Number(value);
+          });
+          let skills = finalTask.tags || [];
+          if (!Array.isArray(skills)) {
+            skills = typeof skills === 'string' ? [skills] : [];
+          }
+          addExp(currentDate, negativeRewards, skills);
+          console.log('🎯 取消完成扣分:', negativeRewards, '技能:', skills);
+        }
+      }
+    } catch (error) {
+      console.error('❌ 经验值处理失败:', error);
+    } finally {
+      processingLocks.delete(lockKey);
+      console.log('✅ 锁已释放:', task.text);
+    }
+  }, 150);
 };
 
 // ===== 更新任务经验值 =====
@@ -16258,7 +16517,6 @@ setTimeout(() => {
 const handleIncrementCount = (task) => {
   if (!task || task.isCountTask !== true) return;
   
-  // 防抖
   const now = Date.now();
   const lastClick = task._lastClickTime || 0;
   if (now - lastClick < 100) return;
@@ -16267,14 +16525,12 @@ const handleIncrementCount = (task) => {
   const oldCount = task.count || 0;
   const newCount = oldCount + 1;
   
-  // ✅ 创建计数记录
   const countRecord = {
     time: new Date().toISOString(),
     count: newCount,
     note: `第 ${newCount} 次完成`
   };
   
-  // 更新任务计数 + 自动完成 + 记录历史
   setTasksByDate(prev => {
     const newTasksByDate = { ...prev };
     const dateToUpdate = selectedDate;
@@ -16284,9 +16540,9 @@ const handleIncrementCount = (task) => {
         return {
           ...t,
           count: newCount,
-          done: true,  // ✅ 自动完成
+          done: true,
           actualCompletedDate: selectedDate,
-          countRecords: [...(t.countRecords || []), countRecord],  // ✅ 记录历史
+          countRecords: [...(t.countRecords || []), countRecord],
           updatedAt: new Date().toISOString()
         };
       }
@@ -16295,11 +16551,12 @@ const handleIncrementCount = (task) => {
     return newTasksByDate;
   });
   
-  // 直接操作 localStorage 加分
-  const expData = JSON.parse(localStorage.getItem('exp_data_v2') || '{"daily":{},"total":{}}');
+  // ✅ 直接操作 localStorage 加分 - 同时记录技能经验
+  const expData = JSON.parse(localStorage.getItem('exp_data_v2') || '{"daily":{},"total":{},"skillExp":{}}');
   const today = selectedDate;
   
   if (!expData.daily[today]) expData.daily[today] = {};
+  if (!expData.skillExp) expData.skillExp = {};
   
   const expValue = task.expValue || 2;
   const dimMap = {
@@ -16313,6 +16570,13 @@ const handleIncrementCount = (task) => {
   const dimKey = dimMap[task.category] || 'tipuo';
   
   expData.daily[today][dimKey] = (expData.daily[today][dimKey] || 0) + expValue;
+  
+  // ✅ 记录技能经验
+  const skills = task.tags || [];
+  skills.forEach(skill => {
+    expData.skillExp[skill] = (expData.skillExp[skill] || 0) + expValue;
+    console.log(`  🏷️ ${skill}: +${expValue} (累计: ${expData.skillExp[skill]})`);
+  });
   
   expData.total = {};
   Object.values(expData.daily).forEach(dayExp => {
@@ -21153,63 +21417,33 @@ const getTasksForSkill = (skillName) => {
         >
           添加
         </div>
-        <div
-          onClick={() => {
-            if (!bulkText) {
-              setBulkText(`健康
-运动30分钟 #健身
-手机时间＜6h
-饭后站立10分钟
-喝水2杯
-步数＞6000
-早睡22:30前
-
-智慧
-阅读30分钟 #阅读
-英语听力30分钟 #英语
-英语阅读30分钟 #英语
-增长新知识
-
-心神
-写日记
-冥想10分钟 #冥想
-
-家庭
-陪娃阅读30分钟
-陪娃学习
-陪娃玩
-
-财富
-记账 #理财
-学习理财知识30分钟 #理财
-定投/储蓄 #理财
-复盘本周开支 #理财
-
-悦己
-做一道新菜 #烹饪
-看一部新电影/纪录片
-听一首新歌`);
-            }
-            setShowBulkImportModal(true);
-            setShowMoreMenu(false);
-          }}
-          style={{
-            padding: "4px 8px",
-            backgroundColor: "#FF9800",
-            color: "#fff",
-            borderRadius: "14px",
-            cursor: "pointer",
-            fontSize: "10px",
-            textAlign: "center",
-            height: "22px",
-            lineHeight: "14px",
-            display: "inline-flex",
-            alignItems: "center",
-            whiteSpace: 'nowrap'
-          }}
-        >
-          计划
-        </div>
+       
+<div
+  onClick={() => {
+    // 使用保存的默认模板
+    if (!bulkText) {
+      setBulkText(defaultPlanTemplate);
+    }
+    setShowBulkImportModal(true);
+    setShowMoreMenu(false);
+  }}
+  style={{
+    padding: "4px 8px",
+    backgroundColor: "#FF9800",
+    color: "#fff",
+    borderRadius: "14px",
+    cursor: "pointer",
+    fontSize: "10px",
+    textAlign: "center",
+    height: "22px",
+    lineHeight: "14px",
+    display: "inline-flex",
+    alignItems: "center",
+    whiteSpace: 'nowrap'
+  }}
+>
+  计划
+</div>
       </div>
     </div>
   )}
@@ -22925,144 +23159,358 @@ const getTasksForSkill = (skillName) => {
       />
     )}
 
-    {showBulkImportModal && (
+{showBulkImportModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    padding: '10px',
+    overflow: 'hidden'
+  }} onClick={() => setShowBulkImportModal(false)}>
+    <div style={{
+      backgroundColor: 'white',
+      padding: '14px 16px 14px 16px',
+      borderRadius: '16px',
+      width: '92%',
+      maxWidth: '420px',
+      maxHeight: '90vh',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column'
+    }} onClick={e => e.stopPropagation()}>
+      
+      {/* ===== 标题栏：修改按钮在左，标题居中 ===== */}
       <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.5)',
         display: 'flex',
-        justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 1000,
-        padding: '10px',
-        overflow: 'hidden'
-      }} onClick={() => setShowBulkImportModal(false)}>
-        <div style={{
-          backgroundColor: 'white',
-          padding: '14px 16px 14px 16px',
-          borderRadius: '16px',
-          width: '92%',
-          maxWidth: '420px',
-          maxHeight: '90vh',
-          overflow: 'hidden',
-          boxSizing: 'border-box'
-        }} onClick={e => e.stopPropagation()}>
-          
-          <h3 style={{ 
-            textAlign: 'center', 
-            marginBottom: 10, 
-            color: '#61A2Da',
-            fontSize: '16px'
-          }}>
-            📋 每日计划
-          </h3>
-          
-          <textarea
-            value={bulkText}
-            onChange={(e) => setBulkText(e.target.value)}
-            placeholder={`第一行：子分类（如：数学、语文、英语、运动）
-第二行起：任务内容`}
-            style={{
-              width: '100%',
-              height: '250px',
-              padding: '8px 10px',
-              borderRadius: 8,
-              border: '1px solid #ccc',
-              fontSize: '12px',
-              fontFamily: 'monospace',
-              resize: 'none',
-              boxSizing: 'border-box',
-              marginBottom: 10
-            }}
-          />
-          
-          <div style={{ marginBottom: 10 }}>
-            <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>日期范围</div>
-            <select
-              value={bulkDateRange}
-              onChange={(e) => {
-                setBulkDateRange(e.target.value);
-                if (e.target.value === 'custom') {
-                  setBulkDateRangeStart(selectedDate);
-                  setBulkDateRangeEnd(selectedDate);
-                }
-              }}
-              style={{
-                width: '100%',
-                padding: '6px 8px',
-                borderRadius: 6,
-                border: '1px solid #ccc',
-                fontSize: '12px',
-                backgroundColor: '#fff'
-              }}
-            >
-              <option value="today">仅当天</option>
-              <option value="next3">未来3天</option>
-              <option value="next4">未来4天</option>
-              <option value="custom">自定义</option>
-            </select>
-            
-            {bulkDateRange === 'custom' && (
-              <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                <input
-                  type="date"
-                  value={bulkDateRangeStart}
-                  onChange={(e) => setBulkDateRangeStart(e.target.value)}
-                  style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontSize: '12px' }}
-                />
-                <span style={{ fontSize: '12px', color: '#666' }}>至</span>
-                <input
-                  type="date"
-                  value={bulkDateRangeEnd}
-                  onChange={(e) => setBulkDateRangeEnd(e.target.value)}
-                  style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontSize: '12px' }}
-                />
-              </div>
-            )}
-          </div>
-          
-          <div style={{ display: 'flex', gap: 10 }}>
-            <div
-              onClick={() => setShowBulkImportModal(false)}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                backgroundColor: '#f0f0f0',
-                color: '#333',
-                borderRadius: 8,
-                fontSize: '13px',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                cursor: 'pointer'
-              }}
-            >
-              取消
-            </div>
-            <div
-              onClick={() => {
-                handleImportTasksWithDuration(selectedDate);
-              }}
-              style={{
-                flex: 1,
-                padding: '8px 12px',
-                backgroundColor: '#61A2Da',
-                color: '#fff',
-                borderRadius: 8,
-                fontSize: '13px',
-                fontWeight: 'bold',
-                textAlign: 'center',
-                cursor: 'pointer'
-              }}
-            >
-              确认导入
-            </div>
-          </div>
+        justifyContent: 'center',
+        marginBottom: 10,
+        position: 'relative'
+      }}>
+        {/* 左侧：修改按钮 */}
+        <div
+          onClick={(e) => {
+            e.stopPropagation();
+  // 将当前模板内容加载到编辑框
+  setEditTemplateText(defaultPlanTemplate);
+  setShowEditTemplateModal(true);
+          }}
+          style={{
+            position: 'absolute',
+            left: 0,
+            padding: '2px 10px',
+            backgroundColor: '#f0f0f0',
+            color: '#666',
+            borderRadius: '12px',
+            fontSize: '11px',
+            cursor: 'pointer',
+            border: '1px solid #e0e0e0',
+            userSelect: 'none',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}
+        >
+          修改
+        </div>
+        
+        {/* 居中：标题（无 emoji） */}
+        <h3 style={{ 
+          margin: 0, 
+          color: '#61A2Da',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }}>
+          每日计划
+        </h3>
+        
+        {/* 右侧：关闭按钮（占位保持对称） */}
+        <div
+          onClick={() => setShowBulkImportModal(false)}
+          style={{
+            position: 'absolute',
+            right: 0,
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            backgroundColor: '#f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '16px',
+            color: '#666'
+          }}
+        >
+          ×
         </div>
       </div>
-    )}
+      
+      <textarea
+        value={bulkText}
+        onChange={(e) => setBulkText(e.target.value)}
+        placeholder={`第一行：子分类（如：数学、语文、英语、运动）
+第二行起：任务内容`}
+        style={{
+          width: '100%',
+          height: '250px',
+          padding: '8px 10px',
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          fontSize: '12px',
+          fontFamily: 'monospace',
+          resize: 'none',
+          boxSizing: 'border-box',
+          marginBottom: 10
+        }}
+      />
+      
+      <div style={{ marginBottom: 10 }}>
+        <div style={{ fontSize: 11, color: '#666', marginBottom: 4 }}>日期范围</div>
+        <select
+          value={bulkDateRange}
+          onChange={(e) => {
+            setBulkDateRange(e.target.value);
+            if (e.target.value === 'custom') {
+              setBulkDateRangeStart(selectedDate);
+              setBulkDateRangeEnd(selectedDate);
+            }
+          }}
+          style={{
+            width: '100%',
+            padding: '6px 8px',
+            borderRadius: 6,
+            border: '1px solid #ccc',
+            fontSize: '12px',
+            backgroundColor: '#fff'
+          }}
+        >
+          <option value="today">仅当天</option>
+          <option value="next3">未来3天</option>
+          <option value="next4">未来4天</option>
+          <option value="custom">自定义</option>
+        </select>
+        
+        {bulkDateRange === 'custom' && (
+          <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
+            <input
+              type="date"
+              value={bulkDateRangeStart}
+              onChange={(e) => setBulkDateRangeStart(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontSize: '12px' }}
+            />
+            <span style={{ fontSize: '12px', color: '#666' }}>至</span>
+            <input
+              type="date"
+              value={bulkDateRangeEnd}
+              onChange={(e) => setBulkDateRangeEnd(e.target.value)}
+              style={{ flex: 1, padding: '4px 6px', borderRadius: 4, border: '1px solid #ccc', fontSize: '12px' }}
+            />
+          </div>
+        )}
+      </div>
+      
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div
+          onClick={() => setShowBulkImportModal(false)}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            backgroundColor: '#f0f0f0',
+            color: '#333',
+            borderRadius: 8,
+            fontSize: '13px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          取消
+        </div>
+        <div
+          onClick={() => {
+            handleImportTasksWithDuration(selectedDate);
+          }}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            backgroundColor: '#61A2Da',
+            color: '#fff',
+            borderRadius: 8,
+            fontSize: '13px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          确认导入
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ===== 修改模板弹窗（和每日计划输入框一样大） ===== */}
+{showEditTemplateModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1100,
+    padding: '10px',
+    overflow: 'hidden'
+  }} onClick={() => setShowEditTemplateModal(false)}>
+    <div style={{
+      backgroundColor: 'white',
+      padding: '14px 16px 14px 16px',
+      borderRadius: '16px',
+      width: '92%',
+      maxWidth: '420px',
+      maxHeight: '90vh',
+      overflow: 'hidden',
+      boxSizing: 'border-box',
+      display: 'flex',
+      flexDirection: 'column'
+    }} onClick={e => e.stopPropagation()}>
+      
+      {/* 标题栏 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: 10,
+        position: 'relative'
+      }}>
+        <h3 style={{ 
+          margin: 0, 
+          color: '#61A2Da',
+          fontSize: '16px',
+          fontWeight: 'bold'
+        }}>
+          修改默认计划
+        </h3>
+        <div
+          onClick={() => setShowEditTemplateModal(false)}
+          style={{
+            position: 'absolute',
+            right: 0,
+            width: '28px',
+            height: '28px',
+            borderRadius: '50%',
+            backgroundColor: '#f0f0f0',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            fontSize: '16px',
+            color: '#666'
+          }}
+        >
+          ×
+        </div>
+      </div>
+      
+      {/* 说明文字 */}
+      <div style={{
+        fontSize: '11px',
+        color: '#999',
+        marginBottom: 8,
+        padding: '6px 10px',
+        backgroundColor: '#f8f9fa',
+        borderRadius: 6,
+        lineHeight: 1.4
+      }}>
+        💡 第一行是分类名，后面是任务列表。支持多行、空行。
+      </div>
+      
+      {/* 和每日计划输入框一样大的文本框 */}
+      <textarea
+        value={editTemplateText}
+        onChange={(e) => setEditTemplateText(e.target.value)}
+        placeholder={`健康
+运动30分钟 #健身
+手机时间＜6h
+
+智慧
+阅读30分钟 #阅读
+英语听力30分钟 #英语`}
+        style={{
+          width: '100%',
+          height: '250px',
+          padding: '8px 10px',
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          fontSize: '12px',
+          fontFamily: 'monospace',
+          resize: 'none',
+          boxSizing: 'border-box',
+          marginBottom: 10,
+          overflow: 'auto',
+          lineHeight: '1.6'
+        }}
+      />
+      
+      <div style={{ display: 'flex', gap: 10 }}>
+        <div
+          onClick={() => setShowEditTemplateModal(false)}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            backgroundColor: '#f0f0f0',
+            color: '#333',
+            borderRadius: 8,
+            fontSize: '13px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          取消
+        </div>
+        <div
+          onClick={() => {
+            if (editTemplateText.trim()) {
+              setDefaultPlanTemplate(editTemplateText);
+              localStorage.setItem('default_plan_template', editTemplateText);
+              // 同时更新当前编辑框的内容
+              setBulkText(editTemplateText);
+              setShowEditTemplateModal(false);
+            } else {
+              alert('请输入有效的计划内容');
+            }
+          }}
+          style={{
+            flex: 1,
+            padding: '8px 12px',
+            backgroundColor: '#61A2Da',
+            color: '#fff',
+            borderRadius: 8,
+            fontSize: '13px',
+            fontWeight: 'bold',
+            textAlign: 'center',
+            cursor: 'pointer'
+          }}
+        >
+          保存
+        </div>
+      </div>
+    </div>
+  </div>
+)}
 
     {showCategoryDetailModal && (
   <div style={{
@@ -23664,6 +24112,7 @@ const renderTaskItem = (task, index) => {
 
     {showExpPopup && (
       <ExpPopup
+      key={Date.now()} 
         expData={showExpPopup}
         onClose={() => setShowExpPopup(null)}
       />
