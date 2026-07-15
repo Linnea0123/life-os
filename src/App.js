@@ -3024,7 +3024,7 @@ const autoBackup = async () => {
       templates: currentTemplates,
       categories: currentCategories,
       monthTasks: currentMonthTasks,
-      
+      totalAssets: totalAssets,
       studyEndTimes: studyEndTimes, 
       dailyRatings: allDailyRatings,
       dailyReflections: allDailyReflections,
@@ -12838,6 +12838,17 @@ const encouragementMessages = [
 };
 
 function App() {
+// 总资产显示控制（默认隐藏）
+const [showAssets, setShowAssets] = useState(false);
+const [totalAssets, setTotalAssets] = useState(() => {
+  const saved = localStorage.getItem('total_assets');
+  return saved ? parseFloat(saved) : 0;
+});
+
+// 保存总资产
+useEffect(() => {
+  localStorage.setItem('total_assets', String(totalAssets));
+}, [totalAssets]);
   // ========== ✅ 北京时间工具函数 ==========
   const getBeijingDateStr = () => {
     const now = new Date();
@@ -13525,9 +13536,16 @@ const ExpPanel = ({
   onShowSkillDetail,
    expenseRecords = [],
    setShowExpenseModal, 
+    // 👇 新增
+  showAssets = false,
+  setShowAssets = () => {},
+  totalAssets = 0,
+  setTotalAssets = () => {},
 }) => {
   const [showDetail, setShowDetail] = useState(isOpen);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 480);
+  // 在 ExpPanel 组件内部，其他 useState 附近添加
+
   const [showSkills, setShowSkills] = useState(() => {
     return window.innerWidth >= 768;
   });
@@ -13776,30 +13794,7 @@ const getTodaySkills = useCallback(() => {
             </span>
           </div>
           
-          {/* 中间：打卡统计 - 仅手机端显示 */}
-          {!isDesktop && (
-            <div style={{ 
-              display: 'flex', 
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <span style={{ 
-                fontSize: '9px', 
-                color: '#bbb'
-              }}>
-                已打卡 {
-                  Object.keys(tasksByDate).filter(date => {
-                    const tasks = tasksByDate[date] || [];
-                    return tasks.some(t => t.done === true && t.abandoned !== true);
-                  }).length
-                } 天 · 累计 {
-                  Object.values(tasksByDate).reduce((sum, tasks) => 
-                    sum + tasks.filter(t => t.done === true && t.abandoned !== true).length, 0
-                  )
-                } 个
-              </span>
-            </div>
-          )}
+
           
           {/* 右侧：总积分 + 等级 */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -14084,11 +14079,13 @@ const getTodaySkills = useCallback(() => {
 )}
 
 {/* ===== 消费统计卡片（仅手机端显示） ===== */}
+{/* ===== 消费统计卡片（手机端） ===== */}
+{/* ===== 消费统计卡片（手机端 - 4列） ===== */}
 {!isDesktop && (
   <div style={{ marginTop: '6px' }}>
     <div style={{
       display: 'grid',
-      gridTemplateColumns: 'repeat(3, 1fr)',
+      gridTemplateColumns: 'repeat(4, 1fr)',
       gap: '4px'
     }}>
       {/* 今日消费 */}
@@ -14102,14 +14099,11 @@ const getTodaySkills = useCallback(() => {
           cursor: 'pointer',
           textAlign: 'center',
           userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTapHighlightColor: 'transparent',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '4px'
+          gap: '1px'
         }}
       >
         <span style={{ fontSize: '8px', color: '#999' }}>今日消费</span>
@@ -14129,14 +14123,11 @@ const getTodaySkills = useCallback(() => {
           cursor: 'pointer',
           textAlign: 'center',
           userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTapHighlightColor: 'transparent',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '4px'
+          gap: '1px'
         }}
       >
         <span style={{ fontSize: '8px', color: '#999' }}>本月消费</span>
@@ -14156,14 +14147,11 @@ const getTodaySkills = useCallback(() => {
           cursor: 'pointer',
           textAlign: 'center',
           userSelect: 'none',
-          WebkitUserSelect: 'none',
-          MozUserSelect: 'none',
-          msUserSelect: 'none',
-          WebkitTapHighlightColor: 'transparent',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '4px'
+          gap: '1px'
         }}
       >
         <span style={{ fontSize: '8px', color: '#999' }}>本月剩余</span>
@@ -14175,6 +14163,65 @@ const getTodaySkills = useCallback(() => {
           ¥{(monthlyBudget - monthExpense).toFixed(1)}
         </span>
       </div>
+
+      
+
+{/* 总资产 */}
+
+{/* 总资产 - 修复版本 */}
+<div
+  style={{
+    padding: '4px 6px',
+    borderRadius: '6px',
+    backgroundColor: '#e8f5e9',
+    border: '1px solid #c8e6c9',
+    cursor: 'pointer',
+    textAlign: 'center',
+    userSelect: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '1px'
+  }}
+  onClick={(e) => {
+    e.stopPropagation();
+    // ✅ 单击：切换显示/隐藏（3秒后自动隐藏）
+    const newShowState = !showAssets;
+    setShowAssets(newShowState);
+    
+    if (newShowState) {
+      if (window._assetTimer) clearTimeout(window._assetTimer);
+      window._assetTimer = setTimeout(() => {
+        setShowAssets(false);
+      }, 3000);
+    }
+  }}
+  onDoubleClick={(e) => {
+    e.stopPropagation();
+    // ✅ 双击：弹窗修改金额
+    const newValue = window.prompt('设置总资产（元）：', totalAssets.toString());
+    if (newValue !== null) {
+      const val = parseFloat(newValue);
+      if (!isNaN(val) && val >= 0) {
+        setTotalAssets(val);
+        localStorage.setItem('total_assets', String(val));
+      }
+    }
+  }}
+>
+  <span style={{ fontSize: '8px', color: '#999' }}>总资产</span>
+  <span style={{ 
+    fontSize: '11px', 
+    fontWeight: 'bold', 
+    color: '#4caf50',
+    cursor: 'pointer',
+    minHeight: '16px'
+  }}>
+    {showAssets ? `¥${(totalAssets || 0).toFixed(1)}` : '***'}
+  </span>
+</div>
+      
     </div>
   </div>
 )}
@@ -14803,7 +14850,17 @@ const handleRestoreData = useCallback(async (backupData, mode = 'overwrite') => 
       console.log('⚠️ 只支持覆盖模式，自动切换为覆盖模式');
     }
     
-
+  // ✅ 恢复总资产
+    if (backupData.totalAssets !== undefined) {
+      setTotalAssets(backupData.totalAssets);
+      localStorage.setItem('total_assets', String(backupData.totalAssets));
+      console.log('✅ 恢复总资产:', backupData.totalAssets);
+    }
+    
+    // ✅ 恢复总资产显示状态（可选）
+    if (backupData.showAssets !== undefined) {
+      setShowAssets(backupData.showAssets);
+    }
 
 
 // ✅ 恢复分类颜色 - 直接覆盖
@@ -14981,6 +15038,8 @@ if (backupData.monthlyBudget !== undefined) {
   setExpenseRecords,
   setTodayExpense,
   setMonthlyBudget,
+   setTotalAssets,
+  setShowAssets,
   saveMainData
 ]);
 
@@ -15144,7 +15203,6 @@ Object.entries(tasksByDate).forEach(([date, tasks]) => {
 // 在 syncToGitHub 函数中，获取数据的地方添加
 const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
 
-// 在 syncData 对象中 - 直接使用
 const syncData = {
   tasksByDate: compressedTasks,
   dailyRatings: allDailyRatings,
@@ -15165,10 +15223,13 @@ const syncData = {
   expData: expData,
   taskOrders: allTaskOrders,
   subCategoryOrders: allSubCategoryOrders,
-  // ✅ 直接同步，不合并
   categoryColors: categoryColors,
   subjectTodoEntries: JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}'),
   monthlyBudget: parseFloat(localStorage.getItem('monthly_budget') || '3000'),
+  // ✅ 添加总资产
+  totalAssets: totalAssets,
+  // ✅ 添加显示状态（可选，如果想同步显示状态）
+  showAssets: showAssets,
   syncTime: new Date().toISOString(),
   version: '2.5',
   expenseRecords: expenseRecords,
@@ -15589,6 +15650,7 @@ const performCloudRestore = useCallback(async () => {
       任务天数: Object.keys(backupData.tasksByDate || {}).length,
       复盘天数: Object.keys(backupData.dailyReflections || {}).length,
       本月任务: (backupData.monthTasks || []).length,
+      总资产: backupData.totalAssets || 0,
       分类数: (backupData.categories || []).length
     });
     
@@ -19875,6 +19937,7 @@ const handleExportData = async () => {
     // 创建一个包含所有数据的对象
     const exportData = {
       tasks: tasks,
+      totalAssets: totalAssets,
       dailyRatings: dailyRatings,
       monthTasks: monthTasks,
       exportTime: new Date().toISOString(),
@@ -20103,7 +20166,6 @@ const getTasksForSkill = (skillName) => {
   <div style={{
     maxWidth: 1000, 
     margin: "0 auto",
-    padding: isDesktop ? "0" : "15px",
     paddingTop: "env(safe-area-inset-top)",
     paddingBottom: "calc(env(safe-area-inset-bottom) + 15px)",
     paddingLeft: "calc(env(safe-area-inset-left) + 15px)",
@@ -20115,19 +20177,26 @@ const getTasksForSkill = (skillName) => {
     boxSizing: "border-box",
     minHeight: "100vh",
     scrollbarGutter: 'stable',
-    display: isDesktop ? 'flex' : 'block',
-    gap: isDesktop ? '20px' : 0,
+    display: 'flex',
+    flexDirection: isDesktop ? 'row' : 'column',
+    gap: isDesktop ? '0px' : 0,
     alignItems: isDesktop ? 'flex-start' : 'stretch',
-    justifyContent: isDesktop ? 'center' : 'flex-start',
+    justifyContent: isDesktop ? 'flex-start' : 'flex-start',  // ✅ 改为 flex-start，左对齐
+    flexWrap: 'nowrap',
+    // ✅ 关键：设置最小宽度为0，允许整体压缩
+    minWidth: 0,
   }}>
 
     {/* ===== 电脑端左侧边栏 ===== */}
    {/* ===== 电脑端左侧边栏 ===== */}
+{/* ===== 电脑端左侧边栏 ===== */}
+{/* ===== 电脑端左侧边栏 ===== */}
 {isDesktop && (
   <div style={{
-    width: '220px',
-    minWidth: '220px',
-    maxWidth: '220px',
+    // ✅ 允许压缩，但有最小宽度
+    flex: '1 1 220px',  // flex-grow: 1, flex-shrink: 1, flex-basis: 220px
+    minWidth: '140px',   // ✅ 最小宽度 140px，防止完全消失
+    maxWidth: '220px',   // 最大宽度 220px
     height: '100vh',
     position: 'sticky',
     top: 0,
@@ -20137,9 +20206,15 @@ const getTasksForSkill = (skillName) => {
     display: 'flex',
     flexDirection: 'column',
     gap: '12px',
-    boxSizing: 'border-box'
+    boxSizing: 'border-box',
+    // ✅ 允许内容收缩
+    overflow: 'hidden'
   }}>
-    <div style={{ flexShrink: 0 }}>
+    <div style={{ 
+      flexShrink: 0,
+      minWidth: 0,
+      overflow: 'hidden'
+    }}>
       <ExpPanel 
         selectedDate={selectedDate}
         dailyRatings={dailyRatings}
@@ -20147,26 +20222,37 @@ const getTasksForSkill = (skillName) => {
         isOpen={showExpDetail}
         onToggle={(isOpen) => setShowExpDetail(isOpen)}
         isDesktop={isDesktop}
-        onShowTaskDetail={setExpTaskDetail}     // ✅ 新增
+        onShowTaskDetail={setExpTaskDetail}
         onShowSkillDetail={setExpSkillDetail} 
-        expenseRecords={expenseRecords}   // ✅ 新增
+        expenseRecords={expenseRecords}
         setShowExpenseModal={setShowExpenseModal} 
+        showAssets={showAssets}
+        setShowAssets={setShowAssets}
+        totalAssets={totalAssets}
+        setTotalAssets={setTotalAssets}
       />
     </div>
   </div>
 )}
 
+
     {/* ===== 右侧主内容区 ===== */}
    {/* ===== 右侧主内容区 ===== */}
 
 {/* ===== 右侧主内容区 ===== */}
+{/* ===== 右侧主内容区 ===== */}
 <div style={{
-  flex: isDesktop ? 1 : 'none',
+  // ✅ 允许压缩，占剩余空间
+  flex: '2 1 400px',
+  minWidth: '200px',   // 最小宽度 200px
   maxWidth: isDesktop ? '800px' : '100%',
   padding: isDesktop ? '20px 24px 40px 24px' : '0',
   width: isDesktop ? 'auto' : '100%',
   boxSizing: 'border-box',
-  margin: isDesktop ? '0 auto' : '0'
+  margin: isDesktop ? '0' : '0',  // ✅ 左对齐，不要 auto
+  overflowX: 'hidden',
+  overflowY: 'visible',
+  minWidth: 0,
 }}>
 
 {/* ===== 跑马灯 - 慢速双副本滚动 ===== */}
@@ -20324,11 +20410,12 @@ const getTasksForSkill = (skillName) => {
 {/* ===== 💰 今日消费卡片 ===== */}
 
 {/* ===== 💰 消费统计卡片（电脑端） ===== */}
+{/* ===== 💰 消费统计卡片（电脑端） ===== */}
 {isDesktop && (
   <div style={{ marginBottom: 10 }}>
     <div style={{
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr 1fr',
+      gridTemplateColumns: '1fr 1fr 1fr 1fr',  // 👈 改成 4 列
       gap: '8px'
     }}>
       {/* 今日消费 */}
@@ -20343,9 +20430,10 @@ const getTasksForSkill = (skillName) => {
           textAlign: 'center',
           userSelect: 'none',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '8px'
+          gap: '2px'
         }}
       >
         <span style={{ fontSize: '11px', color: '#999' }}>今日消费</span>
@@ -20366,9 +20454,10 @@ const getTasksForSkill = (skillName) => {
           textAlign: 'center',
           userSelect: 'none',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '8px'
+          gap: '2px'
         }}
       >
         <span style={{ fontSize: '11px', color: '#999' }}>本月消费</span>
@@ -20389,9 +20478,10 @@ const getTasksForSkill = (skillName) => {
           textAlign: 'center',
           userSelect: 'none',
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '8px'
+          gap: '2px'
         }}
       >
         <span style={{ fontSize: '11px', color: '#999' }}>本月剩余</span>
@@ -20403,9 +20493,63 @@ const getTasksForSkill = (skillName) => {
           ¥{(monthlyBudget - monthExpense).toFixed(1)}
         </span>
       </div>
+
+      {/* 👇 新增：总资产 */}
+     <div
+  style={{
+    padding: '6px 12px',
+    borderRadius: '6px',
+    backgroundColor: '#e8f5e9',
+    border: '1px solid #c8e6c9',
+    cursor: 'pointer',
+    textAlign: 'center',
+    userSelect: 'none',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '2px'
+  }}
+  onClick={(e) => {
+    e.stopPropagation();
+    const newShowState = !showAssets;
+    setShowAssets(newShowState);
+    
+    if (newShowState) {
+      if (window._assetTimer) clearTimeout(window._assetTimer);
+      window._assetTimer = setTimeout(() => {
+        setShowAssets(false);
+      }, 3000);
+    }
+  }}
+  onDoubleClick={(e) => {
+    e.stopPropagation();
+    const newValue = window.prompt('设置总资产（元）：', totalAssets.toString());
+    if (newValue !== null) {
+      const val = parseFloat(newValue);
+      if (!isNaN(val) && val >= 0) {
+        setTotalAssets(val);
+        localStorage.setItem('total_assets', String(val));
+      }
+    }
+  }}
+>
+  <span style={{ fontSize: '11px', color: '#999' }}>总资产</span>
+  <span style={{ 
+    fontSize: '15px', 
+    fontWeight: 'bold', 
+    color: '#4caf50'
+  }}>
+    {showAssets ? `¥${(totalAssets || 0).toFixed(1)}` : '***'}
+  </span>
+</div>
     </div>
   </div>
 )}
+
+
+
+
 {/* ===== CSS 动画定义 - 慢速 ===== */}
 <style>{`
   @keyframes marquee-slow {
@@ -20435,6 +20579,10 @@ const getTasksForSkill = (skillName) => {
       onShowSkillDetail={setExpSkillDetail}  
        expenseRecords={expenseRecords}  
        setShowExpenseModal={setShowExpenseModal} 
+       showAssets={showAssets}
+      setShowAssets={setShowAssets}
+      totalAssets={totalAssets}
+      setTotalAssets={setTotalAssets}
       />
     </div>
   )}
@@ -20735,13 +20883,13 @@ const getTasksForSkill = (skillName) => {
 
 
 
-  {/* ===== 日期行（电脑端和手机端都显示） ===== */}
-  <div style={{
-    display: "flex",
-    justifyContent: "space-between",
-    marginBottom: 16,
-    gap: "2px"
-  }}>
+{/* ===== 日期行（电脑端和手机端都显示） ===== */}
+<div style={{
+  display: "flex",
+  justifyContent: "space-between",
+  marginBottom: 16,
+  gap: "2px"
+}}>
 {weekDates.map((d) => {
   const dateStr = d.date;
   const isSelected = dateStr === selectedDate;
@@ -20837,6 +20985,7 @@ const getTasksForSkill = (skillName) => {
         border: isToday ? "1px solid #61A2Da" : "none"
       }}
     >
+      {/* 👇 修改：周几 + "今"字在左侧，绝对定位不占用空间 */}
       <div style={{ 
         display: "flex", 
         alignItems: "center", 
@@ -20846,6 +20995,22 @@ const getTasksForSkill = (skillName) => {
         width: "100%",
         position: "relative"
       }}>
+        {/* 👇 "今"字在左侧绝对定位，不影响周几居中 */}
+        {isToday && (
+          <span style={{
+            position: "absolute",
+            left: "1px",
+            top: "50%",
+            transform: "translateY(-50%)",
+            fontSize: "8px",
+            fontWeight: "bold",
+            color: "#FF6B6B",
+            fontFamily: "sans-serif"
+          }}>
+            今
+          </span>
+        )}
+        
         <span>{d.label}</span>
         
         {completedCount > 0 && (
@@ -20883,7 +21048,7 @@ const getTasksForSkill = (skillName) => {
     </div>
   );
 })}
-  </div>
+</div>
 
   {/* ===== 分类标签 ===== */}
   {categoryTabs.length > 1 && (
@@ -23462,7 +23627,25 @@ const renderTaskItem = (task, index) => {
   setReminderText(importedData.reminderText);
   localStorage.setItem(`${STORAGE_KEY}_daily_reminder`, importedData.reminderText);
 }
-              
+               // ✅ 恢复总资产
+      if (importedData.totalAssets !== undefined) {
+        setTotalAssets(importedData.totalAssets);
+        localStorage.setItem('total_assets', String(importedData.totalAssets));
+      }
+      
+      // ✅ 恢复月预算
+      if (importedData.monthlyBudget !== undefined) {
+        setMonthlyBudget(importedData.monthlyBudget);
+        localStorage.setItem('monthly_budget', String(importedData.monthlyBudget));
+      }
+      
+      // ✅ 恢复消费记录
+      if (importedData.expenseRecords) {
+        setExpenseRecords(importedData.expenseRecords);
+        localStorage.setItem('expense_records', JSON.stringify(importedData.expenseRecords));
+      }
+
+
               setTasksByDate(importedData.tasks || {});
               setTemplates(importedData.templates || []);
               setCategories(importedData.categories || baseCategories);
