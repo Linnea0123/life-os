@@ -12565,37 +12565,37 @@ const ExpPopup = ({ expData, onClose }) => {
   };
 
   const encouragementMessages = [
-    "🏆 又拿下一城！你太强了！",
-    "💎 每天进步1%，一年强大37倍！",
-    "🔥 这就是传说中的执行力吗？",
-    "⚡ 你的效率让任务瑟瑟发抖！",
-    "🚀 离梦想又近了一步！",
-    "💪 任务：已阵亡，请补刀！",
-    "🎯 百发百中，你就是神射手！",
-    "😎 简单任务，轻松拿捏！",
-    "🐮 牛啊！今天状态拉满！",
-    "🏃 任务追不上你的速度！",
-    "🌱 种子在发芽，你在成长！",
-    "📈 今天的积累，明天的爆发！",
-    "🧱 一块砖一块砖，大厦将成！",
-    "⏳ 时间会证明你的坚持！",
-    "💡 每一次完成都是智慧的闪光！",
-    "🎯 目标锁定，精准命中！",
-    "⛰️ 山再高，一步步也能登顶！",
-    "🏁 终点就在前方，继续冲！",
-    "🌟 你的光芒，谁也挡不住！",
-    "🎪 每天都是你的主场！",
-    "💪 你的潜力，超乎你想象！",
-    "🔥 燃烧吧，小宇宙！",
-    "⚡ 充能完毕，继续战斗！",
-    "🌟 你比自己想象的更优秀！",
-    "🏆 冠军的心态，冠军的表现！",
-    "💖 今天也很努力呢！真棒！",
-    "🌈 你的坚持，终将美好！",
-    "☀️ 今天的阳光，因你而灿烂！",
-    "🌸 努力的人，运气都不会太差！",
-    "🌊 平静的力量，也能掀起巨浪！"
-  ];
+  "🔥 任务：我还没开始就结束了？？？",
+  "💪 你今天是不是偷偷喝了核燃料？",
+  "🚀 这效率，建议申报世界遗产！",
+  "😎 任务：我选择投降！",
+  "🐮 牛啊！你今天是不是开了外挂？",
+  "💀 任务：我碎了，再见！",
+  "🎯 百发百中，你是任务终结者！",
+  "⚡ 你一点，任务就没了！",
+  "🌟 你今天帅得连任务都不敢直视！",
+  "🎪 别装了，你就是卷王本王！",
+  "💪 你的能力比你的待办列表还长！",
+  "🔥 燃烧吧，小宇宙！任务已阵亡！",
+  "🧠 大脑：今天发挥超常，申请加鸡腿！",
+  "🏃 任务在你面前，跑得比兔子还快！",
+  "🎉 恭喜你，又干掉一个拖延症！",
+  "💖 你这么强，你的手机知道吗？",
+  "🌈 今天的你，连任务都害怕！",
+  "😤 任务：这个人类太猛了！",
+  "👑 效率之王，请收下我的膝盖！",
+  "💥 你完成了一个任务，宇宙都抖了一下！",
+  "⭐ 你今天就是最靓的仔！",
+  "🏆 奖杯先放你这，明天继续！",
+  "🤯 你居然完成了？！我服了！",
+  "💎 今天的你，价值连城！",
+  "🎯 精准命中，你是任务界的狙击手！",
+  "🚀 你已经冲出地球了！",
+  "💪 你这么卷，让任务怎么活？",
+  "🔥 你点了一下，任务就没了！",
+  "🌟 你的光芒，刺瞎了任务的眼睛！",
+  "🎪 这里就是你的主场，随便打！",
+];
 
   const randomMessageRef = useRef(
     encouragementMessages[Math.floor(Math.random() * encouragementMessages.length)]
@@ -12991,42 +12991,42 @@ const [defaultPlanTemplate, setDefaultPlanTemplate] = useState(() => {
   if (saved) {
     return saved;
   }
-  // 默认的每日计划模板
   return `健康
-运动30分钟 #健身
-手机时间＜6h
-饭后站立10分钟
-喝水2杯
-步数＞6000
-早睡22:30前
+运动30分钟 #健身 ::3
+涂防晒霜 ::1
+排毒 ::2
+手机时间＜6h ::2
+饭后站立10分钟 ::1
+喝水2杯 ::1
+步数＞6000 ::2
+早睡22:30前 ::3
 
 智慧
-阅读30分钟 #阅读
-英语听力30分钟 #英语
-英语阅读30分钟 #英语
-增长新知识
+阅读30分钟 #阅读 ::2
+英语阅读30分钟 #英语 ::2
+英语听力30分钟 #英语 ::3
+增长新知识 ::1
 
 心神
-写日记
-冥想10分钟 #冥想
+写日记 ::2
+冥想10分钟 #冥想 ::2
 
 家庭
-陪娃阅读30分钟
-陪娃学习
-陪娃玩
+陪娃阅读30分钟 #育儿 ::3
+陪娃学习 #育儿 ::3
+陪娃玩 #育儿 ::3
 
 财富
-记账 #理财
-学习理财知识30分钟 #理财
-定投/储蓄 #理财
-复盘本周开支 #理财
+记账 #理财 ::1
+学习理财知识30分钟 #理财 ::3
+定投/储蓄 #理财 ::2
+复盘本周开支 #理财 ::2
 
 悦己
-做一道新菜 #烹饪
-看一部新电影/纪录片
-听一首新歌`;
+做一道新菜 #烹饪 ::2
+看一部新电影/纪录片 ::2
+听一首新歌 ::1`;
 });
-
 // 修改模板弹窗状态
 const [showEditTemplateModal, setShowEditTemplateModal] = useState(false);
 const [editTemplateText, setEditTemplateText] = useState('');
@@ -13642,18 +13642,20 @@ const addExp = useCallback((date, rewards, skills = []) => {
     });
     
     // ✅ 关键修复：记录技能经验
-    if (skills && skills.length > 0) {
-      // 使用第一个维度的经验值作为技能经验值
-      const firstDimValue = Object.values(rewards)[0] || 2;
-      skills.forEach(skill => {
-        const cleanSkill = String(skill).trim();
-        if (cleanSkill) {
-          // ✅ 累加技能经验
-          newSkillExp[cleanSkill] = (newSkillExp[cleanSkill] || 0) + firstDimValue;
-          console.log(`  🏷️ ${cleanSkill}: +${firstDimValue} (累计: ${newSkillExp[cleanSkill]})`);
-        }
-      });
+    // ===== 在 addExp 函数中修改 =====
+if (skills && skills.length > 0) {
+  const firstDimValue = Object.values(rewards)[0] || 2;
+  skills.forEach(skill => {
+    const cleanSkill = String(skill).trim();
+    if (cleanSkill) {
+      // ✅ 防止技能经验变成负数
+      const current = newSkillExp[cleanSkill] || 0;
+      const newValue = current + firstDimValue;
+      newSkillExp[cleanSkill] = Math.max(0, newValue);  // 最低为 0
+      console.log(`  🏷️ ${cleanSkill}: ${current} → ${newSkillExp[cleanSkill]}`);
     }
+  });
+}
     
     const newData = { 
       daily: newDaily, 
@@ -13884,52 +13886,26 @@ const getLevel = (exp) => {
 const getTodaySkills = useCallback(() => {
   const todayTasks = tasksByDate?.[selectedDate] || [];
   const skillMap = {};
-
-  // ✅ 基础属性名称列表（这些标签不在技能块中显示）
   const dimensionNames = ['健康', '智慧', '心神', '家庭', '财富', '悦己'];
-
-  // ✅ 预设技能的颜色（给常用技能好看的颜色，可选）
-  const presetColors = {
-    '健身': '#4CAF50',
-    '阅读': '#2196F3',
-    '英语': '#E91E63',
-    '冥想': '#9C27B0',
-    '理财': '#FFC107',
-    '烹饪': '#FF9800',
-    '写作': '#3F51B5',
-    '运动': '#4CAF50',
-    '育儿': '#E91E63',
-    '摄影': '#03A9F4',
-    '音乐': '#9C27B0',
-    '设计': '#E91E63',
-    '编程': '#4CAF50',
-    // 👇 在这里添加新技能的颜色（可选，不添加也有默认颜色）
-    '日语': '#E91E63',
-    '法语': '#2196F3',
-    '德语': '#FF9800',
-  };
 
   todayTasks.forEach(task => {
     if (task.done === true && task.abandoned !== true && task.tags) {
       const tags = Array.isArray(task.tags) ? task.tags : [];
-      
       tags.forEach(tag => {
-        // ✅ 如果标签名等于基础属性名称，跳过（已在基础属性中显示）
-        if (dimensionNames.includes(tag)) {
-          return;
+        if (!dimensionNames.includes(tag)) {
+          if (!skillMap[tag]) {
+            skillMap[tag] = { 
+              count: 0, 
+              totalExp: 0,  // ✅ 新增
+              icon: '🏷️',
+              color: '#61A2Da',
+              tasks: []
+            };
+          }
+          skillMap[tag].count += 1;
+          skillMap[tag].totalExp += (task.expValue || 2);  // ✅ 累加实际 expValue
+          skillMap[tag].tasks.push(task.text);
         }
-        
-        // ✅ 所有其他标签都显示在技能块中
-        if (!skillMap[tag]) {
-          skillMap[tag] = { 
-            count: 0, 
-            icon: '🏷️',  // 默认图标
-            color: presetColors[tag] || '#61A2Da',  // 有预设用预设，没有用默认蓝色
-            tasks: []
-          };
-        }
-        skillMap[tag].count += 1;
-        skillMap[tag].tasks.push(task.text);
       });
     }
   });
@@ -14188,8 +14164,19 @@ const getTodaySkills = useCallback(() => {
 })}
       </div>
 
-      {/* ===== 技能卡片区域（保持原样） ===== */}
-      {/* ===== 技能卡片区域 - 有技能才显示 ===== */}
+{/* ===== 技能属性标题 ===== */}
+{isDesktop && skillKeys.length > 0 && (
+  <div style={{
+    fontSize: '12px',
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: '4px',
+    marginBottom: '4px',
+    paddingLeft: '2px'
+  }}>
+    技能属性
+  </div>
+)}
 {/* ===== 技能卡片区域 - 有技能直接展开 ===== */}
 {skillKeys.length > 0 && (
   <div style={{
@@ -14200,10 +14187,13 @@ const getTodaySkills = useCallback(() => {
   }}>
     {skillKeys.map((skill) => {
       const data = todaySkills[skill];
-      const skillExp = data.count * 2;
-      const progress = Math.min((skillExp / EXP_PER_LEVEL) * 100, 100);
-      const expInLevel = skillExp % EXP_PER_LEVEL;
-      const skillLevel = Math.floor(skillExp / EXP_PER_LEVEL) + 1;
+      const totalExp = expData.skillExp?.[skill] || 0;
+const todayExp = data.totalExp || 0;  // 当天经验（使用实际 expValue）
+      
+    
+      const progress = Math.min((totalExp / EXP_PER_LEVEL) * 100, 100);
+      const expInLevel = totalExp % EXP_PER_LEVEL;
+      const skillLevel = Math.floor(totalExp / EXP_PER_LEVEL) + 1;
       const color = data.color || '#999';
       const bgColor = color + '15';
 
@@ -14273,9 +14263,9 @@ const getTodaySkills = useCallback(() => {
             <span style={{
               fontSize: isDesktop ? '12px' : '9px',
               fontWeight: 'bold',
-              color: skillExp > 0 ? '#4caf50' : '#999'
+              color: todayExp > 0 ? '#4caf50' : '#999'
             }}>
-              {skillExp > 0 ? `+${skillExp}` : ''}
+              {todayExp > 0 ? `+${todayExp}` : ''}
             </span>
           </div>
 
@@ -16529,8 +16519,16 @@ const toggleDone = (task, currentDateFromTask = null) => {
     if (!Array.isArray(skills)) {
       skills = typeof skills === 'string' ? [skills] : [];
     }
+
+
     
-    console.log('✅ 最终技能标签:', skills);
+     // ✅ 在这里加日志！
+    console.log('🔍 调用 addExp 前:');
+    console.log('  task.text:', finalTask.text);
+    console.log('  skills:', skills);
+    console.log('  skills 长度:', skills.length);
+    console.log('  rewards:', rewards);
+    
     addExp(currentDate, rewards, skills);
     console.log('🎯 完成任务加分:', rewards, '技能:', skills);
     
@@ -16559,16 +16557,19 @@ setShowExpPopup({
     return data.skillExp || {};
   })(),
   // ✅ 新增：本次获得的技能经验（用于计算 before）
-  skillExpEarned: (() => {
-    const earned = {};
-    if (skills && skills.length > 0) {
-      const expValue = Object.values(rewards)[0] || 2;
-      skills.forEach(skill => {
-        earned[skill] = expValue;
-      });
-    }
-    return earned;
-  })(),
+ skillExpEarned: (() => {
+  const earned = {};
+  if (skills && skills.length > 0) {
+    const firstDimValue = Object.values(rewards)[0] || 2;
+    skills.forEach(skill => {
+      const cleanSkill = String(skill).trim();
+      if (cleanSkill) {
+        earned[cleanSkill] = firstDimValue;  // ✅ 只需要记录本次获得多少
+      }
+    });
+  }
+  return earned;
+})(),
   // ✅ 新增：维度总经验（用于维度进度计算）
   dimTotal: (() => {
     const data = JSON.parse(localStorage.getItem('exp_data_v2') || '{"total":{}}');
@@ -20481,7 +20482,7 @@ const getTasksForDimension = (dimKey) => {
 
   // ✅ 包含已完成和放弃的任务
   const result = todayTasks.filter(task =>
-    (task.done === true || task.abandoned === true) &&
+    task.done === true && task.abandoned !== true &&  // ← 只显示完成的，排除放弃的
     task.category !== "本周任务" &&
     task.category !== "常规任务"
   );
