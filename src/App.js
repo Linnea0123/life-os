@@ -12603,24 +12603,41 @@ const ExpPopup = ({ expData, onClose }) => {
 
   const hasSkills = expData.skills && expData.skills.length > 0;
 
-  const getSkillColor = (skill) => {
-    const colors = {
-      '健身': '#4CAF50',
-      '阅读': '#2196F3',
-      '英语': '#E91E63',
-      '冥想': '#9C27B0',
-      '理财': '#FFC107',
-      '烹饪': '#FF9800',
-      '写作': '#3F51B5',
-      '运动': '#4CAF50',
-      '育儿': '#E91E63',
-      '摄影': '#03A9F4',
-      '音乐': '#9C27B0',
-      '设计': '#E91E63',
-      '编程': '#4CAF50',
-    };
-    return colors[skill] || '#61A2Da';
+ // ===== 在 ExpPopup 组件中，修改 getSkillColor =====
+const getSkillColor = (skill) => {
+  // 预设颜色（给常用技能好看的颜色）
+  const presetColors = {
+    '健身': '#4CAF50',
+    '阅读': '#2196F3',
+    '英语': '#E91E63',
+    '冥想': '#9C27B0',
+    '理财': '#FFC107',
+    '烹饪': '#FF9800',
+    '写作': '#3F51B5',
+    '运动': '#4CAF50',
+    '育儿': '#E91E63',
+    '摄影': '#03A9F4',
+    '音乐': '#9C27B0',
+    '设计': '#E91E63',
+    '编程': '#4CAF50',
+    '日语': '#E91E63',
+    '法语': '#2196F3',
+    '德语': '#FF9800',
   };
+  
+  // ✅ 如果有预设颜色就用预设，否则根据技能名生成一个稳定的颜色
+  if (presetColors[skill]) {
+    return presetColors[skill];
+  }
+  
+  // ✅ 为自定义技能生成稳定的颜色（基于字符串哈希）
+  const hash = skill.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 55%)`;
+};
 
   // ========== ✅ 唯一的 useEffect - 初始化 + 动画 ==========
   useEffect(() => {
@@ -13711,6 +13728,7 @@ const ExpPanel = ({
   isDesktop = false,
   onShowTaskDetail,
   onShowSkillDetail,
+  onToggleMoreMenu,
    expenseRecords = [],
    setShowExpenseModal, 
     // 👇 新增
@@ -13945,55 +13963,92 @@ const getTodaySkills = useCallback(() => {
       }}>
         
         {/* 第一行：今日 + 积分 + 打卡统计 */}
-        <div style={{ 
-          display: 'flex', 
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%',
-          flexDirection: isDesktop ? 'row' : 'row',
-          flexWrap: isDesktop ? 'nowrap' : 'wrap',
-          gap: isDesktop ? '0' : '4px'
-        }}>
-          {/* 左侧：今日 + 积分 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <span style={{ fontSize: isDesktop ? '12px' : '12px', fontWeight: 'bold', color: '#333' }}>
-              今日
-            </span>
-            <span style={{ 
-  fontSize: isDesktop ? '14px' : '14px', 
-  fontWeight: 'bold', 
-  color: todayTotal > 0 ? '#4caf50' : (todayTotal < 0 ? '#f44336' : '#999')
-}}>
-  {todayTotal > 0 ? `+${todayTotal}` : todayTotal}
-</span>
-            <span style={{ fontSize: isDesktop ? '11px' : '11px', color: '#999' }}>
-              ({done}/{total})
-            </span>
-          </div>
-          
+       
 
-          
-          {/* 右侧：总积分 + 等级 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <span style={{ fontSize: isDesktop ? '10px' : '10px', color: '#999' }}>总积分</span>
-            <span style={{ 
-              fontSize: isDesktop ? '13px' : '13px', 
-              fontWeight: 'bold', 
-              color: '#1a73e8'
-            }}>
-              {grandTotal}
-            </span>
-            <span style={{ 
-              fontSize: isDesktop ? '9px' : '9px', 
-              color: '#61A2Da',
-              backgroundColor: '#e8f0fe',
-              padding: '1px 5px',
-              borderRadius: '10px'
-            }}>
-              Lv.{level}
-            </span>
-          </div>
-        </div>
+{/* 第一行：今日 + 积分 + 打卡统计 */}
+<div style={{ 
+  display: 'flex', 
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  width: '100%',
+  flexDirection: isDesktop ? 'row' : 'row',
+  flexWrap: isDesktop ? 'nowrap' : 'wrap',
+  gap: isDesktop ? '0' : '4px'
+}}>
+  {/* 左侧：今日 + 积分 */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <span style={{ fontSize: isDesktop ? '12px' : '12px', fontWeight: 'bold', color: '#333' }}>
+      今日
+    </span>
+    <span style={{ 
+      fontSize: isDesktop ? '14px' : '14px', 
+      fontWeight: 'bold', 
+      color: todayTotal > 0 ? '#4caf50' : (todayTotal < 0 ? '#f44336' : '#999')
+    }}>
+      {todayTotal > 0 ? `+${todayTotal}` : todayTotal}
+    </span>
+    <span style={{ fontSize: isDesktop ? '11px' : '11px', color: '#999' }}>
+      ({done}/{total})
+    </span>
+  </div>
+  
+  {/* 右侧：总积分 + 等级 + ⋮ 更多菜单（仅手机端） */}
+  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+    <span style={{ fontSize: isDesktop ? '10px' : '10px', color: '#999' }}>总积分</span>
+    <span style={{ 
+      fontSize: isDesktop ? '13px' : '13px', 
+      fontWeight: 'bold', 
+      color: '#1a73e8'
+    }}>
+      {grandTotal}
+    </span>
+    <span style={{ 
+      fontSize: isDesktop ? '9px' : '9px', 
+      color: '#61A2Da',
+      backgroundColor: '#e8f0fe',
+      padding: '1px 5px',
+      borderRadius: '10px'
+    }}>
+      Lv.{level}
+    </span>
+    
+    {/* ✅ ⋮ 更多菜单按钮 - 仅手机端显示 */}
+    {!isDesktop && (
+      <div
+        onClick={(e) => {
+          e.stopPropagation();
+          if (onToggleMoreMenu) {
+            onToggleMoreMenu();
+          }
+        }}
+        style={{
+          padding: "2px 4px",
+          backgroundColor: "transparent",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "16px",
+          textAlign: "center",
+          height: "28px",
+          lineHeight: "28px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          whiteSpace: 'nowrap',
+          minWidth: "20px",
+          flexShrink: 0,
+          userSelect: 'none',
+          color: "#61A2Da",
+          marginTop: "-3px" ,
+          outline: 'none',
+          boxSizing: 'border-box'
+        }}
+        title="更多功能"
+      >
+        ⋮
+      </div>
+    )}
+  </div>
+</div>
       </div>
 
       {/* ===== 6个属性卡片 - 手机端一行6个 ===== */}
@@ -15261,14 +15316,36 @@ const getDataHash = useCallback(() => {
 
 
 
+// ===== 在 App 组件中，修改 syncToGitHub 函数 =====
 const syncToGitHub = useCallback(async (silent = false) => {
-
-// 在 syncToGitHub 函数中，获取数据的地方添加
-const dailyTaskTemplates = JSON.parse(localStorage.getItem('daily_task_templates') || '[]');
-const subjectTodoEntries = JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}');
-const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
-const monthlyBudget = parseFloat(localStorage.getItem('monthly_budget') || '3000');
-
+  // ========== ✅ 新增：每次同步前自动检查 Gist ID ==========
+  const defaultId = '978de7cead4b35c6c0784051f5cc7405';
+  let gistId = localStorage.getItem(PAGE_ID + '_github_gist_id') || 
+               localStorage.getItem('github_gist_id');
+  
+  // 如果没有保存的 ID，使用默认 ID
+  if (!gistId) {
+    gistId = defaultId;
+    localStorage.setItem(PAGE_ID + '_github_gist_id', defaultId);
+    localStorage.setItem('github_gist_id', defaultId);
+    console.log('✅ 自动设置默认 Gist ID:', defaultId);
+  }
+  
+  // 如果当前 ID 不是默认 ID，自动修复
+  if (gistId !== defaultId) {
+    console.warn('⚠️ 检测到非默认 Gist ID:', gistId);
+    console.warn('🔄 自动切换回默认 ID:', defaultId);
+    // 自动修复为默认 ID
+    localStorage.setItem(PAGE_ID + '_github_gist_id', defaultId);
+    localStorage.setItem('github_gist_id', defaultId);
+    gistId = defaultId;
+    if (!silent) {
+      alert(`✅ Gist ID 已自动修复为: ${defaultId}`);
+    }
+  }
+  
+  console.log('📁 本次同步使用的 Gist ID:', gistId);
+  // ========== ✅ 检查结束 ==========
 
   const token = localStorage.getItem('github_token');
   if (!token) {
@@ -15288,6 +15365,7 @@ const monthlyBudget = parseFloat(localStorage.getItem('monthly_budget') || '3000
       return false;
     }
   }
+  
   console.log('📤 开始同步...');
 
   setIsSyncing(true);
@@ -15346,90 +15424,84 @@ const monthlyBudget = parseFloat(localStorage.getItem('monthly_budget') || '3000
     });
     
     // 压缩数据
- const compressedTasks = {};
-Object.entries(tasksByDate).forEach(([date, tasks]) => {
-  compressedTasks[date] = tasks.map(task => ({
-    id: task.id,
-    text: task.text,
-    category: task.category,
-    subCategory: task.subCategory,
-    done: task.done,
-    timeSpent: task.timeSpent,
-    note: task.note,
-    reflection: task.reflection,
-    updatedAt: task.updatedAt,
-    createdAt: task.createdAt,
-    timeRecords: task.timeRecords?.slice(-5),
-    subTasks: task.subTasks?.length > 0 ? task.subTasks : undefined,
-    pinned: task.pinned,
-    tags: task.tags,
-    progress: task.progress,
-    scheduledTime: task.scheduledTime,
-    reminderTime: task.reminderTime,
-    crossDateId: task.crossDateId,
-    isCrossDate: task.isCrossDate,
-    crossDates: task.crossDates,
-    actualCompletedDate: task.actualCompletedDate,
-    isWeekTask: task.isWeekTask,
-    weekStart: task.weekStart,
-    targetCategory: task.targetCategory,
-    targetSubCategory: task.targetSubCategory,
-    abandoned: task.abandoned,
-    abandonInfo: task.abandonInfo,
-    // ✅ 新增：任务积分
-    expValue: task.expValue || 2,
-    // ✅ 新增：多次任务
-    isCountTask: task.isCountTask || false,
-    count: task.count || 0,
-    countRecords: task.countRecords || []
-  }));
-});
+    const compressedTasks = {};
+    Object.entries(tasksByDate).forEach(([date, tasks]) => {
+      compressedTasks[date] = tasks.map(task => ({
+        id: task.id,
+        text: task.text,
+        category: task.category,
+        subCategory: task.subCategory,
+        done: task.done,
+        timeSpent: task.timeSpent,
+        note: task.note,
+        reflection: task.reflection,
+        updatedAt: task.updatedAt,
+        createdAt: task.createdAt,
+        timeRecords: task.timeRecords?.slice(-5),
+        subTasks: task.subTasks?.length > 0 ? task.subTasks : undefined,
+        pinned: task.pinned,
+        tags: task.tags,
+        progress: task.progress,
+        scheduledTime: task.scheduledTime,
+        reminderTime: task.reminderTime,
+        crossDateId: task.crossDateId,
+        isCrossDate: task.isCrossDate,
+        crossDates: task.crossDates,
+        actualCompletedDate: task.actualCompletedDate,
+        isWeekTask: task.isWeekTask,
+        weekStart: task.weekStart,
+        targetCategory: task.targetCategory,
+        targetSubCategory: task.targetSubCategory,
+        abandoned: task.abandoned,
+        abandonInfo: task.abandonInfo,
+        expValue: task.expValue || 2,
+        isCountTask: task.isCountTask || false,
+        count: task.count || 0,
+        countRecords: task.countRecords || []
+      }));
+    });
     
-// 在 syncToGitHub 函数中，获取数据的地方添加
-const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
+    const categoryColors = JSON.parse(localStorage.getItem('category_colors') || '{}');
 
-const syncData = {
-  tasksByDate: compressedTasks,
-  dailyRatings: allDailyRatings,
-  dailyReflections: allDailyReflections,
-  studyEndTimes,
-  monthTasks: monthTasks.map(t => ({
-    id: t.id,
-    text: t.text,
-    category: t.category,
-    subCategory: t.subCategory,
-    progress: t.progress,
-    target: t.target,
-    updatedAt: t.updatedAt
-  })),
-  categories,
-  reminderText,
-  semesterEndDate,
-  expData: expData,
-  taskOrders: allTaskOrders,
-  subCategoryOrders: allSubCategoryOrders,
-  categoryColors: categoryColors,
-  subjectTodoEntries: JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}'),
-  monthlyBudget: parseFloat(localStorage.getItem('monthly_budget') || '3000'),
-  // ✅ 添加总资产
-  totalAssets: totalAssets,
-  // ✅ 添加显示状态（可选，如果想同步显示状态）
-  showAssets: showAssets,
-  syncTime: new Date().toISOString(),
-  version: '2.5',
-  expenseRecords: expenseRecords,
-  defaultPlanTemplate: localStorage.getItem('default_plan_template') || '',
-  todayExpense: todayExpense,
-  expenseDate: new Date().toISOString().split('T')[0],
-  lastSelectedDate: selectedDate,
-  lastCurrentMonday: currentMonday.toISOString()
-};
+    const syncData = {
+      tasksByDate: compressedTasks,
+      dailyRatings: allDailyRatings,
+      dailyReflections: allDailyReflections,
+      studyEndTimes,
+      monthTasks: monthTasks.map(t => ({
+        id: t.id,
+        text: t.text,
+        category: t.category,
+        subCategory: t.subCategory,
+        progress: t.progress,
+        target: t.target,
+        updatedAt: t.updatedAt
+      })),
+      categories,
+      reminderText,
+      semesterEndDate,
+      expData: expData,
+      taskOrders: allTaskOrders,
+      subCategoryOrders: allSubCategoryOrders,
+      categoryColors: categoryColors,
+      subjectTodoEntries: JSON.parse(localStorage.getItem('subject_todo_entries_v2') || '{}'),
+      monthlyBudget: parseFloat(localStorage.getItem('monthly_budget') || '3000'),
+      totalAssets: totalAssets,
+      showAssets: showAssets,
+      defaultPlanTemplate: localStorage.getItem('default_plan_template') || '',
+      syncTime: new Date().toISOString(),
+      version: '2.6',
+      expenseRecords: expenseRecords,
+      todayExpense: todayExpense,
+      expenseDate: new Date().toISOString().split('T')[0],
+      lastSelectedDate: selectedDate,
+      lastCurrentMonday: currentMonday.toISOString()
+    };
 
     const jsonString = JSON.stringify(syncData);
     console.log(`📦 同步数据大小: ${(jsonString.length / 1024).toFixed(2)} KB`);
 
-    // 获取或创建 Gist
-    let gistId = localStorage.getItem('github_gist_id');
+    // ✅ 使用已经检查过的 gistId
     let method = 'POST';
     let url = 'https://api.github.com/gists';
     
@@ -15439,14 +15511,14 @@ const syncData = {
     }
 
     const gistData = {
-  description: 'Life OS Backup - 人生操作系统备份',
-  public: false,
-  files: {
-    'life-os-data.json': {
-      content: jsonString
-    }
-  }
-};
+      description: 'Life OS Backup - 人生操作系统备份',
+      public: false,
+      files: {
+        'life-os-data.json': {
+          content: jsonString
+        }
+      }
+    };
 
     const response = await fetch(url, {
       method: method,
@@ -15472,7 +15544,6 @@ const syncData = {
 
     // 保存同步哈希和时间
     if (silent) {
-      // 静默同步成功后才更新哈希
       const newHash = getDataHash();
       setLastSyncHash(newHash);
       localStorage.setItem('last_sync_hash', newHash);
@@ -15482,24 +15553,23 @@ const syncData = {
     const syncTime = new Date().toLocaleString();
     
     if (!silent) {
-  alert(`✅ 同步成功！\n时间：${syncTime}`);
-} else {
-  setLastSyncStatus({
-    success: true,
-    time: new Date(),
-    message: `同步成功 (${new Date().toLocaleTimeString()})`
-  });
-  setTimeout(() => {
-    setLastSyncStatus(prev => ({ ...prev, message: '' }));
-  }, 2000);
-}
+      alert(`✅ 同步成功！\n时间：${syncTime}`);
+    } else {
+      setLastSyncStatus({
+        success: true,
+        time: new Date(),
+        message: `同步成功 (${new Date().toLocaleTimeString()})`
+      });
+      setTimeout(() => {
+        setLastSyncStatus(prev => ({ ...prev, message: '' }));
+      }, 2000);
+    }
 
-// ✅ 添加这两行：无论手动还是静默，都保存同步时间
-const now = new Date().toISOString();
-localStorage.setItem('github_last_sync', now);
-localStorage.setItem('PAGE_A_github_last_sync', now);
+    const now = new Date().toISOString();
+    localStorage.setItem('github_last_sync', now);
+    localStorage.setItem('PAGE_A_github_last_sync', now);
 
-return true;
+    return true;
 
   } catch (error) {
     console.error('同步失败:', error);
@@ -15534,7 +15604,6 @@ return true;
     setIsSyncing(false);
   }
 }, [tasksByDate, dailyRatings, dailyReflections, studyEndTimes, monthTasks, categories, reminderText, semesterEndDate, selectedDate, currentMonday, saveDailyData, getDataHash, lastSyncHash, setLastSyncHash]);
-
 
 
 const debouncedSync = useCallback(() => {
@@ -15743,22 +15812,46 @@ useEffect(() => {
 window.showRestoreChoice = showRestoreChoiceModal;
 window.manualSync = () => syncToGitHub(false);
 
+
+
 // 执行云端恢复的函数 - 改为覆盖模式
 // 执行云端恢复的函数 - 改为覆盖模式
+// ===== 在 App 组件中，修改 performCloudRestore 函数 =====
+// ===== 在 App 组件中，修改 performCloudRestore 函数 =====
 const performCloudRestore = useCallback(async () => {
   try {
+    // ========== ✅ 新增：恢复前自动检查 Gist ID ==========
+    const defaultId = '978de7cead4b35c6c0784051f5cc7405';
+    let targetGistId = localStorage.getItem('github_gist_id') || 
+                       localStorage.getItem(PAGE_ID + '_github_gist_id');
+    
+    // 如果没有保存的 ID，使用默认 ID
+    if (!targetGistId) {
+      targetGistId = defaultId;
+      localStorage.setItem(PAGE_ID + '_github_gist_id', defaultId);
+      localStorage.setItem('github_gist_id', defaultId);
+      console.log('✅ 自动设置默认 Gist ID:', defaultId);
+    }
+    
+    // 如果当前 ID 不是默认 ID，自动修复
+    if (targetGistId !== defaultId) {
+      console.warn('⚠️ 检测到非默认 Gist ID:', targetGistId);
+      console.warn('🔄 自动切换回默认 ID:', defaultId);
+      // 自动修复为默认 ID
+      localStorage.setItem(PAGE_ID + '_github_gist_id', defaultId);
+      localStorage.setItem('github_gist_id', defaultId);
+      targetGistId = defaultId;
+      alert(`✅ Gist ID 已自动修复为: ${defaultId}`);
+    }
+    
+    console.log('📁 恢复使用的 Gist ID:', targetGistId);
+    // ========== ✅ 检查结束 ==========
+
     const token = localStorage.getItem('github_token') || localStorage.getItem('PAGE_A_github_token');
     if (!token) {
       alert('请先设置 GitHub Token');
       setShowGitHubSyncModal(true);
       return;
-    }
-    
-    let targetGistId = localStorage.getItem('github_gist_id') || localStorage.getItem('PAGE_A_github_gist_id');
-    
-    // 如果没有保存的 Gist ID，使用默认 ID
-    if (!targetGistId) {
-      targetGistId = '978de7cead4b35c6c0784051f5cc7405';
     }
     
     console.log('📁 开始获取 Gist 数据，ID:', targetGistId);
@@ -15777,8 +15870,7 @@ const performCloudRestore = useCallback(async () => {
     const gist = await response.json();
     console.log('✅ Gist 获取成功，文件列表:', Object.keys(gist.files || {}));
     
-    // ========== ✅ 关键修复：安全获取文件内容 ==========
-    // 尝试多个可能的文件名
+    // ========== ✅ 安全获取文件内容 ==========
     const possibleFileNames = ['life-os-data.json', 'life-os-data', 'data.json', 'backup.json'];
     let fileContent = null;
     let foundFileName = null;
@@ -15791,7 +15883,6 @@ const performCloudRestore = useCallback(async () => {
       }
     }
     
-    // 如果没找到指定文件名，尝试获取第一个 .json 文件
     if (!fileContent && gist.files) {
       const firstJsonFile = Object.values(gist.files).find(
         file => file.filename && file.filename.endsWith('.json')
@@ -15802,7 +15893,6 @@ const performCloudRestore = useCallback(async () => {
       }
     }
     
-    // ========== ✅ 检查是否成功获取内容 ==========
     if (!fileContent) {
       console.error('❌ 未找到数据文件，Gist 文件列表:', gist.files);
       throw new Error('未找到数据文件，请检查 Gist 是否包含有效的 JSON 数据文件');
@@ -15817,7 +15907,6 @@ const performCloudRestore = useCallback(async () => {
       console.log('✅ JSON 解析成功，数据键:', Object.keys(backupData));
     } catch (parseError) {
       console.error('❌ JSON 解析失败:', parseError);
-      // 显示部分内容帮助调试
       const preview = fileContent.substring(0, 200);
       throw new Error(`JSON 解析失败: ${parseError.message}\n内容预览: ${preview}...`);
     }
@@ -15827,7 +15916,6 @@ const performCloudRestore = useCallback(async () => {
       throw new Error('数据格式无效：缺少 tasksByDate 或 tasks 字段');
     }
     
-    // 如果数据是旧格式（tasks），转换为 tasksByDate
     if (backupData.tasks && !backupData.tasksByDate) {
       backupData.tasksByDate = backupData.tasks;
     }
@@ -15837,7 +15925,8 @@ const performCloudRestore = useCallback(async () => {
       复盘天数: Object.keys(backupData.dailyReflections || {}).length,
       本月任务: (backupData.monthTasks || []).length,
       总资产: backupData.totalAssets || 0,
-      分类数: (backupData.categories || []).length
+      分类数: (backupData.categories || []).length,
+      默认计划模板: backupData.defaultPlanTemplate ? '有 ✅' : '无 ❌'
     });
     
     // ========== ✅ 执行恢复 ==========
@@ -15848,6 +15937,8 @@ const performCloudRestore = useCallback(async () => {
     alert('恢复失败: ' + error.message);
   }
 }, [handleRestoreData, setShowGitHubSyncModal]);
+
+
 
 // 调试函数验证星期对应关系
 window.testWeekDays = () => {
@@ -18813,8 +18904,6 @@ const parseBulkTextToPreview = useCallback(() => {
 // 修复批量导入中的图片识别功能 - 图片标记作用于上面的任务（标记行在下，任务在上）
 
 // 修改函数定义，接收 currentSelectedDate 参数
-
-
 const handleImportTasksWithDuration = (currentSelectedDate) => {
   console.log('🎯 === 开始批量导入 ===');
   
@@ -18976,6 +19065,16 @@ const handleImportTasksWithDuration = (currentSelectedDate) => {
       taskDates = getDefaultDates();
     }
     
+    // ========== ✅ 解析分数 ::数字（放在最前面，避免被其他解析干扰） ==========
+    let expValue = 2;  // 默认 2 分
+    const expRegex = /::\s*(\d+)/;
+    const expMatch = cleanTaskLine.match(expRegex);
+    if (expMatch) {
+      expValue = parseInt(expMatch[1]);
+      // 从任务文本中移除 ::数字
+      cleanTaskLine = cleanTaskLine.replace(/::\s*\d+/, '').trim();
+    }
+    
     // 解析任务文本和备注
     let taskText = cleanTaskLine;
     let note = "";
@@ -19003,25 +19102,19 @@ const handleImportTasksWithDuration = (currentSelectedDate) => {
     }
     const cleanText = taskText.replace(/#[^\s#]+/g, '').trim();
     
-    // 提取经验值（::后面的数字）
-    let expValue = 2;
-    const expRegex = /::\s*(\d+)/;
-    const expMatch = taskText.match(expRegex);
-    if (expMatch) {
-      expValue = parseInt(expMatch[1]);
-    }
-    const finalText = cleanText.replace(/::\s*\d+/g, '').trim();
+    // ✅ 最终任务文本（去掉标签和分数标记后的纯文本）
+    const finalText = cleanText.trim() || taskText.trim();
     
     console.log(`📝 任务: "${finalText}", 分类: ${currentCategory}, 标签: ${tags}, 分值: ${expValue}`);
     
     taskInfos.push({
-      text: finalText || taskText,
+      text: finalText,
       note: note,
       dates: taskDates,
       hasImage: false,
       category: currentCategory,
       tags: tags,
-      expValue: expValue
+      expValue: expValue  // ✅ 保存解析出的分数
     });
   }
 
@@ -19051,7 +19144,7 @@ const handleImportTasksWithDuration = (currentSelectedDate) => {
         pinned: false,
         reflection: "",
         tags: [...tags, ...(bulkTags || [])],
-        expValue: expValue || 2,
+        expValue: expValue || 2,  // ✅ 使用解析出的分数
         subTasks: [],
         progress: {
           initial: 0,
@@ -19063,7 +19156,7 @@ const handleImportTasksWithDuration = (currentSelectedDate) => {
       };
       
       allTasksByDate[date].push(newTask);
-      console.log(`  ✅ 在 ${date} 创建任务: "${taskText}" (${category})`);
+      console.log(`  ✅ 在 ${date} 创建任务: "${taskText}" (${category}) 分值: ${expValue}`);
     });
   });
   
@@ -19102,6 +19195,10 @@ const handleImportTasksWithDuration = (currentSelectedDate) => {
   
   alert(`✅ 导入成功！\n\n📝 计划：${taskInfos.length} 个\n📅 实例：${totalTasksCount} 个`);
 };
+
+
+
+
 const handleImportTasks = () => {
   console.log('🎯 === 开始批量导入 ===');
   
@@ -20494,6 +20591,7 @@ const getTasksForSkill = (skillName) => {
         setShowAssets={setShowAssets}
         totalAssets={totalAssets}
         setTotalAssets={setTotalAssets}
+        
       />
     </div>
   </div>
@@ -20670,6 +20768,8 @@ const getTasksForSkill = (skillName) => {
     </div>
   </div>
 </div>
+
+
 {/* ===== 💰 今日消费卡片 ===== */}
 
 {/* ===== 💰 消费统计卡片（电脑端） ===== */}
@@ -20809,7 +20909,136 @@ const getTasksForSkill = (skillName) => {
     </div>
   </div>
 )}
+{showMoreMenu && (
+  <div style={{
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "6px",
+    marginTop: 4,
+    marginBottom: 8,
+    padding: "6px 8px",
+    backgroundColor: "#f0f4f8",
+    borderRadius: 8,
+    flexWrap: "wrap",
+    width: '100%',
+    boxSizing: 'border-box'
+  }}>
+    <div
+      onClick={() => {
+        setShowStats(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      汇总
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowSubjectTodoModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      待办
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowWeekTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      本周
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowMonthTaskModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      本月
+    </div>
+    
+    <div
+      onClick={() => {
+        setShowSearchModal(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      搜索
+    </div>
 
+    <div
+      onClick={() => {
+        setShowAttributePage(true);
+        setShowMoreMenu(false);
+      }}
+      style={{
+        padding: "2px 10px",
+        backgroundColor: "#61A2Da",
+        color: "#fff",
+        borderRadius: "4px",
+        cursor: "pointer",
+        fontSize: "11px",
+        textAlign: "center",
+        whiteSpace: 'nowrap'
+      }}
+    >
+      属性
+    </div>
+  </div>
+)}
 
 
 
@@ -20846,9 +21075,12 @@ const getTasksForSkill = (skillName) => {
       setShowAssets={setShowAssets}
       totalAssets={totalAssets}
       setTotalAssets={setTotalAssets}
+      onToggleMoreMenu={() => setShowMoreMenu(!showMoreMenu)} 
       />
     </div>
   )}
+
+  
 
 {/* ===== 本周切换 + 本月剩余 + 消费 + 三点按钮 ===== */}
 <div style={{
@@ -20863,6 +21095,8 @@ const getTasksForSkill = (skillName) => {
   boxSizing: 'border-box',
   overflow: 'hidden'
 }}>
+  
+
   
   {/* 左侧：上一周 + 日期 + 下一周 */}
   <div style={{ 
@@ -20975,173 +21209,141 @@ const getTasksForSkill = (skillName) => {
     
 
     {/* 三点按钮 - 固定不收缩 */}
-   <div
-  onClick={(e) => {
-    e.stopPropagation();
-    setShowMoreMenu(!showMoreMenu);
+{/* ✅ ⋮ 更多菜单按钮 - 仅手机端显示 */}
+  {isDesktop && (
+    <div
+      onClick={() => setShowMoreMenu(!showMoreMenu)}
+      style={{
+        padding: "2px 4px",
+        backgroundColor: "transparent",
+        border: "none",
+        cursor: "pointer",
+        fontSize: "16px",
+        textAlign: "center",
+        height: "28px",
+        lineHeight: "28px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        whiteSpace: 'nowrap',
+        minWidth: "20px",
+        flexShrink: 0,
+        userSelect: 'none',
+        color: "#61A2Da",
+        outline: 'none',
+        boxSizing: 'border-box'
+      }}
+      title="更多功能"
+    >
+      ⋮
+    </div>
+  )}
+
+
+ {/* ☁️ 立即同步 - 图标按钮 */}
+   {/* ☁️ 上传图标 - 立即同步 */}
+{/* ☁️ 上传图标 - 立即同步 */}
+<div
+  onClick={() => {
+    if (isSyncing) {
+      alert('正在同步中，请稍候...');
+      return;
+    }
+    syncToGitHub();
   }}
   style={{
-    padding: "2px 4px",
-    backgroundColor: "transparent",
-    border: "none",
-    cursor: "pointer",
-    fontSize: "16px",
-    textAlign: "center",
-    height: "28px",  // 👈 改成和金额一样高
-    lineHeight: "28px",  // 👈 和高度一致
-    display: "flex",  // 👈 改为 flex
-    alignItems: "center",  // 👈 垂直居中
-    justifyContent: "center",
-    whiteSpace: 'nowrap',
-    minWidth: "20px",
-    flexShrink: 0,
-    userSelect: 'none',
-    transition: 'none',
-    transform: 'none',
-    color: "#61A2Da",
-    outline: 'none',
-    boxSizing: 'border-box',
-    marginTop: "-2px" 
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: isSyncing ? 'not-allowed' : 'pointer',
+    opacity: isSyncing ? 0.5 : 1,
+    flexShrink: 0
   }}
+  title={isSyncing ? "同步中..." : "立即同步到云端"}
 >
-  ⋮
+  <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#61A2Da" strokeWidth="1.5" style={{ marginTop: '3px' }} strokeLinecap="round" strokeLinejoin="round">
+    
+    <path d="M17,10a3.1,3.1,0,0,0-.54.05,4.48,4.48,0,0,0-8.92,0A3.1,3.1,0,0,0,7,10a3,3,0,0,0,0,6H17a3,3,0,0,0,0-6Z"/>
+    <polyline points="10.5 11.5 12 10 13.5 11.5"/>
+    <line x1="12" x2="12" y1="10" y2="14"/>
+  </svg>
 </div>
+
+{/* 📥 下载图标 - 恢复云端 */}
+<div
+  onClick={() => {
+    const token = localStorage.getItem(PAGE_ID + '_github_token');
+    if (!token) {
+      alert('请先设置 GitHub Token');
+      setShowGitHubSyncModal(true);
+      return;
+    }
+    if (window.confirm('⚠️ 确定要从云端覆盖本地数据吗？\n\n此操作将：\n• 用云端数据完全替换本地数据\n• 丢失所有本地未同步的更改\n• 不可撤销！')) {
+      setIsRestoring(true);
+      const forceRestoreFromCloud = async () => {
+        try {
+          const token = localStorage.getItem('github_token') || localStorage.getItem('PAGE_A_github_token');
+          let targetGistId = localStorage.getItem('github_gist_id') || localStorage.getItem('PAGE_A_github_gist_id');
+          if (!targetGistId) {
+            const latestGist = await getLatestStudyTrackerGist(token);
+            if (latestGist) {
+              targetGistId = latestGist.id;
+              localStorage.setItem('github_gist_id', targetGistId);
+            } else {
+              throw new Error('未找到云端备份数据');
+            }
+          }
+          const response = await fetch(`https://api.github.com/gists/${targetGistId}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          if (!response.ok) throw new Error(`获取失败: ${response.status}`);
+          const gist = await response.json();
+          const content = gist.files['life-os-data.json']?.content;
+          const backupData = JSON.parse(content);
+          await handleRestoreData(backupData, 'overwrite');
+        } catch (error) {
+          console.error('覆盖失败:', error);
+          alert('覆盖失败: ' + error.message);
+        } finally {
+          setIsRestoring(false);
+        }
+      };
+      forceRestoreFromCloud();
+    }
+  }}
+  style={{
+    width: '28px',
+    height: '28px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: isRestoring ? 'not-allowed' : 'pointer',
+    opacity: isRestoring ? 0.5 : 1,
+    flexShrink: 0
+  }}
+  title={isRestoring ? "恢复中..." : "从云端恢复数据"}
+>
+  <svg viewBox="0 0 24 24" width="24" style={{ marginTop: '3px' }}  height="24" fill="none" stroke="#61A2Da" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    
+    <path d="M17,10a3.1,3.1,0,0,0-.54.05,4.48,4.48,0,0,0-8.92,0A3.1,3.1,0,0,0,7,10a3,3,0,0,0,0,6H17a3,3,0,0,0,0-6Z"/>
+    {/* ✅ 箭头向下 */}
+    <polyline points="10.5 12.5 12 14 13.5 12.5"/>
+    <line x1="12" x2="12" y1="10" y2="14"/>
+  </svg>
+</div>
+
+
   </div>
 </div>
 
 {/* ===== ⭐ 更多菜单 - 点击三点按钮展开/收起 ===== */}
 {/* ===== ⭐ 更多菜单 - 5个按钮居中排列 ===== */}
-{showMoreMenu && (
-  <div style={{
-    display: "flex",
-    justifyContent: "center",  // 👈 居中排列
-    alignItems: "center",
-    gap: "6px",  // 👈 按钮之间间距
-    marginTop: 4,
-    marginBottom: 8,
-    padding: "6px 8px",
-    backgroundColor: "#f0f4f8",
-    borderRadius: 8,
-    flexWrap: "wrap",
-    width: '100%',
-    boxSizing: 'border-box'
-  }}>
-    <div
-      onClick={() => {
-        setShowStats(true);
-        setShowMoreMenu(false);
-      }}
-      style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
-    >
-      汇总
-    </div>
-    
-    <div
-      onClick={() => {
-        setShowSubjectTodoModal(true);
-        setShowMoreMenu(false);
-      }}
-      style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
-    >
-      待办
-    </div>
-    
-    <div
-      onClick={() => {
-        setShowWeekTaskModal(true);
-        setShowMoreMenu(false);
-      }}
-      style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
-    >
-      本周
-    </div>
-    
-    <div
-      onClick={() => {
-        setShowMonthTaskModal(true);
-        setShowMoreMenu(false);
-      }}
-      style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
-    >
-      本月
-    </div>
-    
-    <div
-      onClick={() => {
-        setShowSearchModal(true);
-        setShowMoreMenu(false);
-      }}
-      style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
-    >
-      搜索
-    </div>
 
-
-{/* ✅ 新增：属性按钮 */}
-<div
-  onClick={() => setShowAttributePage(true)}
-  style={{
-        padding: "2px 10px",
-        backgroundColor: "#61A2Da",
-        color: "#fff",
-        borderRadius: "4px",
-        cursor: "pointer",
-        fontSize: "11px",
-        textAlign: "center",
-        whiteSpace: 'nowrap'
-      }}
->
-  属性
-</div>
-
-
-  </div>
-)}
 
 
 
