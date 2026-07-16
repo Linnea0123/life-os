@@ -5093,21 +5093,26 @@ const ActionMenuModal = ({ task, onClose, setShowCrossDateModal, onEditText, onE
 };
 
 
+// WeekTaskModal 组件 - 添加分类标签选择
+// 本周任务模态框组件 - 包含技能标签选择
 const WeekTaskModal = ({ onClose, onAdd, categories }) => {
   const [taskText, setTaskText] = useState('');
   const [targetCategory, setTargetCategory] = useState('健康');
-
-  const handleAdd = () => {
-    if (taskText.trim()) {
-      onAdd(taskText.trim(), targetCategory);
-      onClose();
-    }
-  };
+  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [bulkNewTagName, setBulkNewTagName] = useState('');
+  const [newTaskExpValue, setNewTaskExpValue] = useState(2);
 
   // 获取可用的分类（排除"本周任务"）
   const availableCategories = (categories || []).filter(c => 
     c.name !== "本周任务"
   );
+
+  const handleAdd = () => {
+    if (taskText.trim()) {
+      onAdd(taskText.trim(), targetCategory, selectedSkills, newTaskExpValue);
+      onClose();
+    }
+  };
 
   return (
     <div style={{
@@ -5128,7 +5133,9 @@ const WeekTaskModal = ({ onClose, onAdd, categories }) => {
         borderRadius: 10,
         width: '90%',
         maxWidth: 350,
-        boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+        boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+        maxHeight: '80vh',
+        overflow: 'auto'
       }} onClick={e => e.stopPropagation()}>
         <h3 style={{ 
           textAlign: 'center', 
@@ -5139,6 +5146,7 @@ const WeekTaskModal = ({ onClose, onAdd, categories }) => {
           添加本周任务
         </h3>
         
+        {/* 任务内容 */}
         <div style={{ marginBottom: 15 }}>
           <label style={{ 
             display: 'block', 
@@ -5169,6 +5177,7 @@ const WeekTaskModal = ({ onClose, onAdd, categories }) => {
           />
         </div>
 
+        {/* 目标分类 */}
         <div style={{ marginBottom: 15 }}>
           <label style={{ 
             display: 'block', 
@@ -5199,6 +5208,292 @@ const WeekTaskModal = ({ onClose, onAdd, categories }) => {
               </option>
             ))}
           </select>
+        </div>
+
+        {/* 技能标签选择 - 和添加任务界面一样 */}
+        <div style={{
+          marginBottom: 15,
+          padding: '8px 12px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: 8
+        }}>
+          <div style={{
+            fontSize: '12px',
+            color: '#666',
+            marginBottom: '6px',
+            fontWeight: '500'
+          }}>
+            技能标签
+          </div>
+          
+          {/* 自定义输入区域 */}
+          <div style={{
+            display: 'flex',
+            gap: '6px',
+            marginBottom: '8px'
+          }}>
+            <input
+              type="text"
+              value={bulkNewTagName}
+              onChange={(e) => setBulkNewTagName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter' && bulkNewTagName.trim()) {
+                  const tag = bulkNewTagName.trim();
+                  if (!selectedSkills.includes(tag)) {
+                    setSelectedSkills([...selectedSkills, tag]);
+                    setBulkNewTagName('');
+                  }
+                }
+              }}
+              placeholder="输入自定义标签，按 Enter 添加"
+              style={{
+                flex: 1,
+                padding: '6px 10px',
+                border: '1px solid #ddd',
+                borderRadius: '6px',
+                fontSize: '12px',
+                outline: 'none'
+              }}
+            />
+            <div
+              onClick={() => {
+                if (bulkNewTagName.trim()) {
+                  const tag = bulkNewTagName.trim();
+                  if (!selectedSkills.includes(tag)) {
+                    setSelectedSkills([...selectedSkills, tag]);
+                    setBulkNewTagName('');
+                  }
+                }
+              }}
+              style={{
+                padding: '6px 14px',
+                backgroundColor: '#61A2Da',
+                color: '#fff',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              添加
+            </div>
+          </div>
+          
+          {/* 预设标签快速选择 */}
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '6px'
+          }}>
+            {[
+              '健身', '阅读', '英语', '冥想', '理财', 
+              '烹饪', '自媒体', '运动', '育儿', '摄影', 
+              '写作', '日语'
+            ].map(skill => {
+              const isSelected = selectedSkills.includes(skill);
+              const skillColors = {
+                '运动': '#E8F5E9', '阅读': '#E3F2FD', '英语': '#FCE4EC',
+                '冥想': '#F3E5F5', '理财': '#FFF8E1', '烹饪': '#FFF3E0',
+                '写作': '#E8EAF6', '自媒体': '#E8F5E9', '育儿': '#FCE4EC',
+                '摄影': '#E1F5FE', '音乐': '#F3E5F5', '日语': '#FCE4EC'
+              };
+              const color = skillColors[skill] || '#f0f0f0';
+              
+              return (
+                <span
+                  key={skill}
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedSkills(selectedSkills.filter(s => s !== skill));
+                    } else {
+                      setSelectedSkills([...selectedSkills, skill]);
+                    }
+                  }}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    padding: '4px 12px',
+                    backgroundColor: isSelected ? color : '#f0f0f0',
+                    color: isSelected ? '#333' : '#999',
+                    borderRadius: '14px',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    border: isSelected ? '1.5px solid #61A2Da' : '1px solid #e0e0e0',
+                    minWidth: '44px',
+                    height: '28px',
+                    transition: 'none',
+                    fontWeight: isSelected ? '500' : 'normal'
+                  }}
+                >
+                  {skill}
+                </span>
+              );
+            })}
+          </div>
+          
+          {/* 已选标签展示 */}
+          {selectedSkills.length > 0 && (
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '4px',
+              marginTop: '8px',
+              paddingTop: '8px',
+              borderTop: '1px dashed #e0e0e0'
+            }}>
+              {selectedSkills.map(tag => (
+                <span
+                  key={tag}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    padding: '2px 10px',
+                    backgroundColor: '#61A2Da',
+                    color: '#fff',
+                    borderRadius: '12px',
+                    fontSize: '11px',
+                    height: '24px'
+                  }}
+                >
+                  {tag}
+                  <span
+                    onClick={() => {
+                      setSelectedSkills(selectedSkills.filter(s => s !== tag));
+                    }}
+                    style={{
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      opacity: 0.8,
+                      marginLeft: '2px'
+                    }}
+                  >
+                    ×
+                  </span>
+                </span>
+              ))}
+              <span style={{
+                fontSize: '10px',
+                color: '#999',
+                display: 'flex',
+                alignItems: 'center',
+                paddingLeft: '4px'
+              }}>
+                共 {selectedSkills.length} 个标签
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* 分值设置 - 和添加任务界面一样 */}
+        <div style={{ 
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 15,
+          padding: '4px 8px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: 6
+        }}>
+          <span style={{
+            fontSize: '12px',
+            color: '#666',
+            fontWeight: '500'
+          }}>
+            分值
+          </span>
+          
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px'
+          }}>
+            {/* - 按钮 */}
+            <div
+              onClick={() => {
+                const current = parseInt(newTaskExpValue) || 0;
+                setNewTaskExpValue(current - 1);
+              }}
+              style={{
+                width: '26px',
+                height: '26px',
+                borderRadius: '4px',
+                backgroundColor: '#f0f0f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: '#f44336',
+                border: '1px solid #e0e0e0'
+              }}
+            >
+              −
+            </div>
+            
+            {/* 输入框 */}
+            <input
+              type="number"
+              step="1"
+              value={newTaskExpValue}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 0;
+                setNewTaskExpValue(val);
+              }}
+              style={{
+                width: '50px',
+                padding: '4px 2px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                fontSize: '14px',
+                textAlign: 'center',
+                boxSizing: 'border-box',
+                fontWeight: 'bold'
+              }}
+            />
+            
+            {/* + 按钮 */}
+            <div
+              onClick={() => {
+                const current = parseInt(newTaskExpValue) || 0;
+                setNewTaskExpValue(current + 1);
+              }}
+              style={{
+                width: '26px',
+                height: '26px',
+                borderRadius: '4px',
+                backgroundColor: '#f0f0f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                userSelect: 'none',
+                color: '#4caf50',
+                border: '1px solid #e0e0e0'
+              }}
+            >
+              +
+            </div>
+          </div>
+        </div>
+
+        <div style={{
+          fontSize: 11,
+          color: '#999',
+          marginBottom: 15,
+          padding: '8px',
+          backgroundColor: '#f5f5f5',
+          borderRadius: 6,
+          textAlign: 'center'
+        }}>
+          💡 提示：完成任务后会自动移动到所选分类
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
@@ -8217,6 +8512,7 @@ const TaskItem = ({
   showCategoryTag = false,
   formatTimeNoSeconds,
   toggleDone,
+  categoryColors = {},
   selectedDate, 
   formatTimeWithSeconds,
   onMoveTask,
@@ -8443,6 +8739,22 @@ const handleProgressAdjust = (increment) => {
   }}
 >
   {task.text}
+
+  {/* ✅ 显示目标分类标签 - 本周任务专用 */}
+  {task.isWeekTask && task.targetCategory && (
+    <span style={{
+      display: 'inline-block',
+      fontSize: '9px',
+      padding: '1px 8px',
+      backgroundColor: categoryColors?.[task.targetCategory] || '#f0f0f0',
+      color: '#333',
+      borderRadius: '10px',
+      marginLeft: '6px',
+      border: '1px solid rgba(0,0,0,0.05)'
+    }}>
+      {task.targetCategory}
+    </span>
+  )}
   
   {/* ✅ 显示技能标签 */}
   {task.tags && task.tags.length > 0 && (
@@ -8459,7 +8771,7 @@ const handleProgressAdjust = (increment) => {
           '写作': { bg: '#E8EAF6', color: '#1A237E' },
           '编程': { bg: '#E8F5E9', color: '#1B5E20' },
           '设计': { bg: '#FCE4EC', color: '#880E4F' },
-          '音乐': { bg: '#F3E5F5', color: '#4A148C' },
+          '自媒体': { bg: '#F3E5F5', color: '#4A148C' },
           '摄影': { bg: '#E1F5FE', color: '#01579B' },
           '育儿': { bg: '#FCE4EC', color: '#880E4F' },
           '运动': { bg: '#E8F5E9', color: '#2E7D32' }
@@ -9310,7 +9622,8 @@ const SortableTaskList = ({
   onUpdateProgress,
   onEditSubTask,
   onIncrementCount, 
-  onToggleSubTask
+  categoryColors = {}, 
+  onToggleSubTask, 
 }) => {
   const [taskList, setTaskList] = useState([]);
   const [draggedIndex, setDraggedIndex] = useState(null);
@@ -9686,6 +9999,7 @@ const handleMouseDown = (e, index) => {
             onEditTime={onEditTime}
             onDeleteImage={onDeleteImage}
             onEditNote={onEditNote}
+            categoryColors={categoryColors} 
             onUpdateExpValue={onUpdateExpValue} 
             onEditReflection={onEditReflection}
             onOpenEditModal={onOpenEditModal} 
@@ -12617,7 +12931,7 @@ const getSkillColor = (skill) => {
     '运动': '#4CAF50',
     '育儿': '#E91E63',
     '摄影': '#03A9F4',
-    '音乐': '#9C27B0',
+    '自媒体': '#9C27B0',
     '设计': '#E91E63',
     '编程': '#4CAF50',
     '日语': '#E91E63',
@@ -18627,7 +18941,9 @@ const startEditTask = (task) => {
 
 // 在 handleAddWeekTask 函数中（约第 4070 行）
 // 添加本周任务 - 只添加1个
-const handleAddWeekTask = (text, targetCategory = '健康') => {
+// 添加本周任务 - 包含目标分类
+// 添加本周任务 - 包含目标分类、技能标签和分值
+const handleAddWeekTask = (text, targetCategory = '健康', skills = [], expValue = 2) => {
   if (!text.trim()) return;
 
   const weekStart = currentMonday.toISOString();
@@ -18637,7 +18953,6 @@ const handleAddWeekTask = (text, targetCategory = '健康') => {
     const newTasksByDate = { ...prev };
     const today = new Date().toISOString().split('T')[0];
     
-    // 只添加到今天
     if (!newTasksByDate[today]) {
       newTasksByDate[today] = [];
     }
@@ -18654,6 +18969,7 @@ const handleAddWeekTask = (text, targetCategory = '健康') => {
         id: `${taskId}_${today}`,
         text: text.trim(),
         category: "本周任务",
+        targetCategory: targetCategory,
         done: false,
         timeSpent: 0,
         timeRecords: [],
@@ -18663,7 +18979,8 @@ const handleAddWeekTask = (text, targetCategory = '健康') => {
         image: null,
         scheduledTime: "",
         pinned: false,
-        tags: [],
+        tags: skills,  // ✅ 保存技能标签
+        expValue: expValue,  // ✅ 保存分值
         progress: {
           initial: 0,
           current: 0,
@@ -18673,14 +18990,16 @@ const handleAddWeekTask = (text, targetCategory = '健康') => {
         reminderTime: null,
         isWeekTask: true,
         weekStart: weekStart,
-        targetCategory: targetCategory,
+        createdAt: new Date().toISOString()
       };
       
       newTasksByDate[today].push(newTask);
       
+      // 显示成功提示
       setTimeout(() => {
         const toast = document.createElement('div');
-        toast.textContent = `✅ 已添加本周任务: ${text.trim()}`;
+        const skillText = skills.length > 0 ? ` #${skills.join(' #')}` : '';
+        toast.textContent = `✅ 已添加本周任务: ${text.trim()} → ${targetCategory}${skillText}`;
         toast.style.cssText = `
           position: fixed;
           bottom: 80px;
@@ -21735,6 +22054,7 @@ const getTasksForSkill = (skillName) => {
             }}
             onDeleteTask={deleteTask}
             onEditTime={editTaskTime}
+            categoryColors={categoryColors}  
             onDeleteImage={handleDeleteImage}
             onEditNote={editTaskNote}
             onEditReflection={editTaskReflection}
@@ -21752,6 +22072,7 @@ const getTasksForSkill = (skillName) => {
             onToggleSubTask={toggleSubTask}
             getTaskCompletionType={getTaskCompletionType}
              onIncrementCount={handleIncrementCount} 
+             
           />
         </div>
       )}
@@ -21931,6 +22252,7 @@ const getTasksForSkill = (skillName) => {
             onEditSubTask={editSubTask}
             onToggleSubTask={toggleSubTask}
             onUpdateExpValue={updateTaskExpValue} 
+            categoryColors={categoryColors} 
           />
         </div>
       )}
@@ -22516,7 +22838,7 @@ const getTasksForSkill = (skillName) => {
                     '运动': '🏃',
                     '育儿': '👶',
                     '摄影': '📷',
-                    '音乐': '🎵',
+                    '自媒体': '🎵',
                     '设计': '🎨',
                     '编程': '💻'
                   };
@@ -23066,8 +23388,8 @@ const getTasksForSkill = (skillName) => {
   }}>
     {[
       '健身', '阅读', '英语', '冥想', '理财', 
-      '烹饪', '写作', '运动', '育儿', '摄影', 
-      '音乐', '设计'
+      '烹饪', '自媒体', '运动', '育儿', '摄影', 
+      '写作', '日语'
     ].map(skill => {
       const isSelected = selectedSkills.includes(skill);
       const skillColors = {
